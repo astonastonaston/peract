@@ -8,6 +8,7 @@ from scipy.spatial.transform import Rotation
 from rlbench.backend.observation import Observation
 from rlbench import CameraConfig, ObservationConfig
 from pyrep.const import RenderMode
+from helpers import demo_loading_utils
 from typing import List
 
 REMOVE_KEYS = ['joint_velocities', 'joint_positions', 'joint_forces',
@@ -319,29 +320,25 @@ def split_list(lst, n):
         yield lst[i:i + n]
 
 
-def extract_obs(obs: Observation,
+def extract_obs(demo: Dict, keypoint: int,
                 cameras,
                 t: int = 0,
                 prev_action=None,
                 channels_last: bool = False,
                 episode_length: int = 10):
-    obs.joint_velocities = None
-    grip_mat = obs.gripper_matrix
-    grip_pose = obs.gripper_pose
-    joint_pos = obs.joint_positions
-    obs.gripper_pose = None
-    obs.gripper_matrix = None
-    obs.wrist_camera_matrix = None
-    obs.joint_positions = None
-    if obs.gripper_joint_positions is not None:
-        obs.gripper_joint_positions = np.clip(
-            obs.gripper_joint_positions, 0., 0.04)
+    # TODO: extract rgbs and pcds of each camera to obs_dict
+    # Maniskill3 pointcloud has w coordinate: Indicating whether it's infinite far. To this end, it can be more robust then the original rlbench-based peract's pointcloud
+    # all rgbs and pcds are aggregated from all cameras, so you don't have to aggregate again during training
+    obs_dict = {"rgb": demo_loading_utils._get_rgb_from_pcd_obs(demo, keypoint), 
+                "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, keypoint)}
 
-    obs_dict = vars(obs)
-    obs_dict = {k: v for k, v in obs_dict.items() if v is not None}
+    gripper_joint_positions = demo_loading_utils._get_gripper_joint_positions(demo, keypoint)
+    if gripper_joint_positions is not None:
+        gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
+
     robot_state = np.array([
-        obs.gripper_open,
-        *obs.gripper_joint_positions])
+        demo_loading_utils._check_gripper_open(demo, keypoint),
+        *gripper_joint_positions]) # left and right finger joint positions
     # remove low-level proprioception variables that are not needed
     obs_dict = {k: v for k, v in obs_dict.items()
                 if k not in REMOVE_KEYS}
@@ -357,23 +354,21 @@ def extract_obs(obs: Observation,
                     for k, v in obs_dict.items()}
     obs_dict['low_dim_state'] = np.array(robot_state, dtype=np.float32)
 
+    # TODO: Set collision action bits
     # binary variable indicating if collisions are allowed or not while planning paths to reach poses
-    obs_dict['ignore_collisions'] = np.array([obs.ignore_collisions], dtype=np.float32)
+    obs_dict['ignore_collisions'] = np.array([demo_loading_utils._get_ignore_collision(demo, keypoint)], dtype=np.float32)
     for (k, v) in [(k, v) for k, v in obs_dict.items() if 'point_cloud' in k]:
         obs_dict[k] = v.astype(np.float32)
 
     for camera_name in cameras:
-        obs_dict['%s_camera_extrinsics' % camera_name] = obs.misc['%s_camera_extrinsics' % camera_name]
-        obs_dict['%s_camera_intrinsics' % camera_name] = obs.misc['%s_camera_intrinsics' % camera_name]
+        extrinsics, intrinsics = demo_loading_utils._get_camera_extrinsics_intrinsics(demo, keypoint, camera_name)
+        obs_dict['%s_camera_extrinsics' % camera_name] = extrinsics
+        obs_dict['%s_camera_intrinsics' % camera_name] = intrinsics
 
     # add timestep to low_dim_state
     time = (1. - (t / float(episode_length - 1))) * 2. - 1.
     obs_dict['low_dim_state'] = np.concatenate(
         [obs_dict['low_dim_state'], [time]]).astype(np.float32)
-
-    obs.gripper_matrix = grip_mat
-    obs.joint_positions = joint_pos
-    obs.gripper_pose = grip_pose
 
     return obs_dict
 
@@ -381,41 +376,43 @@ def extract_obs(obs: Observation,
 def create_obs_config(camera_names: List[str],
                        camera_resolution: List[int],
                        method_name: str):
-    unused_cams = CameraConfig()
-    unused_cams.set_all(False)
-    used_cams = CameraConfig(
-        rgb=True,
-        point_cloud=True,
-        mask=False,
-        depth=False,
-        image_size=camera_resolution,
-        render_mode=RenderMode.OPENGL)
+    # unused_cams = CameraConfig()
+    # unused_cams.set_all(False)
+    # used_cams = CameraConfig(
+    #     rgb=True,
+    #     point_cloud=True,
+    #     mask=False,
+    #     depth=False,
+    #     image_size=camera_resolution,
+    #     render_mode=RenderMode.OPENGL)
 
-    cam_obs = []
-    kwargs = {}
-    for n in camera_names:
-        kwargs[n] = used_cams
-        cam_obs.append('%s_rgb' % n)
-        cam_obs.append('%s_pointcloud' % n)
+    # cam_obs = []
+    # kwargs = {}
+    # for n in camera_names:
+    #     kwargs[n] = used_cams
+    #     cam_obs.append('%s_rgb' % n)
+    #     cam_obs.append('%s_pointcloud' % n)
 
-    # Some of these obs are only used for keypoint detection.
-    obs_config = ObservationConfig(
-        front_camera=kwargs.get('front', unused_cams),
-        left_shoulder_camera=kwargs.get('left_shoulder', unused_cams),
-        right_shoulder_camera=kwargs.get('right_shoulder', unused_cams),
-        wrist_camera=kwargs.get('wrist', unused_cams),
-        overhead_camera=kwargs.get('overhead', unused_cams),
-        joint_forces=False,
-        joint_positions=True,
-        joint_velocities=True,
-        task_low_dim_state=False,
-        gripper_touch_forces=False,
-        gripper_pose=True,
-        gripper_open=True,
-        gripper_matrix=True,
-        gripper_joint_positions=True,
-    )
-    return obs_config
+    # # Some of these obs are only used for keypoint detection.
+    # obs_config = ObservationConfig(
+    #     front_camera=kwargs.get('front', unused_cams),
+    #     left_shoulder_camera=kwargs.get('left_shoulder', unused_cams),
+    #     right_shoulder_camera=kwargs.get('right_shoulder', unused_cams),
+    #     wrist_camera=kwargs.get('wrist', unused_cams),
+    #     overhead_camera=kwargs.get('overhead', unused_cams),
+    #     joint_forces=False,
+    #     joint_positions=True,
+    #     joint_velocities=True,
+    #     task_low_dim_state=False,
+    #     gripper_touch_forces=False,
+    #     gripper_pose=True,
+    #     gripper_open=True,
+    #     gripper_matrix=True,
+    #     gripper_joint_positions=True,
+    # )
+    # return obs_config
+    # TODO: Do observation config for ms3
+    return 0
 
 
 def get_device(gpu):

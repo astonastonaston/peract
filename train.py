@@ -10,7 +10,7 @@ import numpy as np
 from omegaconf import DictConfig, OmegaConf, ListConfig
 
 import run_seed_fn
-from helpers.utils import create_obs_config
+# from helpers.utils import create_obs_config
 
 import torch.multiprocessing as mp
 mp.set_sharing_strategy('file_system')
@@ -32,13 +32,14 @@ def main(cfg: DictConfig) -> None:
     os.environ['MASTER_ADDR'] = cfg.ddp.master_addr
     os.environ['MASTER_PORT'] = cfg.ddp.master_port
 
-    cfg.rlbench.cameras = cfg.rlbench.cameras \
-        if isinstance(cfg.rlbench.cameras, ListConfig) else [cfg.rlbench.cameras]
-    obs_config = create_obs_config(cfg.rlbench.cameras,
-                                   cfg.rlbench.camera_resolution,
-                                   cfg.method.name)
-    multi_task = len(cfg.rlbench.tasks) > 1
-
+    cfg.maniskill3.cameras = cfg.maniskill3.cameras \
+        if isinstance(cfg.maniskill3.cameras, ListConfig) else [cfg.maniskill3.cameras]
+    # TODO: Do obs config
+    # obs_config = create_obs_config(cfg.maniskill3.cameras,
+    #                                cfg.maniskill3.camera_resolution,
+    #                                cfg.method.name)
+    multi_task = len(cfg.maniskill3.tasks) > 1
+    
     cwd = os.getcwd()
     logging.info('CWD:' + os.getcwd())
 
@@ -78,8 +79,8 @@ def main(cfg: DictConfig) -> None:
         world_size = cfg.ddp.num_devices
         mp.spawn(run_seed_fn.run_seed,
                  args=(cfg,
-                       obs_config,
-                       cfg.rlbench.cameras,
+                    #    obs_config,
+                       cfg.maniskill3.cameras,
                        multi_task,
                        seed,
                        world_size,),

@@ -3,19 +3,20 @@
 # License: https://github.com/stepjam/ARM/LICENSE
 
 import logging
-from typing import List
+from typing import List, Dict
 
 import numpy as np
-from rlbench.backend.observation import Observation
-from rlbench.observation_config import ObservationConfig
-import rlbench.utils as rlbench_utils
-from rlbench.demo import Demo
+import pickle
+# from rlbench.backend.observation import Observation
+# from rlbench.observation_config import ObservationConfig
+# import rlbench.utils as rlbench_utils
 from yarr.replay_buffer.prioritized_replay_buffer import ObservationElement
 from yarr.replay_buffer.replay_buffer import ReplayElement, ReplayBuffer
 from yarr.replay_buffer.uniform_replay_buffer import UniformReplayBuffer
 from yarr.replay_buffer.task_uniform_replay_buffer import TaskUniformReplayBuffer
 
 from helpers import demo_loading_utils, utils
+from helpers.ms3_utils import get_ms_demos
 from helpers.preprocess_agent import PreprocessAgent
 from helpers.clip.core.clip import tokenize
 from agents.peract_bc.perceiver_lang_io import PerceiverVoxelLangEncoder
@@ -53,13 +54,13 @@ def create_replay(batch_size: int, timesteps: int,
     observation_elements.append(
         ObservationElement('low_dim_state', (LOW_DIM_SIZE,), np.float32))
 
-    # rgb, depth, point cloud, intrinsics, extrinsics
+    # rgb, point cloud, intrinsics, extrinsics
+    observation_elements.append(
+        ObservationElement('rgb', (np.prod(image_size), 3), np.float32))
+    observation_elements.append(
+        ObservationElement('point_cloud', (np.prod(image_size), 4),
+                            np.float32)) # in homogeneous coordinates
     for cname in cameras:
-        observation_elements.append(
-            ObservationElement('%s_rgb' % cname, (3, *image_size,), np.float32))
-        observation_elements.append(
-            ObservationElement('%s_point_cloud' % cname, (3, *image_size),
-                               np.float32))  # see pyrep/objects/vision_sensor.py on how pointclouds are extracted from depth frames
         observation_elements.append(
             ObservationElement('%s_camera_extrinsics' % cname, (4, 4,), np.float32))
         observation_elements.append(
@@ -106,23 +107,29 @@ def create_replay(batch_size: int, timesteps: int,
 
 
 def _get_action(
-        obs_tp1: Observation,
-        obs_tm1: Observation,
-        rlbench_scene_bounds: List[float], # metric 3D bounds of the scene
+        demo: Dict,
+        keypoint: int,
+        scene_bounds: List[float], # metric 3D bounds of the scene
         voxel_sizes: List[int],
         bounds_offset: List[float],
         rotation_resolution: int,
         crop_augmentation: bool):
-    quat = utils.normalize_quaternion(obs_tp1.gripper_pose[3:])
+    # TODO: change the way to get gripper pose from obs, using ms3 style
+    # obs_tp1 = demo[keypoint]
+    # obs_tm1 = demo[max(0, keypoint - 1)]
+    tpl_index, tml_index = keypoint, max(0, keypoint-1)
+    tpl_gripper_pose = demo_loading_utils._get_gripper_pose(demo, tpl_index)
+    quat = utils.normalize_quaternion(tpl_gripper_pose[3:])
     if quat[-1] < 0:
         quat = -quat
     disc_rot = utils.quaternion_to_discrete_euler(quat, rotation_resolution)
     disc_rot = utils.correct_rotation_instability(disc_rot, rotation_resolution)
 
-    attention_coordinate = obs_tp1.gripper_pose[:3]
+    attention_coordinate = tpl_gripper_pose[:3]
     trans_indicies, attention_coordinates = [], []
-    bounds = np.array(rlbench_scene_bounds)
-    ignore_collisions = int(obs_tm1.ignore_collisions)
+    bounds = np.array(scene_bounds)
+    ignore_collisions = int(demo_loading_utils._get_ignore_collision(demo, tml_index))
+    # ignore_collisions = int(obs_tm1.ignore_collisions)
     for depth, vox_size in enumerate(voxel_sizes): # only single voxelization-level is used in PerAct
         if depth > 0:
             if crop_augmentation:
@@ -130,29 +137,33 @@ def _get_action(
                 attention_coordinate += np.random.uniform(-shift, shift, size=(3,))
             bounds = np.concatenate([attention_coordinate - bounds_offset[depth - 1],
                                      attention_coordinate + bounds_offset[depth - 1]])
-        index = utils.point_to_voxel_index(
-            obs_tp1.gripper_pose[:3], vox_size, bounds)
+        index = utils.point_to_voxel_index( # convert the next gripper pose to voxel indices, used as the translational target index
+            tpl_gripper_pose[:3], vox_size, bounds)
         trans_indicies.extend(index.tolist())
         res = (bounds[3:] - bounds[:3]) / vox_size
         attention_coordinate = bounds[:3] + res * index
         attention_coordinates.append(attention_coordinate)
 
     rot_and_grip_indicies = disc_rot.tolist()
-    grip = float(obs_tp1.gripper_open)
-    rot_and_grip_indicies.extend([int(obs_tp1.gripper_open)])
+    grip = float(demo_loading_utils._check_gripper_open(demo, tpl_index))
+    rot_and_grip_indicies.extend([int(demo_loading_utils._check_gripper_open(demo, tpl_index))])
+    # rot_and_grip_indicies -> gripper rotation discrete eular angles (indices) + gripper open state index
+    # trans_indicies -> gripper translational voxel index
+    # attention_coordinates -> gripper translational coordinates
+    # only gripper pose and gripper open state are used as actions eventually
     return trans_indicies, rot_and_grip_indicies, ignore_collisions, np.concatenate(
-        [obs_tp1.gripper_pose, np.array([grip])]), attention_coordinates
+        [tpl_gripper_pose, np.array([grip])]), attention_coordinates
 
 
 def _add_keypoints_to_replay(
         cfg: DictConfig,
         task: str,
         replay: ReplayBuffer,
-        inital_obs: Observation,
-        demo: Demo,
+        demo: Dict,
+        demo_meta_data: Dict, 
         episode_keypoints: List[int],
         cameras: List[str],
-        rlbench_scene_bounds: List[float],
+        scene_bounds: List[float],
         voxel_sizes: List[int],
         bounds_offset: List[float],
         rotation_resolution: int,
@@ -161,19 +172,21 @@ def _add_keypoints_to_replay(
         clip_model = None,
         device = 'cpu'):
     prev_action = None
-    obs = inital_obs
+    episode_length = demo_meta_data["env_info"]["max_episode_steps"]
     for k, keypoint in enumerate(episode_keypoints):
-        obs_tp1 = demo[keypoint]
-        obs_tm1 = demo[max(0, keypoint - 1)]
+        # obs_tp1 = demo[keypoint]
+        # obs_tm1 = demo[max(0, keypoint - 1)]
+        tpl_index, tml_index = keypoint, max(0, keypoint-1)
+        # TODO: how to get ignore_collision ???
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
-            obs_tp1, obs_tm1, rlbench_scene_bounds, voxel_sizes, bounds_offset,
-            rotation_resolution, crop_augmentation)
+            demo, keypoint, scene_bounds, voxel_sizes, bounds_offset,
+            rotation_resolution, crop_augmentation) # action -> next kf gripper pose
 
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
-        obs_dict = utils.extract_obs(obs, t=k, prev_action=prev_action,
-                                     cameras=cameras, episode_length=cfg.rlbench.episode_length)
+        obs_dict = utils.extract_obs(demo, keypoint, t=k, prev_action=prev_action,
+                                     cameras=cameras, episode_length=episode_length)
         tokens = tokenize([description]).numpy()
         token_tensor = torch.from_numpy(tokens).to(device)
         sentence_emb, token_embs = clip_model.encode_text_with_embeddings(token_tensor)
@@ -186,21 +199,20 @@ def _add_keypoints_to_replay(
         final_obs = {
             'trans_action_indicies': trans_indicies,
             'rot_grip_action_indicies': rot_grip_indicies,
-            'gripper_pose': obs_tp1.gripper_pose,
+            'gripper_pose': demo_loading_utils._get_gripper_pose(demo, tpl_index),
             'task': task,
             'lang_goal': np.array([description], dtype=object),
         }
 
-        others.update(final_obs)
-        others.update(obs_dict)
+        others.update(final_obs) # update with gripper pose and expert action
+        others.update(obs_dict) # update with language goal and embeddings
 
         timeout = False
         replay.add(action, reward, terminal, timeout, **others)
-        obs = obs_tp1
 
     # final step
-    obs_dict_tp1 = utils.extract_obs(obs_tp1, t=k + 1, prev_action=prev_action,
-                                     cameras=cameras, episode_length=cfg.rlbench.episode_length)
+    obs_dict_tp1 = utils.extract_obs(demo, keypoint, t=k + 1, prev_action=prev_action,
+                                     cameras=cameras, episode_length=episode_length)
     obs_dict_tp1['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
     obs_dict_tp1['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
 
@@ -210,7 +222,7 @@ def _add_keypoints_to_replay(
 
 
 def fill_replay(cfg: DictConfig,
-                obs_config: ObservationConfig,
+                # obs_config: ObservationConfig,
                 rank: int,
                 replay: ReplayBuffer,
                 task: str,
@@ -218,7 +230,7 @@ def fill_replay(cfg: DictConfig,
                 demo_augmentation: bool,
                 demo_augmentation_every_n: int,
                 cameras: List[str],
-                rlbench_scene_bounds: List[float],  # AKA: DEPTH0_BOUNDS
+                scene_bounds: List[float],  # AKA: DEPTH0_BOUNDS
                 voxel_sizes: List[int],
                 bounds_offset: List[float],
                 rotation_resolution: int,
@@ -235,47 +247,43 @@ def fill_replay(cfg: DictConfig,
         del model
 
     logging.debug('Filling %s replay ...' % task)
+    # load demo rgbd and meta data
+    demo, demo_meta_data = get_ms_demos(cfg.maniskill3.traj_path, cfg.maniskill3.json_path)
     for d_idx in range(num_demos):
-        # load demo from disk
-        demo = rlbench_utils.get_stored_demos(
-            amount=1, image_paths=False,
-            dataset_root=cfg.rlbench.demo_path,
-            variation_number=-1, task_name=task,
-            obs_config=obs_config,
-            random_selection=False,
-            from_episode_number=d_idx)[0]
-
-        descs = demo._observations[0].misc['descriptions']
+        # TODO: Change the whole demo loading and kp extracting process to ms3 style
+        # load language descs
+        with open(cfg.maniskill3.desc_pkl_path, 'rb') as f:
+            desc = pickle.load(f)
 
         # extract keypoints (a.k.a keyframes)
-        episode_keypoints = demo_loading_utils.keypoint_discovery(demo, method=keypoint_method)
+        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, method=keypoint_method)
 
         if rank == 0:
             logging.info(f"Loading Demo({d_idx}) - found {len(episode_keypoints)} keypoints - {task}")
 
-        for i in range(len(demo) - 1):
+        # for the episode, add keyframes
+        demo_ep = demo[f"traj_{d_idx}"]
+        for i in range(len(demo_ep) - 1):
             if not demo_augmentation and i > 0:
                 break
             if i % demo_augmentation_every_n != 0:
                 continue
 
-            obs = demo[i]
-            desc = descs[0]
             # if our starting point is past one of the keypoints, then remove it
             while len(episode_keypoints) > 0 and i >= episode_keypoints[0]:
                 episode_keypoints = episode_keypoints[1:]
             if len(episode_keypoints) == 0:
                 break
             _add_keypoints_to_replay(
-                cfg, task, replay, obs, demo, episode_keypoints, cameras,
-                rlbench_scene_bounds, voxel_sizes, bounds_offset,
+                cfg, task, replay, demo_ep, demo_meta_data, episode_keypoints, cameras,
+                scene_bounds, voxel_sizes, bounds_offset,
                 rotation_resolution, crop_augmentation, description=desc,
                 clip_model=clip_model, device=device)
     logging.debug('Replay %s filled with demos.' % task)
 
 
 def fill_multi_task_replay(cfg: DictConfig,
-                           obs_config: ObservationConfig,
+                        #    obs_config: ObservationConfig, # TODO: add obs config back when it's ready
                            rank: int,
                            replay: ReplayBuffer,
                            tasks: List[str],
@@ -283,7 +291,7 @@ def fill_multi_task_replay(cfg: DictConfig,
                            demo_augmentation: bool,
                            demo_augmentation_every_n: int,
                            cameras: List[str],
-                           rlbench_scene_bounds: List[float],
+                           scene_bounds: List[float],
                            voxel_sizes: List[int],
                            bounds_offset: List[float],
                            rotation_resolution: int,
@@ -312,7 +320,7 @@ def fill_multi_task_replay(cfg: DictConfig,
             model_device = torch.device('cuda:%s' % (e_idx % torch.cuda.device_count())
                                         if torch.cuda.is_available() else 'cpu')
             p = Process(target=fill_replay, args=(cfg,
-                                                  obs_config,
+                                                #   obs_config,
                                                   rank,
                                                   replay,
                                                   task,
@@ -320,7 +328,7 @@ def fill_multi_task_replay(cfg: DictConfig,
                                                   demo_augmentation,
                                                   demo_augmentation_every_n,
                                                   cameras,
-                                                  rlbench_scene_bounds,
+                                                  scene_bounds,
                                                   voxel_sizes,
                                                   bounds_offset,
                                                   rotation_resolution,
@@ -337,8 +345,8 @@ def fill_multi_task_replay(cfg: DictConfig,
 
 def create_agent(cfg: DictConfig):
     LATENT_SIZE = 64
-    depth_0bounds = cfg.rlbench.scene_bounds
-    cam_resolution = cfg.rlbench.camera_resolution
+    depth_0bounds = cfg.maniskill3.scene_bounds
+    cam_resolution = cfg.maniskill3.camera_resolution
 
     num_rotation_classes = int(360. // cfg.method.rotation_resolution)
     qattention_agents = []
@@ -380,7 +388,7 @@ def create_agent(cfg: DictConfig):
             layer=depth,
             coordinate_bounds=depth_0bounds,
             perceiver_encoder=perceiver_encoder,
-            camera_names=cfg.rlbench.cameras,
+            camera_names=cfg.maniskill3.cameras,
             voxel_size=vox_size,
             bounds_offset=cfg.method.bounds_offset[depth - 1] if depth > 0 else None,
             image_crop_size=cfg.method.image_crop_size,
@@ -411,7 +419,7 @@ def create_agent(cfg: DictConfig):
     rotation_agent = QAttentionStackAgent(
         qattention_agents=qattention_agents,
         rotation_resolution=cfg.method.rotation_resolution,
-        camera_names=cfg.rlbench.cameras,
+        camera_names=cfg.maniskill3.cameras,
     )
     preprocess_agent = PreprocessAgent(
         pose_agent=rotation_agent
