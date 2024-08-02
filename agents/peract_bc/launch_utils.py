@@ -7,9 +7,6 @@ from typing import List, Dict
 
 import numpy as np
 import pickle
-# from rlbench.backend.observation import Observation
-# from rlbench.observation_config import ObservationConfig
-# import rlbench.utils as rlbench_utils
 from yarr.replay_buffer.prioritized_replay_buffer import ObservationElement
 from yarr.replay_buffer.replay_buffer import ReplayElement, ReplayBuffer
 from yarr.replay_buffer.uniform_replay_buffer import UniformReplayBuffer

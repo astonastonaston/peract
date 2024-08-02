@@ -3,10 +3,8 @@ import pyrender
 import torch
 import trimesh
 from pyrender.trackball import Trackball
-from rlbench.backend.const import DEPTH_SCALE
+# from rlbench.backend.const import DEPTH_SCALE
 from scipy.spatial.transform import Rotation
-from rlbench.backend.observation import Observation
-from rlbench import CameraConfig, ObservationConfig
 from pyrep.const import RenderMode
 from helpers import demo_loading_utils
 from typing import List
@@ -16,7 +14,7 @@ REMOVE_KEYS = ['joint_velocities', 'joint_positions', 'joint_forces',
                'gripper_joint_positions', 'gripper_touch_forces',
                'task_low_dim_state', 'misc']
 
-SCALE_FACTOR = DEPTH_SCALE
+# SCALE_FACTOR = DEPTH_SCALE
 DEFAULT_SCENE_SCALE = 2.0
 
 
