@@ -35,7 +35,7 @@ class QAttentionStackAgent(Agent):
     def update(self, step: int, replay_sample: dict) -> dict:
         priorities = 0
         total_losses = 0.
-        for qa in self._qattention_agents:
+        for qa in self._qattention_agents: # update agents under each voxel resolution
             update_dict = qa.update(step, replay_sample)
             replay_sample.update(update_dict)
             total_losses += update_dict['total_loss']

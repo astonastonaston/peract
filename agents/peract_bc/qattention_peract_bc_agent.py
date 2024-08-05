@@ -296,25 +296,65 @@ class QAttentionPerActBCAgent(Agent):
         return crop
 
     def _preprocess_inputs(self, replay_sample):
+        # preprocess the replay sample inputs to the network inputs
         obs = []
         pcds = []
         self._crop_summary = []
-        for n in self._camera_names:
-            rgb = replay_sample['%s_rgb' % n]
-            pcd = replay_sample['%s_point_cloud' % n]
+        
+        # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
+        rgb = replay_sample['rgb']
+        pcd = replay_sample['point_cloud']
+        
+        # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
+        # clamp w=0 points outside the scene bounds
+        bb_maxs = self._coordinate_bounds[3:6]
+        bb_maxs = bb_maxs.to(torch.float)
+        bb_maxs = bb_maxs.unsqueeze(0)
+        out_indices = (pcd[..., 3] == 0)
+        pcd[out_indices, :3] = bb_maxs + 1
 
-            obs.append([rgb, pcd])
-            pcds.append(pcd)
+        # dehomogeneize and reshape pcd to (b, 3, -1)
+        pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
+        b, _, _ = pcd.shape
+        pcd = pcd.view(b, 3, -1)
+
+        # reshape rgb to (b, 3, -1) 
+        rgb = rgb.view(b, 3, -1)
+        print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
+
+        obs.append([rgb, pcd])
+        pcds.append(pcd)
         return obs, pcds
 
     def _act_preprocess_inputs(self, observation):
-        obs, pcds = [], []
-        for n in self._camera_names:
-            rgb = observation['%s_rgb' % n]
-            pcd = observation['%s_point_cloud' % n]
+        # preprocess the replay sample inputs to the network inputs
+        obs = []
+        pcds = []
+        self._crop_summary = []
+        
+        # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
+        rgb = observation['rgb']
+        pcd = observation['point_cloud']
+        
+        # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
+        # clamp w=0 points outside the scene bounds
+        bb_maxs = self._coordinate_bounds[3:6]
+        bb_maxs = bb_maxs.to(torch.float)
+        bb_maxs = bb_maxs.unsqueeze(0)
+        out_indices = (pcd[..., 3] == 0)
+        pcd[out_indices, :3] = bb_maxs + 1
 
-            obs.append([rgb, pcd])
-            pcds.append(pcd)
+        # dehomogeneize and reshape pcd to (b, 3, -1)
+        pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
+        b, _, _ = pcd.shape
+        pcd = pcd.view(b, 3, -1)
+
+        # reshape rgb to (b, 3, -1) 
+        rgb = rgb.view(b, 3, -1)
+        print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
+
+        obs.append([rgb, pcd])
+        pcds.append(pcd)
         return obs, pcds
 
     def _get_value_from_voxel_index(self, q, voxel_idx):

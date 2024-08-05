@@ -22,6 +22,7 @@ class PreprocessAgent(Agent):
 
     def update(self, step: int, replay_sample: dict) -> dict:
         # Samples are (B, N, ...) where N is number of buffers/tasks. This is a single task setup, so 0 index.
+        # TODO: support multi-task replays
         replay_sample = {k: v[:, 0] if len(v.shape) > 2 else v for k, v in replay_sample.items()}
         for k, v in replay_sample.items():
             if self._norm_rgb and 'rgb' in k:
