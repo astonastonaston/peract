@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
 from pytorch3d import transforms as torch3d_tf
-from yarr.agents.agent import Agent, ActResult, ScalarSummary, \
+from agents.agent import Agent, ActResult, ScalarSummary, \
     HistogramSummary, ImageSummary, Summary
 
 from helpers import utils
@@ -312,6 +312,7 @@ class QAttentionPerActBCAgent(Agent):
         bb_maxs = bb_maxs.unsqueeze(0)
         out_indices = (pcd[..., 3] == 0)
         pcd[out_indices, :3] = bb_maxs + 1
+        pcd[out_indices, 3] = 1
 
         # dehomogeneize and reshape pcd to (b, 3, -1)
         pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
@@ -333,8 +334,8 @@ class QAttentionPerActBCAgent(Agent):
         self._crop_summary = []
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
-        rgb = observation['rgb']
-        pcd = observation['point_cloud']
+        rgb = observation['pointcloud']["rgb"]
+        pcd = observation['pointcloud']["xyzw"]
         
         # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
@@ -343,6 +344,7 @@ class QAttentionPerActBCAgent(Agent):
         bb_maxs = bb_maxs.unsqueeze(0)
         out_indices = (pcd[..., 3] == 0)
         pcd[out_indices, :3] = bb_maxs + 1
+        pcd[out_indices, 3] = 1
 
         # dehomogeneize and reshape pcd to (b, 3, -1)
         pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
@@ -621,6 +623,7 @@ class QAttentionPerActBCAgent(Agent):
 
         coords = coords.int()
         attention_coordinate = bounds[:, :3] + res * coords + res / 2
+        # trans_coordinate = bounds[:, :3] + res * coords
 
         # stack prev_layer_voxel_grid(s) into a list
         # NOTE: PerAct doesn't used multi-layer voxel grids like C2FARM
@@ -642,7 +645,8 @@ class QAttentionPerActBCAgent(Agent):
         info = {
             'voxel_grid_depth%d' % self._layer: vox_grid,
             'q_depth%d' % self._layer: q_trans,
-            'voxel_idx_depth%d' % self._layer: coords
+            'voxel_idx_depth%d' % self._layer: coords,
+            # 'trans_coordinate': trans_coordinate
         }
         self._act_voxel_grid = vox_grid[0]
         self._act_max_coordinate = coords[0]

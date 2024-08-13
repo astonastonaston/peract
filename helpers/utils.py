@@ -337,6 +337,7 @@ def extract_obs(demo: Dict, keypoint: int,
     robot_state = np.array([
         demo_loading_utils._check_gripper_open(demo, keypoint),
         *gripper_joint_positions]) # left and right finger joint positions
+
     # remove low-level proprioception variables that are not needed
     obs_dict = {k: v for k, v in obs_dict.items()
                 if k not in REMOVE_KEYS}
@@ -350,6 +351,7 @@ def extract_obs(demo: Dict, keypoint: int,
         # add extra dim to depth data
         obs_dict = {k: v if v.ndim == 3 else np.expand_dims(v, -1)
                     for k, v in obs_dict.items()}
+        
     obs_dict['low_dim_state'] = np.array(robot_state, dtype=np.float32)
 
     # TODO: Set collision action bits

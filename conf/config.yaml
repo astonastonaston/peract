@@ -7,6 +7,7 @@ maniskill3:
     # task_name: "single" # multi-task training is not supported yet
     task_name: "multi"
     tasks: [PushCube-v1]
+    episode_length: 25 # TODO: Set this number
     demos: 100
     traj_path: demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_delta_pos.h5
     json_path: demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_delta_pos.json

@@ -169,12 +169,11 @@ def _add_keypoints_to_replay(
         clip_model = None,
         device = 'cpu'):
     prev_action = None
-    episode_length = demo_meta_data["env_info"]["max_episode_steps"]
+    episode_length = cfg.maniskill3.episode_length # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
     for k, keypoint in enumerate(episode_keypoints):
         # obs_tp1 = demo[keypoint]
         # obs_tm1 = demo[max(0, keypoint - 1)]
         tpl_index, tml_index = keypoint, max(0, keypoint-1)
-        # TODO: how to get ignore_collision ???
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
             demo, keypoint, scene_bounds, voxel_sizes, bounds_offset,
             rotation_resolution, crop_augmentation) # action -> next kf gripper pose
