@@ -1,2 +1,7 @@
 demos/
 useless/
+peract_env/
+ckpts/
+peract.egg-info/
+data/
+build/

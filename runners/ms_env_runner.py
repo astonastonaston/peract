@@ -10,6 +10,7 @@ from multiprocessing import Value
 
 from agents.agent import Agent
 from mani_skill.envs.sapien_env import BaseEnv
+from mani_skill.utils.io_utils import load_json
 from runners.rollout_generator import RolloutGenerator
 # from yarr.replay_buffer.replay_buffer import ReplayBuffer
 # from yarr.utils.stat_accumulator import StatAccumulator, SimpleAccumulator
@@ -43,7 +44,8 @@ class IndependentEnvRunner(object):
                  max_fails: int = 10,
                  num_eval_runs: int = 1,
                  env_device: torch.device = None,
-                 multi_task: bool = False):
+                 multi_task: bool = False, 
+                 json_path: str = None):
             # super().__init__(train_env, agent, train_replay_buffer, num_train_envs, num_eval_envs,
             #                 rollout_episodes, eval_episodes, training_iterations, eval_from_eps_number,
             #                 episode_length, eval_env, eval_replay_buffer,
@@ -89,6 +91,8 @@ class IndependentEnvRunner(object):
             self.current_replay_ratio = Value('f', -1)
             self._current_task_id = -1
             self._multi_task = multi_task
+            self._json_path = json_path
+            self._demo_meta_data = load_json(json_path)
 
     # def summaries(self) -> List[Summary]:
     #     summaries = []
@@ -204,11 +208,18 @@ class IndependentEnvRunner(object):
 
                 # the current task gets reset after every M episodes
                 episode_rollout = []
+
+                # get reset status for the current episode
+                episodes = self._demo_meta_data["episodes"]
+                episode = episodes[ep]
+                reset_kwargs = episode["reset_kwargs"].copy()
+                reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
+
                 # TODO: modify this to keeping stepping till one episode finishes
                 generator = self.rollout_generator.generator(
                     self._step_signal, env, self._agent,
                     self._episode_length, self._timesteps,
-                    eval, self._lang_goal_tokens, eval_demo_seed=eval_demo_seed)
+                    eval, self._lang_goal_tokens, eval_demo_seed=eval_demo_seed, reset_kwargs=reset_kwargs)
                     # TODO: enable recording
                     # record_enabled=rec_cfg.enabled)
                     

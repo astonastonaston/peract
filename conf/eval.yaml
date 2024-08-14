@@ -19,8 +19,11 @@ maniskill3:
     tasks: [PushCube-v1]
     episode_length: 25 # TODO: Set this number
     demos: 100
-    # traj_path: demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_delta_pos.h5
-    # json_path: demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_delta_pos.json
+    traj_path: demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.h5
+    json_path: demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.json
+    # train_ind_start: 0
+    # val_ind_start: 150
+    # test_ind_start: 175
     desc_pkl_path: demos/PushCube-v1/motionplanning/desc.pkl
     cameras: [base_camera]
     camera_resolution: [128, 128]
@@ -37,7 +40,7 @@ framework:
     record_every_n: 5
 
     eval_envs: 1
-    eval_from_eps_number: 0
+    eval_from_eps_number: 175
     eval_episodes: 25
     eval_type: 'missing' # or 'best'
     eval_save_metrics: True

@@ -17,14 +17,14 @@ class RolloutGenerator(object):
 
     def generator(self, step_signal: Value, env: BaseEnv, agent: Agent,
                   episode_length: int, timesteps: int,
-                  eval: bool, lang_goal_tokens: list[str], eval_demo_seed: int = 0):
+                  eval: bool, lang_goal_tokens: list[str], eval_demo_seed: int = 0, reset_kwargs: dict = None):
                 #   record_enabled: bool = False):
 
-        # if eval:
-        #     obs = env.reset_to_demo(eval_demo_seed)
-        # else:
+        if eval:
+            obs = env.reset(**reset_kwargs)
+        else:
+            obs = env.reset()
         # reset env and agent 
-        obs = env.reset()
         obs["lang_goal_tokens"] = lang_goal_tokens
         obs = add_low_dim_states(obs)
         agent.reset()

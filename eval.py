@@ -89,7 +89,8 @@ def eval_seed(train_cfg,
         env_device=env_device,
         rollout_generator=rg,
         num_eval_runs=len(tasks),
-        multi_task=multi_task)
+        multi_task=multi_task,
+        json_path=eval_cfg.maniskill3.json_path)
 
     manager = Manager()
     save_load_lock = manager.Lock()
