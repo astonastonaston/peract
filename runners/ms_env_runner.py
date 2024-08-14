@@ -339,7 +339,9 @@ class IndependentEnvRunner(object):
         #               train_cfg.maniskill3.include_lang_goal_in_obs,
         #               eval_cfg.maniskill3.time_in_state,
         #               eval_cfg.framework.record_every_n)
-        env_kwargs = {'control_mode': env_config[1], "obs_mode": "pointcloud"}
+        env_kwargs = {'control_mode': env_config[1], 
+                      "obs_mode": "pointcloud",
+                      "num_envs": self._eval_envs}
         if multi_task:
             # TODO: support multi-task env eval
             # eval_env = CustomMultiTaskRLBenchEnv(
@@ -354,7 +356,7 @@ class IndependentEnvRunner(object):
             #     time_in_state=env_config[8],
             #     record_every_n=env_config[9])
             # eval_env = gym.make()
-            pass
+            raise NotImplementedError("Multi-task evaluation not supported yet")
         else:
             eval_env = gym.make(env_config[0], **env_kwargs)
 
