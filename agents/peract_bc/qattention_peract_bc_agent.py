@@ -334,8 +334,8 @@ class QAttentionPerActBCAgent(Agent):
         self._crop_summary = []
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
-        rgb = observation['pointcloud']["rgb"]
-        pcd = observation['pointcloud']["xyzw"]
+        rgb = observation['pointcloud']["rgb"].to(device=self._device)
+        pcd = observation['pointcloud']["xyzw"].to(device=self._device)
         
         # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
@@ -567,7 +567,11 @@ class QAttentionPerActBCAgent(Agent):
         bounds = self._coordinate_bounds
         prev_layer_voxel_grid = observation.get('prev_layer_voxel_grid', None)
         prev_layer_bounds = observation.get('prev_layer_bounds', None)
-        lang_goal_tokens = observation.get('lang_goal_tokens', None).long()
+        lang_goal_tokens = observation.get('lang_goal_tokens', None)
+        # TODO: why long()??
+        # if lang_goal_tokens:
+        #     lang_goal_tokens = lang_goal_tokens[0]
+        # lang_goal_tokens = observation.get('lang_goal_tokens', None).long()
 
         # extract CLIP language embs
         with torch.no_grad():
@@ -586,11 +590,12 @@ class QAttentionPerActBCAgent(Agent):
 
         # correct batch size and device
         obs = [[o[0][0].to(self._device), o[1][0].to(self._device)] for o in obs]
-        proprio = proprio[0].to(self._device)
+        proprio = proprio.to(self._device)
         pcd = [p[0].to(self._device) for p in pcd]
         lang_goal_emb = lang_goal_emb.to(self._device)
         lang_token_embs = lang_token_embs.to(self._device)
         bounds = torch.as_tensor(bounds, device=self._device)
+        # TODO: use previous layer voxel grid for inference. Current model doesn't use it at all
         prev_layer_voxel_grid = prev_layer_voxel_grid.to(self._device) if prev_layer_voxel_grid is not None else None
         prev_layer_bounds = prev_layer_bounds.to(self._device) if prev_layer_bounds is not None else None
 
@@ -697,8 +702,13 @@ class QAttentionPerActBCAgent(Agent):
         weight_file = os.path.join(savedir, '%s.pt' % self._name)
         state_dict = torch.load(weight_file, map_location=device)
 
+        # print("loaded state dict:")
+        # print(state_dict.keys())
+
         # load only keys that are in the current model
         merged_state_dict = self._q.state_dict()
+        # print("merged state dict:")
+        # print(merged_state_dict.keys())
         for k, v in state_dict.items():
             if not self._training:
                 k = k.replace('_qnet.module', '_qnet')
@@ -707,6 +717,7 @@ class QAttentionPerActBCAgent(Agent):
             else:
                 if '_voxelizer' not in k:
                     logging.warning("key %s not found in checkpoint" % k)
+        # print(merged_state_dict.keys())
         self._q.load_state_dict(merged_state_dict)
         print("loaded weights from %s" % weight_file)
 

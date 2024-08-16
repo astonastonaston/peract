@@ -10,6 +10,7 @@ from typing import List
 import hydra
 import numpy as np
 import torch
+import sapien
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf, ListConfig
 # from rlbench.action_modes.action_mode import MoveArmThenGripper
@@ -19,12 +20,12 @@ from omegaconf import DictConfig, OmegaConf, ListConfig
 from runners.ms_env_runner import IndependentEnvRunner
 # from yarr.utils.stat_accumulator import SimpleAccumulator
 
-from agents import c2farm_lingunet_bc
 from agents import peract_bc
-from agents import arm
-from agents.baselines import bc_lang, vit_bc_lang
+# from agents import c2farm_lingunet_bc
+# from agents import arm
+# from agents.baselines import bc_lang, vit_bc_lang
 
-from helpers.custom_rlbench_env import CustomRLBenchEnv, CustomMultiTaskRLBenchEnv
+# from helpers.custom_rlbench_env import CustomRLBenchEnv, CustomMultiTaskRLBenchEnv
 from helpers import utils
 
 from runners.rollout_generator import RolloutGenerator
@@ -46,6 +47,7 @@ def eval_seed(train_cfg,
     tasks = eval_cfg.maniskill3.tasks
     rg = RolloutGenerator()
 
+    # print(train_cfg)
     if train_cfg.method.name == 'ARM':
         raise NotImplementedError('ARM not yet supported for eval.py')
 
@@ -71,6 +73,7 @@ def eval_seed(train_cfg,
 
     cwd = os.getcwd()
     weightsdir = os.path.join(logdir, 'weights')
+    # print(f"weight dir {weightsdir}")
 
     env_runner = IndependentEnvRunner(
         train_env=None,
@@ -162,10 +165,13 @@ def eval_seed(train_cfg,
     # evaluate several checkpoints in parallel
     # NOTE: in multi-task settings, each task is evaluated serially, which makes everything slow!
     split_n = utils.split_list(num_weights_to_eval, eval_cfg.framework.eval_envs)
+    # print(f"Num of splits {len(split_n)}")
     for split in split_n:
         processes = []
+        print(f"Num of processes {len(split), sapien.Device('cuda')}")
         for e_idx, weight_idx in enumerate(split):
             weight = weight_folders[weight_idx]
+            # TODO: the maniskill gym env is already parallalized, so don't need to rewrite torch multi-processing again
             p = Process(target=env_runner.start,
                         args=(weight,
                               save_load_lock,
@@ -196,12 +202,15 @@ def main(eval_cfg: DictConfig) -> None:
                                 'seed%d' % start_seed)
 
     train_config_path = os.path.join(logdir, 'config.yaml')
+    # print(f"loading {train_config_path, os.path.exists(train_config_path)}")
     if os.path.exists(train_config_path):
         with open(train_config_path, 'r') as f:
             train_cfg = OmegaConf.load(f)
     else:
         raise Exception("Missing seed%d/config.yaml" % start_seed)
-
+    
+    print("getting the device")
+    print(f"cuda available status: {torch.cuda.is_available(), sapien.Device('cuda')}")
     env_device = utils.get_device(eval_cfg.framework.gpu)
     logging.info('Using env device %s.' % str(env_device))
 
@@ -214,9 +223,11 @@ def main(eval_cfg: DictConfig) -> None:
     #               if t != '__init__.py' and t.endswith('.py')]
     eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
         eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
-    with open(eval_cfg.maniskill3.desc_pkl_path, "rb") as f:
-        lang_goal_tokens = pickle.load(f) # TODO: only single-task lang goal supported yet
-    
+    if os.path.exists(eval_cfg.maniskill3.desc_pkl_path):
+        with open(eval_cfg.maniskill3.desc_pkl_path, "rb") as f:
+            lang_goal_tokens = pickle.load(f) # TODO: only single-task lang goal supported yet
+    else:
+        raise Exception("Missing task desc file {}" % eval_cfg.maniskill3.desc_pkl_path)
 
     # single-task or multi-task
     if len(eval_cfg.maniskill3.tasks) > 1:
@@ -264,5 +275,8 @@ def main(eval_cfg: DictConfig) -> None:
               multi_task, start_seed,
               env_config)
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
+#     main()
+if __name__ == "__main__":
+    torch.multiprocessing.set_start_method('spawn') # multiprocessing with cuda re-init
     main()

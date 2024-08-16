@@ -7,10 +7,10 @@ from typing import List, Dict
 
 import numpy as np
 import pickle
-from yarr.replay_buffer.prioritized_replay_buffer import ObservationElement
-from yarr.replay_buffer.replay_buffer import ReplayElement, ReplayBuffer
-from yarr.replay_buffer.uniform_replay_buffer import UniformReplayBuffer
-from yarr.replay_buffer.task_uniform_replay_buffer import TaskUniformReplayBuffer
+from runners.observation_type import ObservationElement
+from runners.replay_buffer import ReplayElement, ReplayBuffer
+from runners.task_uniform_replay_buffer import TaskUniformReplayBuffer
+from runners.uniform_replay_buffer import UniformReplayBuffer
 
 from helpers import demo_loading_utils, utils
 from helpers.ms3_utils import get_ms_demos

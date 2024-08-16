@@ -18,6 +18,7 @@ from runners.rollout_generator import RolloutGenerator
 # from agents.agent import Summary
 # from runners.env_runner import EnvRunner
 
+import sapien
 import gymnasium as gym
 
 class IndependentEnvRunner(object):
@@ -139,6 +140,7 @@ class IndependentEnvRunner(object):
         device = torch.device('cuda:%d' % device_idx) if torch.cuda.device_count() > 1 else torch.device('cuda:0')
         with writer_lock: # hack to prevent multiple CLIP downloads ... argh should use a separate lock
             self._agent.build(training=False, device=device)
+        print("agent build complete")
 
         logging.info('%s: Launching env.' % name)
         np.random.seed()
@@ -216,7 +218,7 @@ class IndependentEnvRunner(object):
                 reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
 
                 # TODO: modify this to keeping stepping till one episode finishes
-                generator = self.rollout_generator.generator(
+                generator = self._rollout_generator.generator(
                     self._step_signal, env, self._agent,
                     self._episode_length, self._timesteps,
                     eval, self._lang_goal_tokens, eval_demo_seed=eval_demo_seed, reset_kwargs=reset_kwargs)
@@ -342,6 +344,10 @@ class IndependentEnvRunner(object):
         env_kwargs = {'control_mode': env_config[1], 
                       "obs_mode": "pointcloud",
                       "num_envs": self._eval_envs}
+        # env_kwargs = {'control_mode': "pd_joint_pos", 
+        #               "obs_mode": "pointcloud",
+        #               "num_envs": self._eval_envs}
+        print(f"cuda status {torch.cuda.is_available(), sapien.Device('cuda')}")
         if multi_task:
             # TODO: support multi-task env eval
             # eval_env = CustomMultiTaskRLBenchEnv(

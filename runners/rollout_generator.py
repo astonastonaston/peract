@@ -6,7 +6,7 @@ import copy
 from mani_skill.envs.sapien_env import BaseEnv
 from agents.agent import Agent
 from helpers.transition import ReplayTransition
-from helpers.ms3_utils import add_low_dim_states
+from helpers.ms3_utils import add_low_dim_states, extract_obs
 
 class RolloutGenerator(object):
 
@@ -21,19 +21,28 @@ class RolloutGenerator(object):
                 #   record_enabled: bool = False):
 
         if eval:
-            obs = env.reset(**reset_kwargs)
+            obs, _ = env.reset(**reset_kwargs)
         else:
-            obs = env.reset()
+            obs, _ = env.reset()
         # reset env and agent 
+        # print(obs)
+        # print(type(obs))
+        # print(obs.keys())
+        # print(type(obs["agent"]))
+        # print(obs["agent"])
+        # print(obs["agent"].keys())
+        # obs = extract_obs(obs)
         obs["lang_goal_tokens"] = lang_goal_tokens
         obs = add_low_dim_states(obs)
         agent.reset()
-        obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
+        # obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
+        obs_history = {k: [v] * timesteps for k, v in obs.items()}
         
         # start episode generation
         for step in range(episode_length):
 
-            prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
+            prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
+            # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
 
             act_result = agent.act(step_signal.value, prepped_data,
                                    deterministic=eval)
@@ -52,6 +61,7 @@ class RolloutGenerator(object):
                 action = act_joint_pos[i]
                 if ((i > 0) and not (terminated or truncated)):
                     obs, reward, terminated, truncated, info = env.step(action)
+                    # obs = extract_obs(obs)
             transition = {"observation": obs, "info": info, "reward": reward, "terminal": terminated}
             # obs_tp1 = copy.deepcopy(obs) 
             timeout = False

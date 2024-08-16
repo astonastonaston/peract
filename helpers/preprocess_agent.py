@@ -2,7 +2,7 @@ from typing import List
 
 import torch
 
-from yarr.agents.agent import Agent, Summary, ActResult, \
+from agents.agent import Agent, Summary, ActResult, \
     ScalarSummary, HistogramSummary, ImageSummary
 
 
@@ -34,15 +34,35 @@ class PreprocessAgent(Agent):
 
     def act(self, step: int, observation: dict,
             deterministic=False) -> ActResult:
-        # observation = {k: torch.tensor(v) for k, v in observation.items()}
+        # here assumes the maniskill obs has at most 2 levels of dicts
         for k, v in observation.items():
-            if self._norm_rgb and 'rgb' in k:
-                observation[k] = self._norm_rgb_(v)
-            else:
+            # print(k)
+            # print(v)
+            if type(v) == dict:
+                for i, j in v.items():
+                    if self._norm_rgb and 'rgb' in i:
+                        observation[k][i] = self._norm_rgb_(j)
+                    else:
+                        if ((j is not None) and (type(j) == torch.tensor)): # no need to use sensor_param
+                            observation[k][i] = j.float()
+            elif ((v is not None) and (type(v) == torch.tensor)): # no need to use sensor_param
                 observation[k] = v.float()
+
         act_res = self._pose_agent.act(step, observation, deterministic)
         act_res.replay_elements.update({'demo': False})
         return act_res
+
+    # def act(self, step: int, observation: dict,
+    #         deterministic=False) -> ActResult:
+    #     # observation = {k: torch.tensor(v) for k, v in observation.items()}
+    #     for k, v in observation.items():
+    #         if self._norm_rgb and 'rgb' in k:
+    #             observation[k] = self._norm_rgb_(v)
+    #         else:
+    #             observation[k] = v.float()
+    #     act_res = self._pose_agent.act(step, observation, deterministic)
+    #     act_res.replay_elements.update({'demo': False})
+    #     return act_res
 
     def update_summaries(self) -> List[Summary]:
         prefix = 'inputs'

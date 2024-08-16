@@ -7,7 +7,7 @@ from pyrender.trackball import Trackball
 from scipy.spatial.transform import Rotation
 from pyrep.const import RenderMode
 from helpers import demo_loading_utils
-from typing import List
+from typing import List, Dict
 
 REMOVE_KEYS = ['joint_velocities', 'joint_positions', 'joint_forces',
                'gripper_open', 'gripper_pose',

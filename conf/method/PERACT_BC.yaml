@@ -17,7 +17,7 @@ cross_heads: 1
 cross_dim_head: 64
 latent_heads: 8
 latent_dim_head: 64
-pos_encoding_with_lang: True
+pos_encoding_with_lang: False
 conv_downsample: True
 lang_fusion_type: 'seq' # or 'concat'
 voxel_patch_size: 5

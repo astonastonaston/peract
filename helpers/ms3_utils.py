@@ -2,6 +2,17 @@ import h5py
 import numpy as np
 from mani_skill.utils.io_utils import load_json
 
+def extract_obs(obs):
+    # extract maniskill obs so that only one level of keys are kept
+    new_obs = {}
+    for k, v in obs.items():
+        if (type(v) == dict):
+            for i, j in v.items():
+                new_obs[i] = j
+        else:
+            new_obs[k] = v
+    return new_obs
+
 def get_ms_demos(traj_path, json_path):
     # Load associated h5 file
     h5_data = h5py.File(traj_path, "r")
@@ -23,8 +34,8 @@ def add_low_dim_states(obs):
     gripper_joint_positions = _get_gripper_joint_positions_ms(obs)
     if gripper_joint_positions is not None:
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
-    robot_state = np.array([
-        _check_gripper_open_ms(obs),
-        *gripper_joint_positions]) # left and right finger joint positions
+    robot_state = np.concatenate([
+        _check_gripper_open_ms(obs)[:, None],
+        gripper_joint_positions], axis=-1) # left and right finger joint positions
     obs['low_dim_state'] = np.array(robot_state, dtype=np.float32)
     return obs

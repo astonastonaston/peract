@@ -2,7 +2,7 @@
 from typing import List
 
 import torch
-from yarr.agents.agent import Agent, ActResult, Summary
+from agents.agent import Agent, ActResult, Summary
 
 import numpy as np
 

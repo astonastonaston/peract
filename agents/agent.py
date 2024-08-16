@@ -4,7 +4,7 @@ from typing import Any, List
 import mplib
 import sapien
 import torch
-from mplib import Pose
+from sapien import Pose
 from helpers.utils import discrete_euler_to_quaternion, voxel_index_to_point
 
 class Summary(object):

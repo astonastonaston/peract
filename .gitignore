@@ -5,3 +5,5 @@ ckpts/
 peract.egg-info/
 data/
 build/
+*__pycache__*
+*.pyc
