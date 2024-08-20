@@ -107,6 +107,7 @@ def point_to_pixel_index(
         extrinsics: np.ndarray,
         intrinsics: np.ndarray):
     point = np.array([point[0], point[1], point[2], 1])
+    extrinsics = np.concatenate([extrinsics, np.array([0,0,0,1])[None]], axis=0) # maniskill extrinsic is 3*4, hence appending a row
     world_to_cam = np.linalg.inv(extrinsics)
     point_in_cam_frame = world_to_cam.dot(point)
     px, py, pz = point_in_cam_frame[:3]
@@ -334,9 +335,9 @@ def extract_obs(demo: Dict, keypoint: int,
     if gripper_joint_positions is not None:
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
 
-    robot_state = np.array([
-        demo_loading_utils._check_gripper_open(demo, keypoint),
-        *gripper_joint_positions]) # left and right finger joint positions
+    robot_state = np.concatenate([
+        demo_loading_utils._check_gripper_open(demo, keypoint)[:, None],
+        gripper_joint_positions], axis=-1) # left and right finger joint positions
 
     # remove low-level proprioception variables that are not needed
     obs_dict = {k: v for k, v in obs_dict.items()

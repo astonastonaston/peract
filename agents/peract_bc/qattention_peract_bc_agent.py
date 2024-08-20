@@ -72,15 +72,19 @@ class QFunction(nn.Module):
     def forward(self, rgb_pcd, proprio, pcd, lang_goal_emb, lang_token_embs,
                 bounds=None, prev_bounds=None, prev_layer_voxel_grid=None):
         # rgb_pcd will be list of list (list of [rgb, pcd])
+        # print(f"input shapes {len(rgb_pcd[0]), rgb_pcd[0][0].shape, rgb_pcd[0][1].shape, proprio.shape, pcd[0].shape}")
         b = rgb_pcd[0][0].shape[0]
+        # print(f"batch size {b}")
         pcd_flat = torch.cat(
-            [p.permute(0, 2, 3, 1).reshape(b, -1, 3) for p in pcd], 1)
+            [p.reshape(b, -1, 3) for p in pcd], 1)
+            # [p.permute(0, 2, 3, 1).reshape(b, -1, 3) for p in pcd], 1)
 
         # flatten RGBs and Pointclouds
         rgb = [rp[0] for rp in rgb_pcd]
         feat_size = rgb[0].shape[1]
         flat_imag_features = torch.cat(
-            [p.permute(0, 2, 3, 1).reshape(b, -1, feat_size) for p in rgb], 1)
+            [p.reshape(b, -1, feat_size) for p in rgb], 1)
+            # [p.permute(0, 2, 3, 1).reshape(b, -1, feat_size) for p in rgb], 1)
 
         # construct voxel grid
         voxel_grid = self._voxelizer.coords_to_bounding_voxel_grid(
@@ -307,12 +311,12 @@ class QAttentionPerActBCAgent(Agent):
         
         # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
-        bb_maxs = self._coordinate_bounds[3:6]
+        bb_maxs = self._coordinate_bounds[0, 3:6]
         bb_maxs = bb_maxs.to(torch.float)
-        bb_maxs = bb_maxs.unsqueeze(0)
         out_indices = (pcd[..., 3] == 0)
-        pcd[out_indices, :3] = bb_maxs + 1
-        pcd[out_indices, 3] = 1
+        pcd[out_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
+        # pcd[out_indices, :3] = bb_maxs + 1
+        # pcd[out_indices, 3] = 1
 
         # dehomogeneize and reshape pcd to (b, 3, -1)
         pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
@@ -334,17 +338,19 @@ class QAttentionPerActBCAgent(Agent):
         self._crop_summary = []
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
-        rgb = observation['pointcloud']["rgb"].to(device=self._device)
-        pcd = observation['pointcloud']["xyzw"].to(device=self._device)
+        rgb = observation["rgb"].to(device=self._device)
+        pcd = observation["xyzw"].to(device=self._device)
         
         # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
-        bb_maxs = self._coordinate_bounds[3:6]
+        # print(self._coordinate_bounds, self._coordinate_bounds.shape)
+        bb_maxs = self._coordinate_bounds[0, 3:6]
         bb_maxs = bb_maxs.to(torch.float)
-        bb_maxs = bb_maxs.unsqueeze(0)
         out_indices = (pcd[..., 3] == 0)
-        pcd[out_indices, :3] = bb_maxs + 1
-        pcd[out_indices, 3] = 1
+        # print(out_indices.shape, torch.sum(out_indices))
+        # print(bb_maxs.shape)
+        # print(pcd.shape, pcd[out_indices, 3].shape)
+        pcd[out_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
 
         # dehomogeneize and reshape pcd to (b, 3, -1)
         pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
@@ -567,7 +573,7 @@ class QAttentionPerActBCAgent(Agent):
         bounds = self._coordinate_bounds
         prev_layer_voxel_grid = observation.get('prev_layer_voxel_grid', None)
         prev_layer_bounds = observation.get('prev_layer_bounds', None)
-        lang_goal_tokens = observation.get('lang_goal_tokens', None)
+        lang_goal_tokens = observation.get('lang_goal_tokens', None).long()
         # TODO: why long()??
         # if lang_goal_tokens:
         #     lang_goal_tokens = lang_goal_tokens[0]
@@ -576,10 +582,13 @@ class QAttentionPerActBCAgent(Agent):
         # extract CLIP language embs
         with torch.no_grad():
             lang_goal_tokens = lang_goal_tokens.to(device=self._device)
-            lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens[0])
+            # print(lang_goal_tokens.shape, lang_goal_tokens[0], lang_goal_tokens)
+            # print(self._device)
+            lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens.unsqueeze(0))
+        print(f"lang embedding shapes {lang_goal_emb.shape} {lang_token_embs.shape}")
 
         # voxelization resolution
-        res = (bounds[:, 3:] - bounds[:, :3]) / self._voxel_size
+        res = (bounds[0, 3:] - bounds[0, :3]) / self._voxel_size
         max_rot_index = int(360 // self._rotation_resolution)
         proprio = None
 
@@ -589,9 +598,9 @@ class QAttentionPerActBCAgent(Agent):
         obs, pcd = self._act_preprocess_inputs(observation)
 
         # correct batch size and device
-        obs = [[o[0][0].to(self._device), o[1][0].to(self._device)] for o in obs]
+        obs = [[o[0].to(self._device), o[1].to(self._device)] for o in obs]
         proprio = proprio.to(self._device)
-        pcd = [p[0].to(self._device) for p in pcd]
+        pcd = [p.to(self._device) for p in pcd]
         lang_goal_emb = lang_goal_emb.to(self._device)
         lang_token_embs = lang_token_embs.to(self._device)
         bounds = torch.as_tensor(bounds, device=self._device)
@@ -613,6 +622,7 @@ class QAttentionPerActBCAgent(Agent):
                            prev_layer_voxel_grid)
 
         # softmax Q predictions
+        print(f"shapes of qs: {q_trans.shape, q_rot_grip.shape, q_ignore_collisions.shape}")
         q_trans = self._softmax_q_trans(q_trans)
         q_rot_grip =  self._softmax_q_rot_grip(q_rot_grip) if q_rot_grip is not None else q_rot_grip
         q_ignore_collisions = self._softmax_ignore_collision(q_ignore_collisions) \
@@ -627,7 +637,7 @@ class QAttentionPerActBCAgent(Agent):
         ignore_collisions_action = ignore_collisions.int() if ignore_collisions is not None else None
 
         coords = coords.int()
-        attention_coordinate = bounds[:, :3] + res * coords + res / 2
+        attention_coordinate = bounds[0, :3] + res * coords + res / 2
         # trans_coordinate = bounds[:, :3] + res * coords
 
         # stack prev_layer_voxel_grid(s) into a list
@@ -656,6 +666,8 @@ class QAttentionPerActBCAgent(Agent):
         self._act_voxel_grid = vox_grid[0]
         self._act_max_coordinate = coords[0]
         self._act_qvalues = q_trans[0].detach()
+        print(f"attention coord: {attention_coordinate}")
+        print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
                          observation_elements=observation_elements,
                          info=info)

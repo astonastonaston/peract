@@ -32,20 +32,27 @@ class PreprocessAgent(Agent):
         self._replay_sample = replay_sample
         return self._pose_agent.update(step, replay_sample)
 
+    def get_rotation_resolution(self):
+        return self._pose_agent.get_rotation_resolution()
+
     def act(self, step: int, observation: dict,
             deterministic=False) -> ActResult:
         # here assumes the maniskill obs has at most 2 levels of dicts
+        print(f"keys to preprocess: {observation.keys()}")
         for k, v in observation.items():
             # print(k)
             # print(v)
             if type(v) == dict:
                 for i, j in v.items():
                     if self._norm_rgb and 'rgb' in i:
+                        print(f"norming {k, i}")
                         observation[k][i] = self._norm_rgb_(j)
                     else:
-                        if ((j is not None) and (type(j) == torch.tensor)): # no need to use sensor_param
+                        if ((j is not None) and (type(j) == torch.Tensor)): # no need to use sensor_param
+                            print(f"converting {k, i} to float")
                             observation[k][i] = j.float()
-            elif ((v is not None) and (type(v) == torch.tensor)): # no need to use sensor_param
+            elif ((v is not None) and (type(v) == torch.Tensor)): # no need to use sensor_param
+                print(f"converting {k} to float")
                 observation[k] = v.float()
 
         act_res = self._pose_agent.act(step, observation, deterministic)

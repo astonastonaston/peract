@@ -140,7 +140,7 @@ class IndependentEnvRunner(object):
         device = torch.device('cuda:%d' % device_idx) if torch.cuda.device_count() > 1 else torch.device('cuda:0')
         with writer_lock: # hack to prevent multiple CLIP downloads ... argh should use a separate lock
             self._agent.build(training=False, device=device)
-        print("agent build complete")
+        print(f"agent build complete. Device {device}")
 
         logging.info('%s: Launching env.' % name)
         np.random.seed()
@@ -214,6 +214,7 @@ class IndependentEnvRunner(object):
                 # get reset status for the current episode
                 episodes = self._demo_meta_data["episodes"]
                 episode = episodes[ep]
+
                 reset_kwargs = episode["reset_kwargs"].copy()
                 reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
 
@@ -221,7 +222,7 @@ class IndependentEnvRunner(object):
                 generator = self._rollout_generator.generator(
                     self._step_signal, env, self._agent,
                     self._episode_length, self._timesteps,
-                    eval, self._lang_goal_tokens, eval_demo_seed=eval_demo_seed, reset_kwargs=reset_kwargs)
+                    eval, self._lang_goal, eval_demo_seed=eval_demo_seed, reset_kwargs=reset_kwargs)
                     # TODO: enable recording
                     # record_enabled=rec_cfg.enabled)
                     
@@ -264,7 +265,7 @@ class IndependentEnvRunner(object):
                 reward_list.append(reward)
                 success = episode_rollout[-1].info["success"]
                 success_list.append(success)
-                lang_goal = self._lang_goal_tokens
+                lang_goal = self._lang_goal
                 print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
 
                 # # TODO: save recording at maniskill
@@ -378,7 +379,7 @@ class IndependentEnvRunner(object):
         #     self._env_device, self._previous_loaded_weight_folder,
         #     num_eval_runs=self._num_eval_runs)
         self._eval_env = eval_env
-        self._lang_goal_tokens = env_config[2]
+        self._lang_goal = env_config[2]
 
         # stat_accumulator = SimpleAccumulator(eval_video_fps=30)
         self._run_eval_independent('eval_env',

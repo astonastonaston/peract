@@ -25,6 +25,9 @@ class QAttentionStackAgent(Agent):
         self._camera_names = camera_names
         self._rotation_prediction_depth = rotation_prediction_depth
 
+    def get_rotation_resolution(self):
+        return self._rotation_resolution
+
     def build(self, training: bool, device=None) -> None:
         self._device = device
         if self._device is None:
@@ -64,12 +67,16 @@ class QAttentionStackAgent(Agent):
             observation['attention_coordinate'] = act_results.observation_elements['attention_coordinate']
             observation['prev_layer_voxel_grid'] = act_results.observation_elements['prev_layer_voxel_grid']
             observation['prev_layer_bounds'] = act_results.observation_elements['prev_layer_bounds']
-
+            print(observation.keys())
+            # print(observation["sensor_param"].keys())
+            # print(observation["sensor_param"]["base_camera"].keys())
             for n in self._camera_names:
                 px, py = utils.point_to_pixel_index(
                     attention_coordinate[0],
-                    observation['%s_camera_extrinsics' % n][0, 0].cpu().numpy(),
-                    observation['%s_camera_intrinsics' % n][0, 0].cpu().numpy())
+                    # observation["sensor_param"][f"{n}"]['extrinsic_cv'][0].cpu().numpy(),
+                    # observation["sensor_param"][f"{n}"]['intrinsic_cv'][0].cpu().numpy())
+                    observation[f"{n}"]['extrinsic_cv'][0].cpu().numpy(),
+                    observation[f"{n}"]['intrinsic_cv'][0].cpu().numpy())
                 pc_t = torch.tensor([[[py, px]]], dtype=torch.float32, device=self._device)
                 observation['%s_pixel_coord' % n] = pc_t
                 observation_elements['%s_pixel_coord' % n] = [py, px]

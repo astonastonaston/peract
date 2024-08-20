@@ -1,4 +1,5 @@
 import h5py
+import torch
 import numpy as np
 from mani_skill.utils.io_utils import load_json
 
@@ -30,12 +31,18 @@ def _check_gripper_open_ms(obs, delta=0):
     # check if the gripper is open at the i-th step
     return obs["agent"]["qpos"][..., -1] >= delta
 
-def add_low_dim_states(obs):    
+def _get_timestep_encoding(t, episode_length):
+    # get the timestep's encoding
+    time = (1. - (t / float(episode_length - 1))) * 2. - 1.
+    return np.array([time])
+
+def add_low_dim_states(obs, t, episode_length):    
     gripper_joint_positions = _get_gripper_joint_positions_ms(obs)
     if gripper_joint_positions is not None:
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
     robot_state = np.concatenate([
         _check_gripper_open_ms(obs)[:, None],
-        gripper_joint_positions], axis=-1) # left and right finger joint positions
-    obs['low_dim_state'] = np.array(robot_state, dtype=np.float32)
+        gripper_joint_positions, 
+        _get_timestep_encoding(t, episode_length)[:, None]], axis=-1) # left and right finger joint positions
+    obs['low_dim_state'] = torch.tensor(robot_state, dtype=torch.float)
     return obs
