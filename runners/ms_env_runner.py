@@ -229,12 +229,13 @@ class IndependentEnvRunner(object):
                 for replay_transition in generator:
                     while True:
                         if self._kill_signal.value:
-                            env.shutdown()
+                            # env.shutdown()
                             return
                         if (eval or self._target_replay_ratio is None or
                                 self._step_signal.value <= 0 or (
                                         self._current_replay_ratio.value >
-                                        self._target_replay_ratio)):
+                                        self._target_replay_ratio) or
+                                        replay_transition.info["success"]):
                             break
                         time.sleep(1)
                         logging.debug(
@@ -267,7 +268,12 @@ class IndependentEnvRunner(object):
                 success_list.append(success)
                 lang_goal = self._lang_goal
                 print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
-
+                print("Final state info:")
+                print(episode_rollout[-1].observation.keys())
+                print(episode_rollout[-1].action.shape)
+                print(episode_rollout[-1].terminal)
+                print(episode_rollout[-1].terminated)
+                print(episode_rollout[-1].truncated)
                 # # TODO: save recording at maniskill
                 # if rec_cfg.enabled:
                 #     success = reward > 0.99
@@ -321,7 +327,7 @@ class IndependentEnvRunner(object):
                 # writer.end_iteration()
 
         logging.info('Finished evaluation.')
-        env.shutdown()
+        # env.shutdown()
 
     # serialized evaluator for individual tasks
     def start(self, weight,
@@ -344,7 +350,8 @@ class IndependentEnvRunner(object):
         #               eval_cfg.framework.record_every_n)
         env_kwargs = {'control_mode': env_config[1], 
                       "obs_mode": "pointcloud",
-                      "num_envs": self._eval_envs}
+                      "num_envs": self._eval_envs,
+                      "max_episode_steps": 1000}
         # env_kwargs = {'control_mode': "pd_joint_pos", 
         #               "obs_mode": "pointcloud",
         #               "num_envs": self._eval_envs}

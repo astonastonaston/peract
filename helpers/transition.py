@@ -18,7 +18,8 @@ class Transition(object):
 class ReplayTransition(object):
 
     def __init__(self, observation: dict, action: np.ndarray,
-                 reward: float, terminal: bool, timeout: bool,
+                 reward: float, terminal: bool, terminated: bool = False,
+                 truncated: bool = False, timeout: bool = False,
                  final_observation: dict = None,
                  summaries: List[Summary] = None,
                  info: dict = None):
@@ -26,6 +27,8 @@ class ReplayTransition(object):
         self.action = action
         self.reward = reward
         self.terminal = terminal
+        self.terminated = terminated
+        self.truncated = truncated
         self.timeout = timeout
         # final only populated on last timestep
         self.final_observation = final_observation

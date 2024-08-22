@@ -42,6 +42,7 @@ class RolloutGenerator(object):
         # obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history = {k: [v] * timesteps for k, v in obs.items()}
         urdf_path = env.agent.urdf_path
+        time_step = env.unwrapped.control_timestep
         
         # start episode generation
         for step in range(episode_length):
@@ -61,29 +62,46 @@ class RolloutGenerator(object):
 
             # TODO: convert act results to a seq of poses using mplib, and then plan the traj
             # rotation_resolution = agent.get_rotation_resolution()
-            act_joint_pos = act_result.convert_to_joint_pos(obs["qpos"], urdf_path)
+            act_joint_pos = act_result.convert_to_joint_pos(obs["qpos"], urdf_path, time_step)
             for i in range(len(act_joint_pos)):
                 action = act_joint_pos[i]
                 if (i == 0):
                     obs, reward, terminated, truncated, info = env.step(action)
                 elif (not (terminated or truncated)):
                     obs, reward, terminated, truncated, info = env.step(action)
+                    print(i, terminated, truncated, info)
+                    # TODO: add env rendering to see what happens
                     # obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs = add_low_dim_states(obs, step, episode_length)
             obs = extract_obs(obs)
-            transition = {"observation": obs, "info": info, "reward": reward, "terminal": terminated}
+            transition = {"observation": obs, 
+                          "info": info, 
+                          "reward": reward, 
+                          "terminal": terminated or truncated, 
+                          "truncated": truncated and not terminated, 
+                          "terminated": terminated}
             # obs_tp1 = copy.deepcopy(obs) 
-            timeout = False
-            if step == episode_length - 1:
-                # If last transition, and not terminal, then we timed out
-                timeout = not terminated
-                if timeout:
-                    transition["terminal"] = True # task not finishing at the final timestep
-                    if "needs_reset" in transition["info"]:
-                        print("Reset needed! transition info keys:")
-                        print(transition["info"])
-                        transition["info"]["needs_reset"] = True
+            timeout = truncated # TODO: timeout should be determined w.r.t. the episode length under pose-based control, instead of joint-pos-based control
+
+            if transition["terminal"]: # Reset when terminated
+                if "needs_reset" in transition["info"]:
+                    print("Reset needed! transition info keys:")
+                    print(transition["info"])
+                    transition["info"]["needs_reset"] = True
+
+
+            # if step == episode_length - 1: # Pose-control episode length reaching limit: reset
+            #     # If last transition, and not terminal, then we timed out
+            #     timeout = not terminated
+            #     if timeout:
+            #         transition["terminal"] = True # task not finishing at the final timestep. Like truncated
+            #         if "needs_reset" in transition["info"]:
+            #             print("Reset needed! transition info keys:")
+            #             print(transition["info"])
+            #             transition["info"]["needs_reset"] = True
+
+            # TODO: add truncated and succeed terminal states
 
             obs_and_replay_elems = {}
             obs_and_replay_elems.update(obs)
@@ -100,11 +118,11 @@ class RolloutGenerator(object):
 
             replay_transition = ReplayTransition(
                 obs_and_replay_elems, act_result.action, transition["reward"],
-                transition["terminal"], timeout, 
+                transition["terminal"], transition["terminated"], transition["truncated"], timeout, 
                 # summaries=transition.summaries,
                 info=transition["info"])
 
-            if transition["terminal"] or timeout:
+            if transition["terminal"]:
                 # If the agent gives us observations then we need to call act
                 # one last time (i.e. acting in the terminal state).
                 obs_tp1 = copy.deepcopy(obs) 
@@ -126,5 +144,5 @@ class RolloutGenerator(object):
             obs = transition["observation"]
             yield replay_transition
 
-            if transition["info"].get("needs_reset", transition["terminal"]):
+            if transition["info"].get("needs_reset", transition["terminal"]) or terminated: # truncated or terminated
                 return
