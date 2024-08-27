@@ -89,7 +89,7 @@ class QAttentionStackAgent(Agent):
         observation_elements['rot_grip_action_indicies'] = rgai
         continuous_action = np.concatenate([
             act_results.observation_elements['attention_coordinate'].cpu().numpy()[0],
-            utils.discrete_euler_to_quaternion(rgai[-4:-1], self._rotation_resolution),
+            utils.discrete_euler_to_quaternion(rgai[-4:-1], self._rotation_resolution), # in (x, y, z, w)
             rgai[-1:],
             [ignore_collisions],
         ])

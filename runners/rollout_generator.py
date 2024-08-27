@@ -2,11 +2,14 @@ from multiprocessing import Value
 
 import numpy as np
 import torch
+import time
 import copy
+import sapien
 from mani_skill.envs.sapien_env import BaseEnv
 from agents.agent import Agent
 from helpers.transition import ReplayTransition
 from helpers.ms3_utils import add_low_dim_states, extract_obs
+from runners.motion_planner import PandaArmMotionPlanningSolver
 
 from clip import tokenize
 
@@ -60,18 +63,29 @@ class RolloutGenerator(object):
             extra_replay_elements = {k: np.array(v) for k, v in
                                      act_result.replay_elements.items()}
 
-            # TODO: convert act results to a seq of poses using mplib, and then plan the traj
-            # rotation_resolution = agent.get_rotation_resolution()
-            act_joint_pos = act_result.convert_to_joint_pos(obs["qpos"], urdf_path, time_step)
-            for i in range(len(act_joint_pos)):
-                action = act_joint_pos[i]
-                if (i == 0):
-                    obs, reward, terminated, truncated, info = env.step(action)
-                elif (not (terminated or truncated)):
-                    obs, reward, terminated, truncated, info = env.step(action)
-                    print(i, terminated, truncated, info)
-                    # TODO: add env rendering to see what happens
-                    # obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
+            # plan the path to the target pose
+            trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
+            rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
+            # trans_coordinate = env.agent.tcp.pose.sp.p + np.array([-0.1, 0, 0])
+            # rot = env.agent.tcp.pose.sp.q
+            planner = PandaArmMotionPlanningSolver(
+                env,
+                debug=False,
+                vis=True,
+                base_pose=env.unwrapped.agent.robot.pose,
+                visualize_target_grasp_pose=True,
+                print_env_info=False,
+            )
+
+            # do gripper action
+            if gripper_open:
+                planner.open_gripper()
+            else:
+                planner.close_gripper()
+
+            # set and reach the target pose
+            reach_pose = sapien.Pose(p=trans_coordinate, q=rot)
+            obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs = add_low_dim_states(obs, step, episode_length)
             obs = extract_obs(obs)
