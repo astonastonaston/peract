@@ -18,7 +18,8 @@ from omegaconf import DictConfig, OmegaConf, ListConfig
 # from rlbench.action_modes.gripper_action_modes import Discrete
 # from rlbench.backend.utils import task_file_to_task_class
 from runners.ms_env_runner import IndependentEnvRunner
-# from yarr.utils.stat_accumulator import SimpleAccumulator
+from runners.log_writer import LogWriter
+from runners.stat_accumulator import SimpleAccumulator
 
 from agents import peract_bc
 # from agents import c2farm_lingunet_bc
@@ -69,7 +70,7 @@ def eval_seed(train_cfg,
     else:
         raise ValueError('Method %s does not exists.' % train_cfg.method.name)
 
-    # stat_accum = SimpleAccumulator(eval_video_fps=30)
+    stat_accum = SimpleAccumulator(eval_video_fps=30)
 
     cwd = os.getcwd()
     weightsdir = os.path.join(logdir, 'weights')
@@ -86,7 +87,7 @@ def eval_seed(train_cfg,
         training_iterations=train_cfg.framework.training_iterations,
         eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
         episode_length=eval_cfg.maniskill3.episode_length, # max episode length
-        # stat_accumulator=stat_accum,
+        stat_accumulator=stat_accum,
         weightsdir=weightsdir,
         logdir=logdir,
         env_device=env_device,

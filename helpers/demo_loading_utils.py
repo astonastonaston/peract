@@ -5,7 +5,11 @@ import numpy as np
 
 def _check_gripper_open(demo, i, delta=0):
     # check if the gripper is open at the i-th step
-    return demo["obs"]["agent"]["qpos"][i, -1] >= delta
+    return demo["obs"]["agent"]["qpos"][i, -1] > delta
+
+def _get_demo_len(demo):
+    # get the length of the given demo episode
+    return demo["obs"]["agent"]["qpos"].shape[0]
 
 def _get_rgb_from_pcd_obs(demo, i):
     # get rgb at step i from pointcloud observations
@@ -42,7 +46,7 @@ def _is_stopped(demo, i, stopped_buffer, delta=0.1):
     next_is_not_final = i == (len(demo) - 2)
     gripper_state_no_change = (
             i < (len(demo) - 2) and
-            (_check_gripper_open(demo, i) == _check_gripper_open(demo, i+1).gripper_open and
+            (_check_gripper_open(demo, i) == _check_gripper_open(demo, i+1) and
              _check_gripper_open(demo, i) == _check_gripper_open(demo, i-1) and
              _check_gripper_open(demo, i-2) == _check_gripper_open(demo, i-1)))
     small_delta = np.allclose(_get_joint_velocities(demo, i), 0, atol=delta)
@@ -50,13 +54,15 @@ def _is_stopped(demo, i, stopped_buffer, delta=0.1):
                (not next_is_not_final) and gripper_state_no_change)
     return stopped
 
-def keypoint_discovery(episode_idx, h5_file, json_data, 
+def keypoint_discovery(d_idx, h5_file, json_data, 
                        stopping_delta=0.1,
                        method='heuristic') -> List[int]:
     episode_keypoints = []
-    demo_len = len(h5_file)
+    demo = h5_file[f"traj_{d_idx}"]
+    demo_len = _get_demo_len(demo)
+    # print(f"Demo len {demo_len}")
     if method == 'heuristic':
-        demo = h5_file[f"traj_{episode_idx}"]
+        # demo = h5_file[f"traj_{episode_idx}"]
         prev_gripper_open = _check_gripper_open(demo, 0)
         stopped_buffer = 0
         for i in range(demo_len):

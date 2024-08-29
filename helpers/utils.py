@@ -330,14 +330,18 @@ def extract_obs(demo: Dict, keypoint: int,
     # all rgbs and pcds are aggregated from all cameras, so you don't have to aggregate again during training
     obs_dict = {"rgb": demo_loading_utils._get_rgb_from_pcd_obs(demo, keypoint), 
                 "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, keypoint)}
+    # print(obs_dict["point_cloud"].shape)
+    # print(obs_dict["rgb"].shape)
 
     gripper_joint_positions = demo_loading_utils._get_gripper_joint_positions(demo, keypoint)
     if gripper_joint_positions is not None:
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
 
     robot_state = np.concatenate([
-        demo_loading_utils._check_gripper_open(demo, keypoint)[:, None],
+        [demo_loading_utils._check_gripper_open(demo, keypoint)],
+        # np.array([demo_loading_utils._check_gripper_open(demo, keypoint)])[:, None],
         gripper_joint_positions], axis=-1) # left and right finger joint positions
+    # print(robot_state.shape)
 
     # remove low-level proprioception variables that are not needed
     obs_dict = {k: v for k, v in obs_dict.items()
@@ -371,6 +375,15 @@ def extract_obs(demo: Dict, keypoint: int,
     obs_dict['low_dim_state'] = np.concatenate(
         [obs_dict['low_dim_state'], [time]]).astype(np.float32)
 
+    # convert pcd and rgb formats
+    obs_dict["point_cloud"] = obs_dict["point_cloud"][0]
+    obs_dict["rgb"] = obs_dict["rgb"][0]
+    # obs_dict["rgb"] = obs_dict["rgb"][0]
+    # print("pcd shape")
+    # print(obs_dict.keys())
+    # print(obs_dict["ignore_collisions"].shape)
+    # print(obs_dict["low_dim_state"].shape)
+    # print(obs_dict["rgb"].shape)
     return obs_dict
 
 

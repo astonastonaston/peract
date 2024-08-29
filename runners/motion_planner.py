@@ -186,6 +186,8 @@ class PandaArmMotionPlanningSolver:
     def close_gripper(self, t=6):
         self.gripper_state = CLOSED
         qpos = self.robot.get_qpos()[0, :-2].cpu().numpy()
+        # print("before closing")
+        # print(self.robot.get_qpos())
         for i in range(t):
             if self.control_mode == "pd_joint_pos":
                 action = np.hstack([qpos, self.gripper_state])
@@ -199,6 +201,8 @@ class PandaArmMotionPlanningSolver:
                 )
             if self.vis:
                 self.base_env.render_human()
+        # print("after closing")
+        # print(self.robot.get_qpos())
         return obs, reward, terminated, truncated, info
 
     def add_box_collision(self, extents: np.ndarray, pose: sapien.Pose):

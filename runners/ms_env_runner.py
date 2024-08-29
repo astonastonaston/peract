@@ -12,8 +12,9 @@ from agents.agent import Agent
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.utils.io_utils import load_json
 from runners.rollout_generator import RolloutGenerator
+from runners.stat_accumulator import StatAccumulator, SimpleAccumulator
+from runners.log_writer import LogWriter
 # from yarr.replay_buffer.replay_buffer import ReplayBuffer
-# from yarr.utils.stat_accumulator import StatAccumulator, SimpleAccumulator
 # from helpers.custom_ms_env import CustomManiskillEnv
 # from agents.agent import Summary
 # from runners.env_runner import EnvRunner
@@ -38,7 +39,7 @@ class IndependentEnvRunner(object):
                  eval_env: Union[BaseEnv, None] = None,
                  eval_replay_buffer: Union[None] = None,
                 #  eval_replay_buffer: Union[ReplayBuffer, List[ReplayBuffer], None] = None,
-                #  stat_accumulator: Union[StatAccumulator, None] = None,
+                 stat_accumulator: Union[StatAccumulator, None] = None,
                  rollout_generator: RolloutGenerator = None,
                  weightsdir: str = None,
                  logdir: str = None,
@@ -69,7 +70,7 @@ class IndependentEnvRunner(object):
             self._training_iterations = training_iterations
             self._eval_from_eps_number = eval_from_eps_number
             self._episode_length = episode_length
-            # self._stat_accumulator = stat_accumulator
+            self._stat_accumulator = stat_accumulator
             self._rollout_generator = (
                 RolloutGenerator() if rollout_generator is None
                 else rollout_generator)
@@ -170,10 +171,10 @@ class IndependentEnvRunner(object):
         # to save or not to save evaluation metrics (set as False for recording videos)
         if self._save_metrics:
             csv_file = 'eval_data.csv' if not self._is_test_set else 'test_data.csv'
-            pass
             # TODO: add log writting
-            # writer = LogWriter(self._logdir, True, True,
-            #                 env_csv=csv_file)
+            writer = LogWriter(self._logdir, True, True,
+                            env_csv=csv_file)
+            # pass
 
         # one weight for all tasks (used for validation)
         if type(weight) == int:
@@ -388,7 +389,7 @@ class IndependentEnvRunner(object):
         self._eval_env = eval_env
         self._lang_goal = env_config[2]
 
-        # stat_accumulator = SimpleAccumulator(eval_video_fps=30)
+        stat_accumulator = SimpleAccumulator(eval_video_fps=30)
         self._run_eval_independent('eval_env',
                                     eval_env,
                                     weight,

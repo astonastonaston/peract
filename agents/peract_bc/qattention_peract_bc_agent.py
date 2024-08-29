@@ -325,7 +325,7 @@ class QAttentionPerActBCAgent(Agent):
 
         # reshape rgb to (b, 3, -1) 
         rgb = rgb.view(b, 3, -1)
-        print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
+        # print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
 
         obs.append([rgb, pcd])
         pcds.append(pcd)
@@ -359,7 +359,7 @@ class QAttentionPerActBCAgent(Agent):
 
         # reshape rgb to (b, 3, -1) 
         rgb = rgb.view(b, 3, -1)
-        print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
+        # print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
 
         obs.append([rgb, pcd])
         pcds.append(pcd)
@@ -687,6 +687,8 @@ class QAttentionPerActBCAgent(Agent):
 
         for (name, crop) in (self._crop_summary):
             crops = (torch.cat(torch.split(crop, 3, dim=1), dim=3) + 1.0) / 2.0
+            # print('crop dimm')
+            # print(crops)
             summaries.extend([
                 ImageSummary('%s/crops/%s' % (self._name, name), crops)])
 

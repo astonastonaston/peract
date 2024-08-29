@@ -241,7 +241,7 @@ class UniformReplayBuffer(ReplayBuffer):
             ReplayElement(ACTION, self._action_shape, self._action_dtype),
             ReplayElement(REWARD, self._reward_shape, self._reward_dtype),
             ReplayElement(TERMINAL, (), np.int8),
-            ReplayElement(TIMEOUT, (), np.bool),
+            ReplayElement(TIMEOUT, (), np.bool_),
         ]
 
         obs_elements = []
@@ -414,6 +414,8 @@ class UniformReplayBuffer(ReplayBuffer):
                 # Assume it is scalar.
                 arg_shape = tuple()
             store_element_shape = tuple(store_element.shape)
+            # print(f"storage ele is {store_element.name} and shape {store_element_shape}")
+            # print(arg_element)
             if arg_shape != store_element_shape:
                 raise ValueError('arg has shape {}, expected {}'.format(
                     arg_shape, store_element_shape))
@@ -693,7 +695,7 @@ class UniformReplayBuffer(ReplayBuffer):
                 else:
                     # np.argmax of a bool array returns index of the first True.
                     trajectory_length = np.argmax(
-                        trajectory_terminals.astype(np.bool),
+                        trajectory_terminals.astype(np.bool_),
                         0) + 1
 
                 next_state_index = state_index + trajectory_length

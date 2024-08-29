@@ -98,7 +98,9 @@ class PreprocessAgent(Agent):
                 if 'rgb' in k:
                     # Convert back to 0 - 1
                     v = (v + 1.0) / 2.0
-                sums.append(ImageSummary('%s/%s' % (prefix, k), tile(v)))
+                # print(f"v before and after tiling {v.shape} {tile(v).shape}")
+                # sums.append(ImageSummary('%s/%s' % (prefix, k), tile(v)))
+                sums.append(ImageSummary('%s/%s' % (prefix, k), v))
 
         if 'sampling_probabilities' in self._replay_sample:
             sums.extend([

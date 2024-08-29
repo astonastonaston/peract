@@ -8,8 +8,8 @@ from typing import List, Dict
 import numpy as np
 import pickle
 from runners.observation_type import ObservationElement
-from runners.replay_buffer import ReplayElement, ReplayBuffer
 from runners.task_uniform_replay_buffer import TaskUniformReplayBuffer
+from runners.replay_buffer import ReplayElement, ReplayBuffer
 from runners.uniform_replay_buffer import UniformReplayBuffer
 
 from helpers import demo_loading_utils, utils
@@ -84,7 +84,7 @@ def create_replay(batch_size: int, timesteps: int,
     ])
 
     extra_replay_elements = [
-        ReplayElement('demo', (), np.bool),
+        ReplayElement('demo', (), np.bool_),
     ]
 
     replay_buffer = TaskUniformReplayBuffer(
@@ -170,6 +170,7 @@ def _add_keypoints_to_replay(
         device = 'cpu'):
     prev_action = None
     episode_length = cfg.maniskill3.episode_length # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
+    # print(f"Desc is {description}")
     for k, keypoint in enumerate(episode_keypoints):
         # obs_tp1 = demo[keypoint]
         # obs_tm1 = demo[max(0, keypoint - 1)]
@@ -183,7 +184,7 @@ def _add_keypoints_to_replay(
 
         obs_dict = utils.extract_obs(demo, keypoint, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
-        tokens = tokenize([description]).numpy()
+        tokens = tokenize(description).numpy()
         token_tensor = torch.from_numpy(tokens).to(device)
         sentence_emb, token_embs = clip_model.encode_text_with_embeddings(token_tensor)
         obs_dict['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
@@ -197,7 +198,7 @@ def _add_keypoints_to_replay(
             'rot_grip_action_indicies': rot_grip_indicies,
             'gripper_pose': demo_loading_utils._get_gripper_pose(demo, tpl_index),
             'task': task,
-            'lang_goal': np.array([description], dtype=object),
+            'lang_goal': np.array(description, dtype=object), # TODO: should be token embeddings ???
         }
 
         others.update(final_obs) # update with gripper pose and expert action
@@ -207,7 +208,7 @@ def _add_keypoints_to_replay(
         replay.add(action, reward, terminal, timeout, **others)
 
     # final step
-    obs_dict_tp1 = utils.extract_obs(demo, keypoint, t=k + 1, prev_action=prev_action,
+    obs_dict_tp1 = utils.extract_obs(demo, keypoint, t=k + 1, prev_action=prev_action, 
                                      cameras=cameras, episode_length=episode_length)
     obs_dict_tp1['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
     obs_dict_tp1['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
@@ -245,17 +246,18 @@ def fill_replay(cfg: DictConfig,
     logging.debug('Filling %s replay ...' % task)
     # load demo rgbd and meta data
     demo, demo_meta_data = get_ms_demos(cfg.maniskill3.traj_path, cfg.maniskill3.json_path)
+    # print(f"Num of demos: {num_demos}")
     for d_idx in range(num_demos):
-        # TODO: Change the whole demo loading and kp extracting process to ms3 style
         # load language descs
         with open(cfg.maniskill3.desc_pkl_path, 'rb') as f:
             desc = pickle.load(f)
 
         # extract keypoints (a.k.a keyframes)
         episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, method=keypoint_method)
+        # print(f"Keypoints for episode {d_idx}: {episode_keypoints}")
 
         if rank == 0:
-            logging.info(f"Loading Demo({d_idx}) - found {len(episode_keypoints)} keypoints - {task}")
+            logging.info(f"Loading Demo({d_idx}) - found {len(episode_keypoints)} keypoints: {episode_keypoints} - {task}")
 
         # for the episode, add keyframes
         demo_ep = demo[f"traj_{d_idx}"]
