@@ -27,6 +27,9 @@ class Metric(object):
         self._previous = []
         self._current = 0
 
+    def __repr__(self):
+        return f"Previous {self._previous}. Current {self._current}"
+
     def update(self, value):
         self._current += value
 
@@ -81,11 +84,14 @@ class _SimpleAccumulator(StatAccumulator):
     def step(self, transition: ReplayTransition, eval: bool):
         with self._lock:
             self._transitions += 1
-            self._episode_returns.update(transition.reward)
+            self._episode_returns.update(transition.reward) # cumulative adding rewards
             self._episode_lengths.update(1)
             if transition.terminal:
-                self._episode_returns.next()
+                self._episode_returns.next() # saving metrics to list at the terminal state
                 self._episode_lengths.next()
+            # print("updating return and length:")
+            # print(self._episode_returns)
+            # print(self._episode_lengths)
             self._summaries.extend(list(transition.summaries))
 
     def _get(self) -> List[Summary]:
@@ -113,6 +119,9 @@ class _SimpleAccumulator(StatAccumulator):
 
     def pop(self) -> List[Summary]:
         data = []
+        # print("poping return and length:")
+        # print(self._episode_returns)
+        # print(self._episode_lengths)
         if len(self._episode_returns) > 1:
             data = self._get()
             self._reset_data()

@@ -158,8 +158,8 @@ class PandaArmMotionPlanningSolver:
                                                         time_step=self.base_env.control_timestep)
                 if result["status"] != "Success":
                     self.render_wait()
-                    raise ValueError(f"Planning from {self.robot.get_qpos().cpu().numpy()[0]} to {pose} failed")
-                    # return None, None, None, None, None
+                    print(f"Error! Planning from {self.robot.get_qpos().cpu().numpy()[0]} to {pose} failed")
+                    return None, None, None, None, None
         self.render_wait()
         if dry_run:
             return result

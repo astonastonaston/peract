@@ -6,7 +6,7 @@ import copy
 import time
 from typing import List
 from typing import Union
-from multiprocessing import Value
+from multiprocessing import Value, Process, Manager
 
 from agents.agent import Agent
 from mani_skill.envs.sapien_env import BaseEnv
@@ -14,6 +14,7 @@ from mani_skill.utils.io_utils import load_json
 from runners.rollout_generator import RolloutGenerator
 from runners.stat_accumulator import StatAccumulator, SimpleAccumulator
 from runners.log_writer import LogWriter
+from agents.agent import Summary, ScalarSummary
 # from yarr.replay_buffer.replay_buffer import ReplayBuffer
 # from helpers.custom_ms_env import CustomManiskillEnv
 # from agents.agent import Summary
@@ -95,35 +96,62 @@ class IndependentEnvRunner(object):
             self._multi_task = multi_task
             self._json_path = json_path
             self._demo_meta_data = load_json(json_path)
+            manager = Manager()
+            self.write_lock = manager.Lock()
+            self.stored_transitions = manager.list()
+            self.agent_summaries = manager.list()
 
-    # def summaries(self) -> List[Summary]:
-    #     summaries = []
-    #     # if self._stat_accumulator is not None:
-    #     #     summaries.extend(self._stat_accumulator.pop())
-    #     self._new_transitions = {'train_envs': 0, 'eval_envs': 0}
-    #     summaries.extend(self._agent_summaries)
+    def _get_task_name(self): # TODO: support multi-task evals
+        # if hasattr(self._eval_env, '_task_class'):
+        #     eval_task_name = change_case(self._eval_env._task_class.__name__)
+        #     multi_task = False
+        # elif hasattr(self._eval_env, '_task_classes'):
+        #     if self._eval_env.active_task_id != -1:
+        #         task_id = (self._eval_env.active_task_id) % len(self._eval_env._task_classes)
+        #         eval_task_name = change_case(self._eval_env._task_classes[task_id].__name__)
+        #     else:
+        #         eval_task_name = ''
+        #     multi_task = True
+        # else:
+        #     raise Exception('Neither task_class nor task_classes found in eval env')
+        eval_task_name = self._eval_env.unwrapped.spec.id
+        multi_task = self._multi_task # Multi-task eval not supported yet
+        return eval_task_name, multi_task
+    
+    def summaries(self) -> List[Summary]:
+        summaries = []
+        if self._stat_accumulator is not None:
+            summaries.extend(self._stat_accumulator.pop())
+        for key, value in self._new_transitions.items():
+            summaries.append(ScalarSummary('%s/new_transitions' % key, value))
+        for key, value in self._total_transitions.items():
+            summaries.append(ScalarSummary('%s/total_transitions' % key, value))
+        self._new_transitions = {'train_envs': 0, 'eval_envs': 0}
+        summaries.extend(self.agent_summaries)
 
-    #     # add current task_name to eval summaries .... argh this should be inside a helper function
-    #     if hasattr(self._eval_env, '_task_class'):
-    #         eval_task_name = change_case(self._eval_env._task_class.__name__)
-    #     elif hasattr(self._eval_env, '_task_classes'):
-    #         if self._current_task_id != -1:
-    #             task_id = (self._current_task_id) % len(self._eval_env._task_classes)
-    #             eval_task_name = change_case(self._eval_env._task_classes[task_id].__name__)
-    #         else:
-    #             eval_task_name = ''
-    #     else:
-    #         raise Exception('Neither task_class nor task_classes found in eval env')
+        # TODO: add current task_name to eval summaries .... argh this should be inside a helper function
+        # TODO: Multi-task is not supported yet
+        eval_task_name = self._eval_env.unwrapped.spec.id
+        # if hasattr(self._eval_env, '_task_class'):
+        # elif hasattr(self._eval_env, '_task_classes'): # TODO: multi-task summary not supported yet
+        #     if self._current_task_id != -1:
+        #         task_id = (self._current_task_id) % len(self._eval_env._task_classes)
+        #         eval_task_name = self._eval_env.unwrapped.spec.id
+        #     else:
+        #         eval_task_name = ''
+        # else:
+        #     raise Exception('Neither task_class nor task_classes found in eval env')
 
-    #     # multi-task summaries
-    #     if eval_task_name and self._multi_task:
-    #         for s in summaries:
-    #             if 'eval' in s.name:
-    #                 s.name = '%s/%s' % (s.name, eval_task_name)
+        # multi-task summaries
+        if eval_task_name and self._multi_task:
+            for s in summaries:
+                if 'eval' in s.name:
+                    s.name = '%s/%s' % (s.name, eval_task_name)
 
-    #     return summaries
+        return summaries
 
     def _run_eval_independent(self, name: str,
+                            stats_accumulator,
                             eval_env,
                             weight,
                             writer_lock,
@@ -184,9 +212,9 @@ class IndependentEnvRunner(object):
             self._agent.load_weights(weight_path)
             weight_name = str(weight)
 
-        # new_transitions = {'train_envs': 0, 'eval_envs': 0}
-        # total_transitions = {'train_envs': 0, 'eval_envs': 0}
-        # current_task_id = -1
+        new_transitions = {'train_envs': 0, 'eval_envs': 0}
+        total_transitions = {'train_envs': 0, 'eval_envs': 0}
+        current_task_id = -1
 
         for n_eval in range(self._num_eval_runs):
             # if rec_cfg.enabled:
@@ -206,6 +234,7 @@ class IndependentEnvRunner(object):
             reward_list = []
             success_list = []
             for ep in range(self._eval_episodes):
+                print(f"episode num {ep} under total {self._eval_episodes} episodes")
                 eval_demo_seed = ep + self._eval_from_eps_number
                 logging.info('%s: Starting episode %d, seed %d.' % (name, ep, eval_demo_seed))
 
@@ -228,6 +257,8 @@ class IndependentEnvRunner(object):
                     # record_enabled=rec_cfg.enabled)
                     
                 for replay_transition in generator:
+                    # print("summary of replay tran")
+                    # print(replay_transition.summaries)
                     while True:
                         if self._kill_signal.value:
                             # env.shutdown()
@@ -243,22 +274,23 @@ class IndependentEnvRunner(object):
                             'Agent. Waiting for replay_ratio %f to be more than %f' %
                             (self._current_replay_ratio.value, self._target_replay_ratio))
 
-                    # with self.write_lock:
-                    #     if len(self.agent_summaries) == 0:
-                    #         # Only store new summaries if the previous ones
-                    #         # have been popped by the main env runner.
-                    #         for s in self._agent.act_summaries():
-                    #             self.agent_summaries.append(s)
+                    with self.write_lock:
+                        if len(self.agent_summaries) == 0:
+                            # Only store new summaries if the previous ones
+                            # have been popped by the main env runner.
+                            for s in self._agent.act_summaries():
+                                self.agent_summaries.append(s)
                     episode_rollout.append(replay_transition)
 
-                # with self.write_lock:
-                #     for transition in episode_rollout:
-                #         self.stored_transitions.append((name, transition, eval))
+                with self.write_lock:
+                    for transition in episode_rollout:
+                        self.stored_transitions.append((name, transition, eval))
 
-                #         new_transitions['eval_envs'] += 1
-                #         total_transitions['eval_envs'] += 1
-                #         # stats_accumulator.step(transition, eval)
-                #         current_task_id = transition.info['active_task_id']
+                        new_transitions['eval_envs'] += 1
+                        total_transitions['eval_envs'] += 1
+                        # print(f"Transition reward is {transition.reward}")
+                        stats_accumulator.step(transition, eval)
+                        current_task_id = transition.info['active_task_id']
 
                 self._num_eval_episodes_signal.value += 1
 
@@ -290,42 +322,44 @@ class IndependentEnvRunner(object):
                 #     tr._cam_motion.restore_pose()
 
             # report summaries
-            # summaries = []
-            # summaries.extend(stats_accumulator.pop())
+            summaries = []
+            summaries.extend(stats_accumulator.pop())
 
-            # eval_task_name, multi_task = self._get_task_name()
+            eval_task_name, multi_task = self._get_task_name()
 
-            # if eval_task_name and multi_task:
-            #     for s in summaries:
-            #         if 'eval' in s.name:
-            #             s.name = '%s/%s' % (s.name, eval_task_name)
+            if eval_task_name and multi_task: # Do multi-task summary
+                for s in summaries:
+                    if 'eval' in s.name:
+                        s.name = '%s/%s' % (s.name, eval_task_name)
 
-            # if len(summaries) > 0:
-            #     if multi_task:
-            #         task_score = [s.value for s in summaries if f'eval_envs/return/{eval_task_name}' in s.name][0]
-            #     else:
-            #         task_score = [s.value for s in summaries if f'eval_envs/return' in s.name][0]
-            # else:
-            #     task_score = "unknown"
+            # print("summaries")
+            # print(summaries)
+            if len(summaries) > 0:
+                if multi_task:
+                    task_score = [s.value for s in summaries if f'eval_envs/return/{eval_task_name}' in s.name][0]
+                else:
+                    task_score = [s.value for s in summaries if f'eval_envs/return' in s.name][0]
+            else:
+                task_score = "unknown"
 
             # TODO: Do eval summary reports
-            # print(f"Finished {eval_task_name} | Final Score: {task_score}\n")
-            print(f"Finished {task_name} | Final Score: {np.mean(reward_list)} | Final Success Rate {np.mean(success_list)}\n")
+            print(f"Finished {eval_task_name} | Final Score: {task_score} | Final Success Rate {np.mean(success_list)}\n")
+            # print(f"Finished {task_name} | Final Score: {np.mean(reward_list)} | Final Success Rate {np.mean(success_list)}\n")
 
             if self._save_metrics:
                 # TODO: Do summary savings
                 with writer_lock:
-                    pass
-                    # writer.add_summaries(weight_name, summaries)
+                    writer.add_summaries(weight_name, summaries)
+                    # pass
 
             self._new_transitions = {'train_envs': 0, 'eval_envs': 0}
-            # self.agent_summaries[:] = []
-            # self.stored_transitions[:] = []
+            self.agent_summaries[:] = []
+            self.stored_transitions[:] = []
 
         if self._save_metrics:
             with writer_lock:
-                pass
-                # writer.end_iteration()
+                writer.end_iteration()
+                # pass
 
         logging.info('Finished evaluation.')
         # env.shutdown()
@@ -389,8 +423,8 @@ class IndependentEnvRunner(object):
         self._eval_env = eval_env
         self._lang_goal = env_config[2]
 
-        stat_accumulator = SimpleAccumulator(eval_video_fps=30)
         self._run_eval_independent('eval_env',
+                                    self._stat_accumulator,
                                     eval_env,
                                     weight,
                                     writer_lock,

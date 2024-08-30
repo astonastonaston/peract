@@ -6,7 +6,7 @@ import time
 import copy
 import sapien
 from mani_skill.envs.sapien_env import BaseEnv
-from agents.agent import Agent
+from agents.agent import Agent, VideoSummary, TextSummary
 from helpers.transition import ReplayTransition
 from helpers.ms3_utils import add_low_dim_states, extract_obs
 from runners.motion_planner import PandaArmMotionPlanningSolver
@@ -47,15 +47,15 @@ class RolloutGenerator(object):
         urdf_path = env.agent.urdf_path
         time_step = env.unwrapped.control_timestep
         
-        # start episode generation
+        # start episode generation (episode_length: the number of pose-based control steps)
         for step in range(episode_length):
-
+            print(f"step {step} in episode with len {episode_length}")
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
             # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
 
             act_result = agent.act(step_signal.value, prepped_data,
                                    deterministic=eval)
-            print(f"resutl action {act_result.action}")
+            print(f"result action {act_result.action}")
             agent_obs_elems = {k: np.array(v) for k, v in
                                act_result.observation_elements.items()}
             agent_obs_elems["lang_goal_tokens"] = lang_goal_tokens
@@ -66,8 +66,8 @@ class RolloutGenerator(object):
             # plan the path to the target pose
             trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
             rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
-            # trans_coordinate = env.agent.tcp.pose.sp.p + np.array([-0.1, 0, 0])
-            # rot = env.agent.tcp.pose.sp.q
+            trans_coordinate = env.agent.tcp.pose.sp.p + np.array([-0.01, 0, 0])
+            rot = env.agent.tcp.pose.sp.q
             planner = PandaArmMotionPlanningSolver(
                 env,
                 debug=False,
@@ -86,6 +86,11 @@ class RolloutGenerator(object):
             # set and reach the target pose
             reach_pose = sapien.Pose(p=trans_coordinate, q=rot)
             obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
+            if step == episode_length - 1: # manually truncate if max pose-based control episodic steps is reached
+                truncated = True
+            if not obs: # if planning failed, truncate this episode
+                print("Planning failed! Restarting another episode")
+                break
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs = add_low_dim_states(obs, step, episode_length)
             obs = extract_obs(obs)
@@ -104,6 +109,28 @@ class RolloutGenerator(object):
                     print(transition["info"])
                     transition["info"]["needs_reset"] = True
 
+            # # TODO: add video and error summaries
+            # summaries = []
+            # self._i += 1
+            # success = transition["info"]["success"]
+            # if ((transition["terminal"] or self._i == self._episode_length)):
+            #         # and self._record_current_episode): # TODO: add video summary
+            #     # self._append_final_frame(success)
+            #     # vid = np.array(self._recorded_images).transpose((0, 3, 1, 2))
+            #     # summaries.append(VideoSummary(
+            #     #     'episode_rollout_' + ('success' if success else 'fail'),
+            #     #     vid, fps=30))
+
+            #     # error summary
+            #     error_str = f"Errors - IK : {self._error_type_counts['IKError']}, " \
+            #                 f"ConfigPath : {self._error_type_counts['ConfigurationPathError']}, " \
+            #                 f"InvalidAction : {self._error_type_counts['InvalidActionError']}"
+            #     if not success and self._last_exception is not None:
+            #         error_str += f"\n Last Exception: {self._last_exception}"
+            #         self._last_exception = None
+
+            #     summaries.append(TextSummary('errors', f"Success: {success} | " + error_str))
+
 
             # if step == episode_length - 1: # Pose-control episode length reaching limit: reset
             #     # If last transition, and not terminal, then we timed out
@@ -115,8 +142,8 @@ class RolloutGenerator(object):
             #             print(transition["info"])
             #             transition["info"]["needs_reset"] = True
 
-            # TODO: add truncated and succeed terminal states
 
+            # TODO: add truncated and succeed terminal states
             obs_and_replay_elems = {}
             obs_and_replay_elems.update(obs)
             obs_and_replay_elems.update(agent_obs_elems)
