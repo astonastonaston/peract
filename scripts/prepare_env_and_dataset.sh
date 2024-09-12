@@ -2,6 +2,6 @@
 
 conda install -y nvidia/label/cuda-12.1.0::cuda-toolkit && pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 
-pip install -r requirements.txt
+pip install -r pod_requirements.txt
 
 sh scripts/ms3_demo_download.sh
