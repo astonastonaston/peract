@@ -1,0 +1,34 @@
+absl-py==0.15.0
+einops==0.3.2
+ftfy
+gdown==3.13.1
+hydra-core
+matplotlib
+numpy
+packaging==24.1
+pandas
+pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@38afdcfc6826bb41bbc414404937fab58dc24e85
+pyrender
+
+regex==2024.7.24
+scipy
+tensorboard==2.17.1
+
+omegaconf
+transformers
+trimesh
+# mani_skill
+# Also need:
+# apt install git g++, apt-get install libvulkan1, apt-get install libglvnd-dev, apt install vulkan-tools, and conda install pytorch3d (which is faster)
+# root@nanxiao-example:/workspace/peract# vim /usr/share/vulkan/icd.d/nvidia_icd.json
+# root@nanxiao-example:/workspace/peract# vim /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+# root@nanxiao-example:/workspace/peract# vim /etc/vulkan/implicit_layer.d/nvidia_layers.json
+
+# install pytorch3d: 
+# conda install pytorch=1.13.0 torchvision pytorch-cuda=11.6 -c pytorch -c nvidia && export PATH=/usr/local/cuda/bin:$PATH && pip install "git+https://github.com/facebookresearch/pytorch3d.git"
+
+# Full commands: 
+# git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
+# conda install nvidia/label/cuda-12.1.0::cuda-toolkit && pip install "git+https://github.com/facebookresearch/pytorch3d.git"
+# pip install -r requirements.txt
+# sh scripts/ms3_demo_download.sh
