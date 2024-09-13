@@ -1,0 +1,124 @@
+ddp:
+    master_addr: "localhost"
+    master_port: "29500"
+    num_devices: 1
+
+method:
+    name: "PERACT_BC"
+
+    # Voxelization
+    image_crop_size: 64
+    bounds_offset: [0.15]
+    voxel_sizes: [50]
+    # voxel_sizes: [100]
+    include_prev_layer: False
+
+    # Perceiver
+    num_latents: 2048
+    latent_dim: 512
+    transformer_depth: 6
+    transformer_iterations: 1
+    cross_heads: 1
+    cross_dim_head: 64
+    latent_heads: 8
+    latent_dim_head: 64
+    pos_encoding_with_lang: False
+    conv_downsample: True
+    lang_fusion_type: 'seq' # or 'concat'
+    voxel_patch_size: 5
+    voxel_patch_stride: 5
+    final_dim: 64
+
+    # Training
+    input_dropout: 0.1
+    attn_dropout: 0.1
+    decoder_dropout: 0.0
+
+    lr: 0.0005
+    lr_scheduler: False
+    num_warmup_steps: 3000
+    optimizer: 'lamb' # or 'adam'
+
+    lambda_weight_l2: 0.000001
+    trans_loss_weight: 1.0
+    rot_loss_weight: 1.0
+    grip_loss_weight: 1.0
+    collision_loss_weight: 1.0
+    rotation_resolution: 5
+
+    # Network
+    activation: lrelu
+    norm: None
+
+    # Augmentation
+    crop_augmentation: True
+    transform_augmentation:
+        apply_se3: True
+        aug_xyz: [0.125, 0.125, 0.125]
+        aug_rpy: [0.0, 0.0, 45.0]
+        aug_rot_resolution: ${method.rotation_resolution}
+
+    demo_augmentation: True
+    demo_augmentation_every_n: 10
+
+    # Ablations
+    no_skip_connection: False
+    no_perceiver: False
+    no_language: False
+    keypoint_method: 'heuristic'
+
+maniskill3:
+    # task_name: "single" 
+    task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
+    tasks: [PushCube-v1]
+    episode_length: 25 # TODO: Set this number
+    # episode_length: 3 # TODO: Set this number
+    # demos: 150
+    demos: 50
+    traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
+    json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
+    train_index_range: [0, 30]
+    val_index_range: [30, 40]
+    test_index_range: [40, 50]
+    desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
+    cameras: [base_camera]
+    camera_resolution: [128, 128]
+    scene_bounds: [-1, -1, -1, 2, 2, 2]
+    include_lang_goal_in_obs: True
+
+replay:
+    batch_size: 1
+    timesteps: 1
+    prioritisation: False
+    task_uniform: True # uniform sampling of tasks for multi-task buffers
+    use_disk: True
+    path: '/tmp/arm/replay' # only used when use_disk is True.
+    max_parallel_processes: 32
+
+framework:
+    log_freq: 100
+    save_freq: 100
+    train_envs: 1
+    replay_ratio: ${replay.batch_size}
+    transitions_before_train: 200
+    tensorboard_logging: True
+    csv_logging: True
+    training_iterations: 3200
+    # training_iterations: 40000
+    gpu: 0
+    env_gpu: 0
+    logdir: '/tmp/arm_test/'
+    logging_level: 20 # https://docs.python.org/3/library/logging.html#levels
+    seeds: 1
+    start_seed: 0 # change this if you want to train a different model
+    load_existing_weights: True
+    num_weights_to_keep: 60 # older checkpoints will be deleted chronologically
+    num_workers: 0
+    record_every_n: 5
+
+defaults:
+    - method: PERACT_BC
+
+hydra:
+    run:
+        dir: ${framework.logdir}/${maniskill3.task_name}/${method.name}

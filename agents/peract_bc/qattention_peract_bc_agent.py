@@ -673,14 +673,15 @@ class QAttentionPerActBCAgent(Agent):
                          info=info)
 
     def update_summaries(self) -> List[Summary]:
-        summaries = [
-            ImageSummary('%s/update_qattention' % self._name,
-                         transforms.ToTensor()(visualise_voxel(
-                             self._vis_voxel_grid.detach().cpu().numpy(),
-                             self._vis_translation_qvalue.detach().cpu().numpy(),
-                             self._vis_max_coordinate.detach().cpu().numpy(),
-                             self._vis_gt_coordinate.detach().cpu().numpy())))
-        ]
+        summaries = []
+        # summaries = [
+        #     ImageSummary('%s/update_qattention' % self._name,
+        #                  transforms.ToTensor()(visualise_voxel(
+        #                      self._vis_voxel_grid.detach().cpu().numpy(),
+        #                      self._vis_translation_qvalue.detach().cpu().numpy(),
+        #                      self._vis_max_coordinate.detach().cpu().numpy(),
+        #                      self._vis_gt_coordinate.detach().cpu().numpy())))
+        # ]
 
         for n, v in self._summaries.items():
             summaries.append(ScalarSummary('%s/%s' % (self._name, n), v))
@@ -704,12 +705,13 @@ class QAttentionPerActBCAgent(Agent):
         return summaries
 
     def act_summaries(self) -> List[Summary]:
-        return [
-            ImageSummary('%s/act_Qattention' % self._name,
-                         transforms.ToTensor()(visualise_voxel(
-                             self._act_voxel_grid.cpu().numpy(),
-                             self._act_qvalues.cpu().numpy(),
-                             self._act_max_coordinate.cpu().numpy())))]
+        return []
+        # return [
+        #     ImageSummary('%s/act_Qattention' % self._name,
+        #                  transforms.ToTensor()(visualise_voxel(
+        #                      self._act_voxel_grid.cpu().numpy(),
+        #                      self._act_qvalues.cpu().numpy(),
+        #                      self._act_max_coordinate.cpu().numpy())))]
 
     def load_weights(self, savedir: str):
         device = self._device if not self._training else torch.device('cuda:%d' % self._device)

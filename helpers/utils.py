@@ -5,7 +5,6 @@ import trimesh
 from pyrender.trackball import Trackball
 # from rlbench.backend.const import DEPTH_SCALE
 from scipy.spatial.transform import Rotation
-from pyrep.const import RenderMode
 from helpers import demo_loading_utils
 from typing import List, Dict
 
