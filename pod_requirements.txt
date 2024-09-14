@@ -1,3 +1,4 @@
+torchvision
 absl-py==0.15.0
 einops==0.3.2
 ftfy
@@ -7,7 +8,6 @@ matplotlib
 numpy
 packaging==24.1
 pandas
-pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@38afdcfc6826bb41bbc414404937fab58dc24e85
 pyrender
 
 regex==2024.7.24
@@ -17,6 +17,9 @@ tensorboard==2.17.1
 omegaconf
 transformers
 trimesh
+natsort
+fvcore
+
 # mani_skill
 # Also need:
 # apt install git g++, apt-get install libvulkan1, apt-get install libglvnd-dev, apt install vulkan-tools, and conda install pytorch3d (which is faster)

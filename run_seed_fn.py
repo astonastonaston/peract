@@ -89,6 +89,7 @@ def run_seed(rank,
 
     cwd = os.getcwd()
     weightsdir = os.path.join(cwd, 'seed%d' % seed, 'weights')
+    print(f"weight dir {cwd, weightsdir}")
     logdir = os.path.join(cwd, 'seed%d' % seed)
 
     train_runner = OfflineTrainRunner(

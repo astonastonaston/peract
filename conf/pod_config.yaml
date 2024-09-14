@@ -9,8 +9,8 @@ method:
     # Voxelization
     image_crop_size: 64
     bounds_offset: [0.15]
-    voxel_sizes: [50]
-    # voxel_sizes: [100]
+    # voxel_sizes: [50]
+    voxel_sizes: [100]
     include_prev_layer: False
 
     # Perceiver
@@ -74,12 +74,12 @@ maniskill3:
     episode_length: 25 # TODO: Set this number
     # episode_length: 3 # TODO: Set this number
     # demos: 150
-    demos: 50
+    demos: 100
     traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
     json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
-    train_index_range: [0, 30]
-    val_index_range: [30, 40]
-    test_index_range: [40, 50]
+    train_index_range: [0, 60]
+    val_index_range: [60, 80]
+    test_index_range: [80, 100]
     desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
     cameras: [base_camera]
     camera_resolution: [128, 128]
@@ -87,7 +87,7 @@ maniskill3:
     include_lang_goal_in_obs: True
 
 replay:
-    batch_size: 1
+    batch_size: 2
     timesteps: 1
     prioritisation: False
     task_uniform: True # uniform sampling of tasks for multi-task buffers
@@ -96,14 +96,14 @@ replay:
     max_parallel_processes: 32
 
 framework:
-    log_freq: 100
-    save_freq: 100
+    log_freq: 250
+    save_freq: 250
     train_envs: 1
     replay_ratio: ${replay.batch_size}
     transitions_before_train: 200
     tensorboard_logging: True
     csv_logging: True
-    training_iterations: 3200
+    training_iterations: 20000
     # training_iterations: 40000
     gpu: 0
     env_gpu: 0
