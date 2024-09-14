@@ -87,7 +87,7 @@ maniskill3:
     include_lang_goal_in_obs: True
 
 replay:
-    batch_size: 2
+    batch_size: 1
     timesteps: 1
     prioritisation: False
     task_uniform: True # uniform sampling of tasks for multi-task buffers
