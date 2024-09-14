@@ -295,18 +295,21 @@ class IndependentEnvRunner(object):
                 self._num_eval_episodes_signal.value += 1
 
                 task_name = env.unwrapped.spec.id
-                reward = episode_rollout[-1].reward
-                reward_list.append(reward)
-                success = episode_rollout[-1].info["success"]
-                success_list.append(success)
                 lang_goal = self._lang_goal
-                print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
-                print("Final state info:")
-                print(episode_rollout[-1].observation.keys())
-                print(episode_rollout[-1].action.shape)
-                print(episode_rollout[-1].terminal)
-                print(episode_rollout[-1].terminated)
-                print(episode_rollout[-1].truncated)
+                if episode_rollout != []:
+                    reward = episode_rollout[-1].reward
+                    reward_list.append(reward)
+                    success = episode_rollout[-1].info["success"]
+                    success_list.append(success)
+                    print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
+                    print("Final state info:")
+                    print(episode_rollout[-1].observation.keys())
+                    print(episode_rollout[-1].action.shape)
+                    print(episode_rollout[-1].terminal)
+                    print(episode_rollout[-1].terminated)
+                    print(episode_rollout[-1].truncated)
+                else:
+                    print(f"Evaluating {task_name} | Episode {ep} | Score: {0} () | Lang Goal: {lang_goal} | Success: {0}")
                 # # TODO: save recording at maniskill
                 # if rec_cfg.enabled:
                 #     success = reward > 0.99

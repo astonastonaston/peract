@@ -66,12 +66,13 @@ class RolloutGenerator(object):
             # plan the path to the target pose
             trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
             rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
-            trans_coordinate = env.agent.tcp.pose.sp.p + np.array([-0.01, 0, 0])
-            rot = env.agent.tcp.pose.sp.q
+            # trans_coordinate = env.agent.tcp.pose.sp.p + np.array([-0.01, 0, 0]) # debugging mode
+            # rot = env.agent.tcp.pose.sp.q
             planner = PandaArmMotionPlanningSolver(
                 env,
                 debug=False,
-                vis=True,
+                vis=False, # visualization of next pose mode
+                # vis=True, # visualization of next pose mode
                 base_pose=env.unwrapped.agent.robot.pose,
                 visualize_target_grasp_pose=True,
                 print_env_info=False,
@@ -88,9 +89,10 @@ class RolloutGenerator(object):
             obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
             if step == episode_length - 1: # manually truncate if max pose-based control episodic steps is reached
                 truncated = True
-            if not obs: # if planning failed, truncate this episode
+            if info["plan_failed"]: # if planning failed, truncate this episode
                 print("Planning failed! Restarting another episode")
-                break
+                truncated = True
+                # break
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs = add_low_dim_states(obs, step, episode_length)
             obs = extract_obs(obs)

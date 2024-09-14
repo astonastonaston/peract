@@ -126,6 +126,9 @@ class PandaArmMotionPlanningSolver:
             return result
         return self.follow_path(result, refine_steps=refine_steps)
 
+    def get_current_env_states(self):
+        return self.env.step(None)
+
     def move_to_pose_with_screw(
         self, pose: sapien.Pose, dry_run: bool = False, refine_steps: int = 0
     ):
@@ -159,11 +162,15 @@ class PandaArmMotionPlanningSolver:
                 if result["status"] != "Success":
                     self.render_wait()
                     print(f"Error! Planning from {self.robot.get_qpos().cpu().numpy()[0]} to {pose} failed")
-                    return None, None, None, None, None
+                    obs, reward, terminated, truncated, info = self.get_current_env_states()
+                    info["plan_failed"] = True
+                    return obs, reward, terminated, truncated, info
         self.render_wait()
-        if dry_run:
+        if dry_run: # dry run doesn't contain plan_failed info yet
             return result
-        return self.follow_path(result, refine_steps=refine_steps)
+        obs, reward, terminated, truncated, info = self.follow_path(result, refine_steps=refine_steps)
+        info["plan_failed"] = False
+        return obs, reward, terminated, truncated, info
 
     def open_gripper(self):
         self.gripper_state = OPEN
