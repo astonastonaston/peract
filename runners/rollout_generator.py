@@ -71,8 +71,8 @@ class RolloutGenerator(object):
             planner = PandaArmMotionPlanningSolver(
                 env,
                 debug=False,
-                # vis=False, # visualization of next pose mode
-                vis=True, # visualization of next pose mode
+                vis=False, # visualization of next pose mode
+                # vis=True, # visualization of next pose mode
                 base_pose=env.unwrapped.agent.robot.pose,
                 visualize_target_grasp_pose=True,
                 print_env_info=False,

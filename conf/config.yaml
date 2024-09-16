@@ -71,15 +71,15 @@ maniskill3:
     # task_name: "single" 
     task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
     tasks: [PushCube-v1]
-    episode_length: 25 # TODO: Set this number
-    # episode_length: 3 # TODO: Set this number
+    # episode_length: 25 # TODO: Set this number
+    episode_length: 4 # TODO: Set this number
     # demos: 150
-    demos: 3
+    demos: 5
     traj_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.h5
     json_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.json
-    train_index_range: [0, 150]
-    val_index_range: [150, 175]
-    test_index_range: [175, 200]
+    train_index_range: [0, 3]
+    val_index_range: [3, 4]
+    test_index_range: [4, 5]
     desc_pkl_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/desc.pkl
     cameras: [base_camera]
     camera_resolution: [128, 128]
@@ -103,7 +103,7 @@ framework:
     transitions_before_train: 200
     tensorboard_logging: True
     csv_logging: True
-    training_iterations: 3200
+    training_iterations: 5000
     # training_iterations: 40000
     gpu: 0
     env_gpu: 0

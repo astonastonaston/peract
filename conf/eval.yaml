@@ -17,9 +17,9 @@ maniskill3:
     # task_name: "single" # multi-task training is not supported yet
     task_name: "multi"
     tasks: [PushCube-v1]
-    # episode_length: 2 # TODO: Set this number. Note this is the number of POSE-based plannings to do
-    episode_length: 25 # TODO: Set this number. Note this is the number of POSE-based plannings to do
-    demos: 150
+    episode_length: 4 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+    # episode_length: 5 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+    demos: 10
     traj_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.h5
     json_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.json
     # train_ind_start: 0
@@ -41,11 +41,11 @@ framework:
     record_every_n: 5
 
     eval_envs: 1
-    # eval_from_eps_number: 80 # current eatio: train/val/test = 150/25/25
-    eval_from_eps_number: 175 # current eatio: train/val/test = 150/25/25
+    eval_from_eps_number: 40 # current eatio: train/val/test = 150/25/25
+    # eval_from_eps_number: 175 # current eatio: train/val/test = 150/25/25
     # eval_episodes: 20
-    eval_episodes: 25
-    # eval_episodes: 2
+    # eval_episodes: 25
+    eval_episodes: 10
     # eval_type: 'missing' # or 'best'
     eval_type: 'last' # or 'best'
     eval_save_metrics: True

@@ -318,27 +318,28 @@ def split_list(lst, n):
         yield lst[i:i + n]
 
 
-def extract_obs(demo: Dict, keypoint: int,
-                cameras,
+def extract_obs(demo: Dict,
+                step: int, # current timestep w.r.t pd_joint_pos-based control. demo+step specifies a current obs
                 t: int = 0,
+                cameras=None,
                 prev_action=None,
                 channels_last: bool = False,
                 episode_length: int = 10):
     # TODO: extract rgbs and pcds of each camera to obs_dict
     # Maniskill3 pointcloud has w coordinate: Indicating whether it's infinite far. To this end, it can be more robust then the original rlbench-based peract's pointcloud
     # all rgbs and pcds are aggregated from all cameras, so you don't have to aggregate again during training
-    obs_dict = {"rgb": demo_loading_utils._get_rgb_from_pcd_obs(demo, keypoint), 
-                "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, keypoint)}
+    obs_dict = {"rgb": demo_loading_utils._get_rgb_from_pcd_obs(demo, step), 
+                "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, step)}
     # print(obs_dict["point_cloud"].shape)
     # print(obs_dict["rgb"].shape)
 
-    gripper_joint_positions = demo_loading_utils._get_gripper_joint_positions(demo, keypoint)
+    gripper_joint_positions = demo_loading_utils._get_gripper_joint_positions(demo, step)
     if gripper_joint_positions is not None:
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
 
     robot_state = np.concatenate([
-        [demo_loading_utils._check_gripper_open(demo, keypoint)],
-        # np.array([demo_loading_utils._check_gripper_open(demo, keypoint)])[:, None],
+        [demo_loading_utils._check_gripper_open(demo, step)],
+        # np.array([demo_loading_utils._check_gripper_open(demo, t)])[:, None],
         gripper_joint_positions], axis=-1) # left and right finger joint positions
     # print(robot_state.shape)
 
@@ -360,12 +361,12 @@ def extract_obs(demo: Dict, keypoint: int,
 
     # TODO: Set collision action bits
     # binary variable indicating if collisions are allowed or not while planning paths to reach poses
-    obs_dict['ignore_collisions'] = np.array([demo_loading_utils._get_ignore_collision(demo, keypoint)], dtype=np.float32)
+    obs_dict['ignore_collisions'] = np.array([demo_loading_utils._get_ignore_collision(demo, step)], dtype=np.float32)
     for (k, v) in [(k, v) for k, v in obs_dict.items() if 'point_cloud' in k]:
         obs_dict[k] = v.astype(np.float32)
 
     for camera_name in cameras:
-        extrinsics, intrinsics = demo_loading_utils._get_camera_extrinsics_intrinsics(demo, keypoint, camera_name)
+        extrinsics, intrinsics = demo_loading_utils._get_camera_extrinsics_intrinsics(demo, step, camera_name)
         obs_dict['%s_camera_extrinsics' % camera_name] = extrinsics
         obs_dict['%s_camera_intrinsics' % camera_name] = intrinsics
 

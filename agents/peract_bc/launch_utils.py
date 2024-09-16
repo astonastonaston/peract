@@ -3,7 +3,9 @@
 # License: https://github.com/stepjam/ARM/LICENSE
 
 import logging
+import copy
 from typing import List, Dict
+
 
 import numpy as np
 import pickle
@@ -105,7 +107,7 @@ def create_replay(batch_size: int, timesteps: int,
 
 def _get_action(
         demo: Dict,
-        keypoint: int,
+        tpl_index: int, tml_index: int,
         scene_bounds: List[float], # metric 3D bounds of the scene
         voxel_sizes: List[int],
         bounds_offset: List[float],
@@ -114,7 +116,7 @@ def _get_action(
     # TODO: change the way to get gripper pose from obs, using ms3 style
     # obs_tp1 = demo[keypoint]
     # obs_tm1 = demo[max(0, keypoint - 1)]
-    tpl_index, tml_index = keypoint, max(0, keypoint-1)
+    # tpl_index, tml_index = keypoint, max(0, keypoint-1)
     tpl_gripper_pose = demo_loading_utils._get_gripper_pose(demo, tpl_index)
     quat = utils.normalize_quaternion(tpl_gripper_pose[3:])
     if quat[-1] < 0:
@@ -157,6 +159,7 @@ def _add_keypoints_to_replay(
         task: str,
         replay: ReplayBuffer,
         demo: Dict,
+        i: int, # current timestep w.r.t pd_joint_pos-based control
         demo_meta_data: Dict, 
         episode_keypoints: List[int],
         cameras: List[str],
@@ -176,13 +179,13 @@ def _add_keypoints_to_replay(
         # obs_tm1 = demo[max(0, keypoint - 1)]
         tpl_index, tml_index = keypoint, max(0, keypoint-1)
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
-            demo, keypoint, scene_bounds, voxel_sizes, bounds_offset,
+            demo, tpl_index, tml_index, scene_bounds, voxel_sizes, bounds_offset,
             rotation_resolution, crop_augmentation) # action -> next kf gripper pose
 
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
-        obs_dict = utils.extract_obs(demo, keypoint, t=k, prev_action=prev_action,
+        obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
         tokens = tokenize(description).numpy()
         token_tensor = torch.from_numpy(tokens).to(device)
@@ -207,8 +210,11 @@ def _add_keypoints_to_replay(
         timeout = False
         replay.add(action, reward, terminal, timeout, **others)
 
-    # final step
-    obs_dict_tp1 = utils.extract_obs(demo, keypoint, t=k + 1, prev_action=prev_action, 
+        # add labelled keypoints' data
+        i = copy.deepcopy(tpl_index)
+
+    # final step staying static without moving
+    obs_dict_tp1 = utils.extract_obs(demo, tpl_index, t=k + 1, prev_action=prev_action, 
                                      cameras=cameras, episode_length=episode_length)
     obs_dict_tp1['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
     obs_dict_tp1['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
@@ -264,7 +270,7 @@ def fill_replay(cfg: DictConfig,
         for i in range(len(demo_ep) - 1):
             if not demo_augmentation and i > 0:
                 break
-            if i % demo_augmentation_every_n != 0:
+            if i % demo_augmentation_every_n != 0: # augment demo every n steps
                 continue
 
             # if our starting point is past one of the keypoints, then remove it
@@ -273,7 +279,7 @@ def fill_replay(cfg: DictConfig,
             if len(episode_keypoints) == 0:
                 break
             _add_keypoints_to_replay(
-                cfg, task, replay, demo_ep, demo_meta_data, episode_keypoints, cameras,
+                cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
                 scene_bounds, voxel_sizes, bounds_offset,
                 rotation_resolution, crop_augmentation, description=desc,
                 clip_model=clip_model, device=device)
