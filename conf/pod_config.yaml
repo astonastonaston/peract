@@ -92,6 +92,9 @@ replay:
     prioritisation: False
     task_uniform: True # uniform sampling of tasks for multi-task buffers
     use_disk: True
+    save_keypoints: True
+    save_keypoints_dir: "/tmp/arm"
+    stop_buffer_init_val: 16
     path: '/tmp/arm/replay' # only used when use_disk is True.
     max_parallel_processes: 32
 
