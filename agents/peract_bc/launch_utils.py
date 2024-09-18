@@ -262,7 +262,7 @@ def fill_replay(cfg: DictConfig,
             desc = pickle.load(f)
 
         # extract keypoints (a.k.a keyframes)
-        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, method=keypoint_method)
+        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, stopped_buffer_init_val=cfg.replay.stop_buffer_init_val, method=keypoint_method)
         if cfg.replay.save_keypoints:
             keypts[d_idx] = episode_keypoints
 

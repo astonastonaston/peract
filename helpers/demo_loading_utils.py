@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-def _check_gripper_open(demo, i, delta=0):
+def _check_gripper_open(demo, i, delta=1e-3): # TODO: adjust delta for your task
     # check if the gripper is open at the i-th step
     return demo["obs"]["agent"]["qpos"][i, -1] > delta
 
@@ -51,16 +51,16 @@ def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1):
              _check_gripper_open(demo, i-2) == _check_gripper_open(demo, i-1)))
     small_delta = np.allclose(_get_joint_velocities(demo, i), 0, atol=delta)
     # logging.info(demo_len)
-    if i < (demo_len - 2) and i >= 2:
-        logging.info(f"Frame {i} gripper states {_check_gripper_open(demo, i+1), _check_gripper_open(demo, i), _check_gripper_open(demo, i-1), _check_gripper_open(demo, i-2)}")
-    logging.info(f"Frame {i} joint vel {_get_joint_velocities(demo, i)}")
-    logging.info(f"Frame {i} stop buffer {stopped_buffer}, delta {small_delta}, not final {not next_is_not_final}, gripper state not change {gripper_state_no_change}")
+    # if i < (demo_len - 2) and i >= 2:
+    #     logging.info(f"Frame {i} gripper states {_check_gripper_open(demo, i+1), _check_gripper_open(demo, i), _check_gripper_open(demo, i-1), _check_gripper_open(demo, i-2)}")
+    # logging.info(f"Frame {i} joint vel {_get_joint_velocities(demo, i)}")
+    # logging.info(f"Frame {i} stop buffer {stopped_buffer}, delta {small_delta}, not final {not next_is_not_final}, gripper state not change {gripper_state_no_change}")
     stopped = (stopped_buffer <= 0 and small_delta and
                (not next_is_not_final) and gripper_state_no_change)
-    logging.info(f"Frame {i} stopped {stopped}")
+    # logging.info(f"Frame {i} stopped {stopped}")
     return stopped
 
-def keypoint_discovery(d_idx, h5_file, json_data, 
+def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
                        stopping_delta=0.1,
                        method='heuristic') -> List[int]:
     episode_keypoints = []
@@ -73,11 +73,12 @@ def keypoint_discovery(d_idx, h5_file, json_data,
         stopped_buffer = 0
         for i in range(demo_len):
             stopped = _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta)
-            stopped_buffer = 4 if stopped else stopped_buffer - 1
+            stopped_buffer = stopped_buffer_init_val if stopped else stopped_buffer - 1
             # If change in gripper, or end of episode.
             last = i == (demo_len - 1)
             curr_gripper_open = _check_gripper_open(demo, i)
-            logging.info(f"Frame {i}, gripper different {curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
+            # if d_idx == 25:
+            #     logging.info(f"Frame {i}, gripper different {demo['obs']['agent']['qpos'][i, -1], curr_gripper_open, prev_gripper_open, curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
             if i != 0 and (curr_gripper_open != prev_gripper_open or
                            last or stopped):
                 episode_keypoints.append(i)
