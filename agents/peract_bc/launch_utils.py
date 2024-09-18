@@ -4,6 +4,7 @@
 
 import logging
 import copy
+import os
 from typing import List, Dict
 
 
@@ -15,6 +16,7 @@ from runners.replay_buffer import ReplayElement, ReplayBuffer
 from runners.uniform_replay_buffer import UniformReplayBuffer
 
 from helpers import demo_loading_utils, utils
+from helpers.utils import save_dict_to_json
 from helpers.ms3_utils import get_ms_demos
 from helpers.preprocess_agent import PreprocessAgent
 from helpers.clip.core.clip import tokenize
@@ -253,6 +255,7 @@ def fill_replay(cfg: DictConfig,
     # load demo rgbd and meta data
     demo, demo_meta_data = get_ms_demos(cfg.maniskill3.traj_path, cfg.maniskill3.json_path)
     # print(f"Num of demos: {num_demos}")
+    keypts = {}
     for d_idx in range(num_demos):
         # load language descs
         with open(cfg.maniskill3.desc_pkl_path, 'rb') as f:
@@ -260,6 +263,9 @@ def fill_replay(cfg: DictConfig,
 
         # extract keypoints (a.k.a keyframes)
         episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, method=keypoint_method)
+        if cfg.replay.save_keypoints:
+            keypts[d_idx] = episode_keypoints
+
         # print(f"Keypoints for episode {d_idx}: {episode_keypoints}")
 
         if rank == 0:
@@ -283,6 +289,13 @@ def fill_replay(cfg: DictConfig,
                 scene_bounds, voxel_sizes, bounds_offset,
                 rotation_resolution, crop_augmentation, description=desc,
                 clip_model=clip_model, device=device)
+    if cfg.replay.save_keypoints:
+        keypt_dir = cfg.replay.save_keypoints_dir
+        logging.info(f"Saving keypoints to {keypt_dir}")
+        if not os.path.exists(keypt_dir):
+            os.makedirs(keypt_dir)
+        save_dict_to_json(keypts, os.path.join(keypt_dir, "keypts.json"))
+
     logging.debug('Replay %s filled with demos.' % task)
 
 

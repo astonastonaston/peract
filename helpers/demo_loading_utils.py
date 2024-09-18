@@ -42,16 +42,22 @@ def _get_camera_extrinsics_intrinsics(demo, i, camera_name):
     assert camera_name in demo["obs"]["sensor_param"].keys(), f"No such camera sensor with name {camera_name} in observations"
     return demo["obs"]["sensor_param"][camera_name]["cam2world_gl"][i], demo["obs"]["sensor_param"][camera_name]["intrinsic_cv"][i]
 
-def _is_stopped(demo, i, stopped_buffer, delta=0.1):
-    next_is_not_final = i == (len(demo) - 2)
+def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1):
+    next_is_not_final = i == (demo_len - 2)
     gripper_state_no_change = (
-            i < (len(demo) - 2) and
+            i < (demo_len - 2) and i >= 2 and
             (_check_gripper_open(demo, i) == _check_gripper_open(demo, i+1) and
              _check_gripper_open(demo, i) == _check_gripper_open(demo, i-1) and
              _check_gripper_open(demo, i-2) == _check_gripper_open(demo, i-1)))
     small_delta = np.allclose(_get_joint_velocities(demo, i), 0, atol=delta)
+    # logging.info(demo_len)
+    if i < (demo_len - 2) and i >= 2:
+        logging.info(f"Frame {i} gripper states {_check_gripper_open(demo, i+1), _check_gripper_open(demo, i), _check_gripper_open(demo, i-1), _check_gripper_open(demo, i-2)}")
+    logging.info(f"Frame {i} joint vel {_get_joint_velocities(demo, i)}")
+    logging.info(f"Frame {i} stop buffer {stopped_buffer}, delta {small_delta}, not final {not next_is_not_final}, gripper state not change {gripper_state_no_change}")
     stopped = (stopped_buffer <= 0 and small_delta and
                (not next_is_not_final) and gripper_state_no_change)
+    logging.info(f"Frame {i} stopped {stopped}")
     return stopped
 
 def keypoint_discovery(d_idx, h5_file, json_data, 
@@ -66,11 +72,13 @@ def keypoint_discovery(d_idx, h5_file, json_data,
         prev_gripper_open = _check_gripper_open(demo, 0)
         stopped_buffer = 0
         for i in range(demo_len):
-            stopped = _is_stopped(demo, i, stopped_buffer, stopping_delta)
+            stopped = _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta)
             stopped_buffer = 4 if stopped else stopped_buffer - 1
             # If change in gripper, or end of episode.
             last = i == (demo_len - 1)
-            if i != 0 and (_check_gripper_open(demo, i) != prev_gripper_open or
+            curr_gripper_open = _check_gripper_open(demo, i)
+            logging.info(f"Frame {i}, gripper different {curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
+            if i != 0 and (curr_gripper_open != prev_gripper_open or
                            last or stopped):
                 episode_keypoints.append(i)
             prev_gripper_open = _check_gripper_open(demo, i)

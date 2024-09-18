@@ -2,6 +2,7 @@ import numpy as np
 import pyrender
 import torch
 import trimesh
+import json
 from pyrender.trackball import Trackball
 # from rlbench.backend.const import DEPTH_SCALE
 from scipy.spatial.transform import Rotation
@@ -16,6 +17,10 @@ REMOVE_KEYS = ['joint_velocities', 'joint_positions', 'joint_forces',
 # SCALE_FACTOR = DEPTH_SCALE
 DEFAULT_SCENE_SCALE = 2.0
 
+def save_dict_to_json(data, filename):
+    """Save a dictionary to a JSON file."""
+    with open(filename, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 def loss_weights(replay_sample, beta=1.0):
     loss_weights = 1.0
