@@ -87,6 +87,8 @@ class QFunction(nn.Module):
             # [p.permute(0, 2, 3, 1).reshape(b, -1, feat_size) for p in rgb], 1)
 
         # construct voxel grid
+        # print(f"img feat size {flat_imag_features.shape, pcd_flat.shape, bounds.shape}")
+        
         voxel_grid = self._voxelizer.coords_to_bounding_voxel_grid(
             pcd_flat, coord_features=flat_imag_features, coord_bounds=bounds)
 

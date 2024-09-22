@@ -6,5 +6,6 @@ peract.egg-info/
 data/
 build/
 outputs/
+voxel_visualizer.ipynb
 *__pycache__*
 *.pyc

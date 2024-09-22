@@ -41,7 +41,7 @@ def create_replay(batch_size: int, timesteps: int,
                   voxel_sizes,
                   image_size=[128, 128],
                   replay_size=3e5):
-
+    num_cam = len(cameras)
     trans_indicies_size = 3 * len(voxel_sizes)
     rot_and_grip_indicies_size = (3 + 1)
     gripper_pose_size = 7
@@ -57,9 +57,9 @@ def create_replay(batch_size: int, timesteps: int,
 
     # rgb, point cloud, intrinsics, extrinsics
     observation_elements.append(
-        ObservationElement('rgb', (np.prod(image_size), 3), np.float32))
+        ObservationElement('rgb', (np.prod(image_size) * num_cam, 3), np.float32))
     observation_elements.append(
-        ObservationElement('point_cloud', (np.prod(image_size), 4),
+        ObservationElement('point_cloud', (np.prod(image_size) * num_cam, 4),
                             np.float32)) # in homogeneous coordinates
     for cname in cameras:
         observation_elements.append(
