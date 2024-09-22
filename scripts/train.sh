@@ -1,3 +1,4 @@
+python desc_generator.py
 python train.py
 
 # save results to permanent storage

@@ -1,6 +1,7 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
 
-cp -r /dev/nanxiao-vol1/demos_multi_view ./demos
+cp -r /dev/nanxiao-vol1/demos_multi_view ./
+mv ./demos_multi_view ./demos
 # sh scripts/ms3_demo_download.sh
 
 # install pytorch3d from the wheel
