@@ -1,7 +1,7 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
 
-cp -r /dev/nanxiao-vol1/demos ./
-# sh scripts/ms3_demo_download.sh
+# cp -r /dev/nanxiao-vol1/demos ./
+sh scripts/ms3_demo_download.sh
 
 # install pytorch3d from the wheel
 # pip install fvcore
