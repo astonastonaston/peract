@@ -324,8 +324,8 @@ def split_list(lst, n):
 
 
 def extract_obs(demo: Dict,
-                step: int, # current timestep w.r.t pd_joint_pos-based control. demo+step specifies a current obs
-                t: int = 0,
+                step: int, # current position-based ctl timestep w.r.t pd_joint_pos-based control. demo+step specifies a current obs
+                t: int = 0, # current pose-based ctl timestep (for low_dim_state computation)
                 cameras=None,
                 prev_action=None,
                 channels_last: bool = False,

@@ -189,6 +189,7 @@ def _add_keypoints_to_replay(
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
+        # print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
         tokens = tokenize(description).numpy()
@@ -275,7 +276,9 @@ def fill_replay(cfg: DictConfig,
 
         # for the episode, add keyframes
         demo_ep = demo[f"traj_{d_idx}"]
-        for i in range(len(demo_ep) - 1):
+        # print(f"demo position-ctl epi length {len(demo_ep)}")
+        demo_len = demo_loading_utils._get_demo_len(demo_ep)
+        for i in range(demo_len - 1):
             if not demo_augmentation and i > 0:
                 break
             if i % demo_augmentation_every_n != 0: # augment demo every n steps
@@ -286,6 +289,7 @@ def fill_replay(cfg: DictConfig,
                 episode_keypoints = episode_keypoints[1:]
             if len(episode_keypoints) == 0:
                 break
+            # print(f"adding demo and frame index {d_idx, i}")
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
                 scene_bounds, voxel_sizes, bounds_offset,
