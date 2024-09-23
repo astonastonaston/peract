@@ -20,6 +20,10 @@ def _get_ignore_collision(demo, i):
     # since current tasks are simple, we set it False by default
     return False
 
+def _get_seg_from_pcd_obs(demo, i):
+    # get pointcloud segmentation at step i from pointcloud observations
+    return demo["obs"]["pointcloud"]["segmentation"][i]
+
 def _get_pcd_from_pcd_obs(demo, i):
     # get pointcloud at step i from pointcloud observations
     # note that the pcds are in homogeneous coordinate format: w=0 for infinitely far points and w=1 for the rest

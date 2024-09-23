@@ -57,6 +57,8 @@ def create_replay(batch_size: int, timesteps: int,
 
     # rgb, point cloud, intrinsics, extrinsics
     observation_elements.append(
+        ObservationElement('segmentation', (np.prod(image_size) * num_cam, 1), np.float32)) # point cloud segmentation
+    observation_elements.append( 
         ObservationElement('rgb', (np.prod(image_size) * num_cam, 3), np.float32))
     observation_elements.append(
         ObservationElement('point_cloud', (np.prod(image_size) * num_cam, 4),
@@ -400,6 +402,7 @@ def create_agent(cfg: DictConfig):
             no_language=cfg.method.no_language,
             final_dim=cfg.method.final_dim,
         )
+        # print(f"cam in cfg {cfg.maniskill3.cameras}")
 
         qattention_agent = QAttentionPerActBCAgent(
             layer=depth,

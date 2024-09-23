@@ -53,9 +53,11 @@ method:
   # Augmentation
   crop_augmentation: True
   transform_augmentation:
-    apply_se3: True
-    aug_xyz: [0.125, 0.125, 0.125]
-    aug_rpy: [0.0, 0.0, 45.0]
+    apply_se3: False
+    aug_xyz: [0.050, 0.050, 0.050]
+    # aug_xyz: [0.125, 0.125, 0.125]
+    aug_rpy: [0.0, 0.0, 15.0]
+    # aug_rpy: [0.0, 0.0, 45.0]
     aug_rot_resolution: ${method.rotation_resolution}
 
   demo_augmentation: True
@@ -74,12 +76,12 @@ maniskill3:
   episode_length: 25 # TODO: Set this number
   # episode_length: 3 # TODO: Set this number
   # demos: 150
-  demos: 100
+  demos: 10
   traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.h5
   json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.json
-  train_index_range: [0, 60]
-  val_index_range: [60, 80]
-  test_index_range: [80, 100]
+  train_index_range: [0, 7]
+  val_index_range: [7, 8]
+  test_index_range: [8, 10]
   desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
   cameras: [base_camera, left_shoulder_camera, right_shoulder_camera, hand_camera]
   camera_resolution: [128, 128]

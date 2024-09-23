@@ -185,6 +185,7 @@ class QAttentionPerActBCAgent(Agent):
         if device is None:
             device = torch.device('cpu')
 
+        print(f"Num of cams for voxelizer {self._num_cameras, self._camera_names}")
         self._voxelizer = VoxelGrid(
             coord_bounds=self._coordinate_bounds,
             voxel_size=self._voxel_size,
@@ -310,6 +311,7 @@ class QAttentionPerActBCAgent(Agent):
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
         rgb = replay_sample['rgb']
         pcd = replay_sample['point_cloud']
+        seg = replay_sample['segmentation']
         
         # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
@@ -319,6 +321,11 @@ class QAttentionPerActBCAgent(Agent):
         pcd[out_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
         # pcd[out_indices, :3] = bb_maxs + 1
         # pcd[out_indices, 3] = 1
+
+        # clamp floor points outside the scene bounds
+        floor_id = 17
+        floor_indices = (seg[..., 0] == floor_id)
+        pcd[floor_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
 
         # dehomogeneize and reshape pcd to (b, 3, -1)
         pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)
@@ -342,6 +349,7 @@ class QAttentionPerActBCAgent(Agent):
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
         rgb = observation["rgb"].to(device=self._device)
         pcd = observation["xyzw"].to(device=self._device)
+        seg = observation["segmentation"].to(device=self._device)
         
         # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
@@ -353,6 +361,11 @@ class QAttentionPerActBCAgent(Agent):
         # print(bb_maxs.shape)
         # print(pcd.shape, pcd[out_indices, 3].shape)
         pcd[out_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
+
+        # clamp floor points outside the scene bounds
+        floor_id = 17
+        floor_indices = (seg[..., 0] == floor_id)
+        pcd[floor_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
 
         # dehomogeneize and reshape pcd to (b, 3, -1)
         pcd = pcd[..., :3] / pcd[..., 3].unsqueeze(-1)

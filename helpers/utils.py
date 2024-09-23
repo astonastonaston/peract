@@ -334,7 +334,8 @@ def extract_obs(demo: Dict,
     # Maniskill3 pointcloud has w coordinate: Indicating whether it's infinite far. To this end, it can be more robust then the original rlbench-based peract's pointcloud
     # all rgbs and pcds are aggregated from all cameras, so you don't have to aggregate again during training
     obs_dict = {"rgb": demo_loading_utils._get_rgb_from_pcd_obs(demo, step), 
-                "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, step)}
+                "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, step),
+                "segmentation": demo_loading_utils._get_seg_from_pcd_obs(demo, step)}
     # print(obs_dict["point_cloud"].shape)
     # print(obs_dict["rgb"].shape)
 
@@ -381,8 +382,11 @@ def extract_obs(demo: Dict,
         [obs_dict['low_dim_state'], [time]]).astype(np.float32)
 
     # convert pcd and rgb formats
+    # print(f"before cvt {obs_dict['point_cloud'].shape}")
     obs_dict["point_cloud"] = obs_dict["point_cloud"][0]
     obs_dict["rgb"] = obs_dict["rgb"][0]
+    obs_dict["segmentation"] = obs_dict["segmentation"][0]
+    # print(f"after cvt {obs_dict['point_cloud'].shape}")
     # obs_dict["rgb"] = obs_dict["rgb"][0]
     # print("pcd shape")
     # print(obs_dict.keys())
