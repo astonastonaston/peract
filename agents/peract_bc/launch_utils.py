@@ -87,6 +87,12 @@ def create_replay(batch_size: int, timesteps: int,
                       str),
         ReplayElement('lang_goal', (1,),
                       object),  # language goal string for debugging and visualization
+        ReplayElement('demo_number', (),
+                      np.int32),
+        ReplayElement('input_frame', (),
+                      np.int32),
+        ReplayElement('supervision_frame', (),
+                      np.int32),
     ])
 
     extra_replay_elements = [
@@ -174,7 +180,8 @@ def _add_keypoints_to_replay(
         crop_augmentation: bool,
         description: str = '',
         clip_model = None,
-        device = 'cpu'):
+        device = 'cpu',
+        demo_number=None):
     prev_action = None
     episode_length = cfg.maniskill3.episode_length # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
     # print(f"Desc is {description}")
@@ -189,7 +196,7 @@ def _add_keypoints_to_replay(
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
-        # print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
+        print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
         tokens = tokenize(description).numpy()
@@ -207,6 +214,9 @@ def _add_keypoints_to_replay(
             'gripper_pose': demo_loading_utils._get_gripper_pose(demo, tpl_index),
             'task': task,
             'lang_goal': np.array(description, dtype=object), # TODO: should be token embeddings ???
+            'demo_number': demo_number,
+            'input_frame': i,
+            'supervision_frame': tpl_index
         }
 
         others.update(final_obs) # update with gripper pose and expert action
@@ -289,12 +299,12 @@ def fill_replay(cfg: DictConfig,
                 episode_keypoints = episode_keypoints[1:]
             if len(episode_keypoints) == 0:
                 break
-            # print(f"adding demo and frame index {d_idx, i}")
+            print(f"adding demo and frame index {d_idx, i}")
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
                 scene_bounds, voxel_sizes, bounds_offset,
                 rotation_resolution, crop_augmentation, description=desc,
-                clip_model=clip_model, device=device)
+                clip_model=clip_model, device=device, demo_number=d_idx)
     if cfg.replay.save_keypoints:
         keypt_dir = cfg.replay.save_keypoints_dir
         logging.info(f"Saving keypoints to {keypt_dir}")

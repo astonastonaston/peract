@@ -137,6 +137,7 @@ class OfflineTrainRunner():
             loss = self._step(i, batch)
             step_time = time.time() - t
 
+
             if self._rank == 0:
                 if log_iteration and self._writer is not None:
                     agent_summaries = self._agent.update_summaries()
@@ -152,8 +153,12 @@ class OfflineTrainRunner():
                         i, 'monitoring/cpu_percent',
                         process.cpu_percent(interval=None) / num_cpu)
 
-                    logging.info(f"Train Step {i:06d} | Loss: {loss:0.5f} | Sample time: {sample_time:0.6f} | Step time: {step_time:0.4f}.")
+                    demo_number = batch['demo_number'].int()
+                    input_frame = batch['input_frame'].int()
+                    supervision_frame = batch['supervision_frame'].int()
 
+                    logging.info(f"Train Step {i:06d} | Loss: {loss:0.5f} | Sample time: {sample_time:0.6f} | Step time: {step_time:0.4f}.")
+                    logging.info(f"Using demo {demo_number} from frame {input_frame} to frame {supervision_frame}")
                 self._writer.end_iteration()
 
                 if i % self._save_freq == 0 and self._weightsdir is not None:

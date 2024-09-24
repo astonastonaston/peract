@@ -99,8 +99,8 @@ replay:
   max_parallel_processes: 32
 
 framework:
-  log_freq: 100
-  save_freq: 100
+  log_freq: 5
+  save_freq: 5
   train_envs: 1
   replay_ratio: ${replay.batch_size}
   transitions_before_train: 200

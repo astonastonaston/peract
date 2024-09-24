@@ -437,6 +437,9 @@ class QAttentionPerActBCAgent(Agent):
         prev_layer_voxel_grid = replay_sample.get('prev_layer_voxel_grid', None)
         prev_layer_bounds = replay_sample.get('prev_layer_bounds', None)
         device = self._device
+        # demo_number = replay_sample['demo_number'].int()
+        # input_frame = replay_sample['input_frame'].int()
+        # supervision_frame = replay_sample['supervision_frame'].int()
 
         bounds = self._coordinate_bounds.to(device)
         if self._layer > 0:
