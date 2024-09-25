@@ -66,7 +66,8 @@ def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1):
 
 def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
                        stopping_delta=0.1,
-                       method='heuristic') -> List[int]:
+                       method='heuristic',
+                       skip_stopped_steps=10) -> List[int]:
     episode_keypoints = []
     demo = h5_file[f"traj_{d_idx}"]
     demo_len = _get_demo_len(demo)
@@ -74,7 +75,7 @@ def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
     if method == 'heuristic':
         # demo = h5_file[f"traj_{episode_idx}"]
         prev_gripper_open = _check_gripper_open(demo, 0)
-        stopped_buffer = 0
+        stopped_buffer = skip_stopped_steps # Not counting stopping for the first few frames
         for i in range(demo_len):
             stopped = _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta)
             stopped_buffer = stopped_buffer_init_val if stopped else stopped_buffer - 1
@@ -82,9 +83,9 @@ def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
             last = i == (demo_len - 1)
             curr_gripper_open = _check_gripper_open(demo, i)
             # if d_idx == 25:
-            #     logging.info(f"Frame {i}, gripper different {demo['obs']['agent']['qpos'][i, -1], curr_gripper_open, prev_gripper_open, curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
             if i != 0 and (curr_gripper_open != prev_gripper_open or
                            last or stopped):
+                # logging.info(f"Found kp! Frame {i}, gripper different {demo['obs']['agent']['qpos'][i, -1], curr_gripper_open, prev_gripper_open, curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
                 episode_keypoints.append(i)
             prev_gripper_open = _check_gripper_open(demo, i)
         if len(episode_keypoints) > 1 and (episode_keypoints[-1] - 1) == \

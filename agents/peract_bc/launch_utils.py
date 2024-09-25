@@ -93,6 +93,8 @@ def create_replay(batch_size: int, timesteps: int,
                       np.int32),
         ReplayElement('supervision_frame', (),
                       np.int32),
+        # ReplayElement('input_gripper_open', (),
+        #               np.int32),
     ])
 
     extra_replay_elements = [
@@ -196,9 +198,10 @@ def _add_keypoints_to_replay(
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
-        print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
+        # print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
+        # print(f"input low dim state {obs_dict['low_dim_state']} output gripper open {rot_grip_indicies[-1]}")
         tokens = tokenize(description).numpy()
         token_tensor = torch.from_numpy(tokens).to(device)
         sentence_emb, token_embs = clip_model.encode_text_with_embeddings(token_tensor)
@@ -275,7 +278,9 @@ def fill_replay(cfg: DictConfig,
             desc = pickle.load(f)
 
         # extract keypoints (a.k.a keyframes)
-        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, stopped_buffer_init_val=cfg.replay.stop_buffer_init_val, method=keypoint_method)
+        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, stopped_buffer_init_val=cfg.replay.stop_buffer_init_val, 
+                                                                  method=keypoint_method,
+                                                                  skip_stopped_steps=cfg.replay.skip_stopped_steps)
         if cfg.replay.save_keypoints:
             keypts[d_idx] = episode_keypoints
 
