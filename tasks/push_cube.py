@@ -1,3 +1,4 @@
+# Adapted from https://github.com/haosulab/ManiSkill/blob/main/mani_skill/envs/tasks/tabletop/push_cube.py
 """
 Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
 
@@ -71,9 +72,6 @@ class PushCubeEnv(BaseEnv):
     @property
     def _default_sim_config(self):
         return SimConfig(
-            # gpu_memory_config=GPUMemoryConfig(
-            #     found_lost_pairs_capacity=2**25, max_rigid_patch_count=2**18
-            # )
             gpu_memory_cfg=GPUMemoryConfig(
                 found_lost_pairs_capacity=2**25, max_rigid_patch_count=2**18
             )
@@ -90,9 +88,9 @@ class PushCubeEnv(BaseEnv):
     def _default_sensor_configs(self):
         # registers one 128x128 camera looking at the robot, cube, and target
         # a smaller sized camera will be lower quality, but render faster
-        front_pose = sapien_utils.look_at(eye=[0.3, 0, 0.6], target=[-0.1, 0, 0.1])
-        left_shoulder_pose = sapien_utils.look_at(eye=[-0.1, -0.3, 0.55], target=[-0.1, 0, 0.1])
-        right_shoulder_pose = sapien_utils.look_at(eye=[-0.1, 0.3, 0.55], target=[-0.1, 0, 0.1])
+        front_pose = sapien_utils.look_at(eye=[0.45, 0, 0.4], target=[-0.1, 0, 0.1])
+        left_shoulder_pose = sapien_utils.look_at(eye=[-0.1, 0.3, 0.6], target=[-0.1, 0, 0.1])
+        right_shoulder_pose = sapien_utils.look_at(eye=[-0.1, -0.2, 0.6], target=[-0.1, 0, 0.1])
         rot_angle = -np.pi/2
         half_angle = rot_angle / 2
         wrist_pose = sapien.Pose(p=[0.04, 0, 0.02], q=[np.cos(half_angle), 0, np.sin(half_angle), 0])

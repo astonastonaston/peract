@@ -97,12 +97,13 @@ replay:
   save_keypoints: True
   save_keypoints_dir: "/tmp/arm"
   stop_buffer_init_val: 16
+  skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
   path: '/tmp/arm/replay' # only used when use_disk is True.
   max_parallel_processes: 32
 
 framework:
-  log_freq: 250
-  save_freq: 250
+  log_freq: 100
+  save_freq: 100
   train_envs: 1
   replay_ratio: ${replay.batch_size}
   transitions_before_train: 200
