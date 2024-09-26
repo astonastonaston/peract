@@ -71,6 +71,8 @@ def create_replay(batch_size: int, timesteps: int,
 
     # discretized translation, discretized rotation, discrete ignore collision, 6-DoF gripper pose, and pre-trained language embeddings
     observation_elements.extend([
+        # ReplayElement('trans_attention_coordinates', (3,),
+        #               np.int32),
         ReplayElement('trans_action_indicies', (trans_indicies_size,),
                       np.int32),
         ReplayElement('rot_grip_action_indicies', (rot_and_grip_indicies_size,),

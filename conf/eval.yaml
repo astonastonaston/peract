@@ -31,6 +31,7 @@ maniskill3:
     scene_bounds: [-1, -1, -1, 2, 2, 2]
     time_in_state: True
     include_lang_goal_in_obs: True
+    vis_pose: True
 
 framework:
     tensorboard_logging: True
@@ -41,7 +42,7 @@ framework:
     record_every_n: 5
 
     eval_envs: 1
-    eval_from_eps_number: 8 # current eatio: train/val/test = 150/25/25
+    eval_from_eps_number: 0 # current eatio: train/val/test = 150/25/25
     # eval_from_eps_number: 175 # current eatio: train/val/test = 150/25/25
     # eval_episodes: 20
     # eval_episodes: 25

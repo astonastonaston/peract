@@ -22,7 +22,7 @@ class RolloutGenerator(object):
 
     def generator(self, step_signal: Value, env: BaseEnv, agent: Agent,
                   episode_length: int, timesteps: int,
-                  eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, reset_kwargs: dict = None):
+                  eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, reset_kwargs: dict = None, vis_pose=False):
                 #   record_enabled: bool = False):
 
         if eval:
@@ -65,14 +65,14 @@ class RolloutGenerator(object):
 
             # plan the path to the target pose
             trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
-            rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
+            # rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
             # trans_coordinate = env.agent.tcp.pose.sp.p + np.array([-0.01, 0, 0]) # debugging mode
             # rot = env.agent.tcp.pose.sp.q
             planner = PandaArmMotionPlanningSolver(
                 env,
                 debug=False,
-                vis=False, # visualization of next pose mode
-                # vis=True, # visualization of next pose mode
+                # vis=False, # visualization of next pose mode
+                vis=vis_pose, # visualization of next pose mode
                 base_pose=env.unwrapped.agent.robot.pose,
                 visualize_target_grasp_pose=True,
                 print_env_info=False,

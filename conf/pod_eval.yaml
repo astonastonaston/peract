@@ -32,6 +32,7 @@ maniskill3:
   scene_bounds: [-1, -1, -1, 2, 2, 2]
   time_in_state: True
   include_lang_goal_in_obs: True
+  vis_pose: False
 
 framework:
   tensorboard_logging: True

@@ -158,7 +158,8 @@ class IndependentEnvRunner(object):
                             eval=True,
                             device_idx=0,
                             save_metrics=True,
-                            cinematic_recorder_cfg=None):
+                            cinematic_recorder_cfg=None,
+                            vis_pose=False):
 
         self._name = name
         self._save_metrics = save_metrics
@@ -252,7 +253,8 @@ class IndependentEnvRunner(object):
                 generator = self._rollout_generator.generator(
                     self._step_signal, env, self._agent,
                     self._episode_length, self._timesteps,
-                    eval, self._lang_goal, eval_demo_seed=eval_demo_seed, reset_kwargs=reset_kwargs)
+                    eval, self._lang_goal, eval_demo_seed=eval_demo_seed, 
+                    reset_kwargs=reset_kwargs, vis_pose=vis_pose)
                     # TODO: enable recording
                     # record_enabled=rec_cfg.enabled)
                     
@@ -373,7 +375,8 @@ class IndependentEnvRunner(object):
               env_config,
               device_idx,
               save_metrics,
-              cinematic_recorder_cfg):
+              cinematic_recorder_cfg,
+              vis_pose):
         multi_task = isinstance(env_config[0], list)
 
         # env_config = (tasks,
@@ -434,4 +437,5 @@ class IndependentEnvRunner(object):
                                     True,
                                     device_idx,
                                     save_metrics,
-                                    cinematic_recorder_cfg)
+                                    cinematic_recorder_cfg,
+                                    vis_pose)
