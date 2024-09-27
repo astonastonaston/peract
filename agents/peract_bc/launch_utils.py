@@ -136,7 +136,11 @@ def _get_action(
     if quat[-1] < 0:
         quat = -quat
     disc_rot = utils.quaternion_to_discrete_euler(quat, rotation_resolution)
-    disc_rot = utils.correct_rotation_instability(disc_rot, rotation_resolution)
+    # print(f"before correction {disc_rot}")
+    disc_rot = utils.correct_rotation_instability(disc_rot, rotation_resolution) # useless?
+    # print(f"after, adding rot indices {disc_rot, quat, tpl_gripper_pose[3:]}")
+    disc_rot = utils.clip_edge_angles(disc_rot, rotation_resolution)
+    # print(f"after clipping edge angles {disc_rot}")
 
     attention_coordinate = tpl_gripper_pose[:3]
     trans_indicies, attention_coordinates = [], []
@@ -196,7 +200,6 @@ def _add_keypoints_to_replay(
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
             demo, tpl_index, tml_index, scene_bounds, voxel_sizes, bounds_offset,
             rotation_resolution, crop_augmentation) # action -> next kf gripper pose
-        print(f"adding rot gripper indices {rot_grip_indicies}")
 
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0

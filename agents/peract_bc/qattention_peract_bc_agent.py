@@ -496,16 +496,16 @@ class QAttentionPerActBCAgent(Agent):
         for b in range(bs):
             gt_coord = action_trans[b, :].int()
             action_trans_one_hot[b, :, gt_coord[0], gt_coord[1], gt_coord[2]] = 1
-            if (step%1 == 0):
-                logging.info(f"Translation pred {coords} gt {gt_coord}")
+            # if (step%1 == 0):
+            #     logging.info(f"Translation pred {coords} gt {gt_coord}")
         # translation loss
         q_trans_flat = q_trans.view(bs, -1)
         action_trans_one_hot_flat = action_trans_one_hot.view(bs, -1)
         q_trans_loss = self._celoss(q_trans_flat, action_trans_one_hot_flat)
 
         with_rot_and_grip = rot_and_grip_indicies is not None
-        if (step%1 == 0):
-            logging.info(f"Demo {demo_number} input {input_frame} supervision {supervision_frame}")
+        # if (step%1 == 0):
+        #     logging.info(f"Demo {demo_number} input {input_frame} supervision {supervision_frame}")
         if with_rot_and_grip:
             # rotation, gripper, and collision one-hots
             action_rot_x_one_hot = self._action_rot_x_one_hot_zeros.clone()
@@ -524,8 +524,8 @@ class QAttentionPerActBCAgent(Agent):
                 gt_ignore_collisions = action_ignore_collisions[b, :].int()
                 action_ignore_collisions_one_hot[b, gt_ignore_collisions[0]] = 1
 
-                if (step%1 == 0):
-                    logging.info(f"Rotation gripper pred {rot_and_grip_indicies} gt {gt_rot_grip}")
+                # if (step%1 == 0):
+                #     logging.info(f"Rotation gripper pred {rot_and_grip_indicies} gt {gt_rot_grip}")
             # flatten predictions
             q_rot_x_flat = q_rot_grip[:, 0*self._num_rotation_classes:1*self._num_rotation_classes]
             q_rot_y_flat = q_rot_grip[:, 1*self._num_rotation_classes:2*self._num_rotation_classes]

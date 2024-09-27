@@ -46,6 +46,12 @@ def stack_on_channel(x):
 def normalize_quaternion(quat):
     return np.array(quat) / np.linalg.norm(quat, axis=-1, keepdims=True)
 
+def clip_edge_angles(disc, resolution, max_degree=360):
+    # clip the very large eular angles to 0
+    for j in range(len(disc)):
+        if disc[j] * resolution >= max_degree - resolution:
+            disc[j] = 0
+    return disc
 
 def correct_rotation_instability(disc, resolution):
     q1 = discrete_euler_to_quaternion(disc, resolution)
@@ -60,6 +66,8 @@ def correct_rotation_instability(disc, resolution):
         else:
             return d2
     return disc
+
+
 
 def check_gimbal_lock(pred_rot_and_grip, gt_rot_and_grip, resolution):
     pred_rot_and_grip_np = pred_rot_and_grip.detach().cpu().numpy()
