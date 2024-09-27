@@ -48,17 +48,17 @@ def normalize_quaternion(quat):
 
 
 def correct_rotation_instability(disc, resolution):
-    # q1 = discrete_euler_to_quaternion(disc, resolution)
-    # q2 = discrete_euler_to_quaternion(quaternion_to_discrete_euler(q1, resolution), resolution)
-    #
-    # d2 = quaternion_to_discrete_euler(q2, resolution)
-    #
-    # # choose the smallest change
-    # if np.any(disc != d2):
-    #     if np.sum(disc) < np.sum(d2):
-    #         return disc
-    #     else:
-    #         return d2
+    q1 = discrete_euler_to_quaternion(disc, resolution)
+    q2 = discrete_euler_to_quaternion(quaternion_to_discrete_euler(q1, resolution), resolution)
+    
+    d2 = quaternion_to_discrete_euler(q2, resolution)
+    
+    # choose the smallest change
+    if np.any(disc != d2):
+        if np.sum(disc) < np.sum(d2):
+            return disc
+        else:
+            return d2
     return disc
 
 def check_gimbal_lock(pred_rot_and_grip, gt_rot_and_grip, resolution):

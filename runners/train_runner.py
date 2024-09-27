@@ -153,12 +153,12 @@ class OfflineTrainRunner():
                         i, 'monitoring/cpu_percent',
                         process.cpu_percent(interval=None) / num_cpu)
 
-                    demo_number = batch['demo_number'].int()
-                    input_frame = batch['input_frame'].int()
-                    supervision_frame = batch['supervision_frame'].int()
+                    # demo_number = batch['demo_number'].int()
+                    # input_frame = batch['input_frame'].int()
+                    # supervision_frame = batch['supervision_frame'].int()
 
                     logging.info(f"Train Step {i:06d} | Loss: {loss:0.5f} | Sample time: {sample_time:0.6f} | Step time: {step_time:0.4f}.")
-                    logging.info(f"Using demo {demo_number} from frame {input_frame} to frame {supervision_frame}")
+                    # logging.info(f"Using demo {demo_number} from frame {input_frame} to frame {supervision_frame}")
                 self._writer.end_iteration()
 
                 if i % self._save_freq == 0 and self._weightsdir is not None:

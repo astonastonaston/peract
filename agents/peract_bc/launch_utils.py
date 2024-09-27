@@ -196,6 +196,7 @@ def _add_keypoints_to_replay(
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
             demo, tpl_index, tml_index, scene_bounds, voxel_sizes, bounds_offset,
             rotation_resolution, crop_augmentation) # action -> next kf gripper pose
+        print(f"adding rot gripper indices {rot_grip_indicies}")
 
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
