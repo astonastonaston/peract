@@ -310,6 +310,12 @@ def fill_replay(cfg: DictConfig,
                 episode_keypoints = episode_keypoints[1:]
             if len(episode_keypoints) == 0:
                 break
+
+            # small trick: ignore frames closed to the keyframes from the back
+            kp = episode_keypoints[0]
+            if kp - i <= 10:
+                continue
+
             # print(f"adding demo and frame index {d_idx, i}")
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
