@@ -722,15 +722,18 @@ class QAttentionPerActBCAgent(Agent):
         self._act_max_coordinate = coords[0]
         self._act_qvalues = q_trans[0].detach()
 
-        # # visualize voxel grids
-        # rgbs = self._act_voxel_grid[3:6, ...]
-        # max_values = rgbs.view(3, -1).max(dim=1).values
-        # print(f"voxecl grid hsape {self._act_voxel_grid.shape, max_values}")
-        # grid_img = transforms.ToTensor()(visualise_voxel(
-        #                      self._act_voxel_grid.cpu().numpy(),
-        #                      self._act_qvalues.cpu().numpy(),
-        #                      self._act_max_coordinate.cpu().numpy()))
-        # observation_elements["voxel_grid_img"] = grid_img
+        # visualize voxel grids
+        rgbs = self._act_voxel_grid[3:6, ...]
+        max_values = rgbs.view(3, -1).max(dim=1).values
+        print(f"voxel grid hsape {self._act_voxel_grid.shape, max_values}")
+        grid_img = transforms.ToTensor()(visualise_voxel(
+                             self._act_voxel_grid.cpu().numpy(),
+                             self._act_qvalues.cpu().numpy(),
+                             self._act_max_coordinate.cpu().numpy()))
+        # to_pil = transforms.ToPILImage()
+        # img = to_pil(grid_img)
+        # img.save('saved_image.png')
+        observation_elements["voxel_grid_img"] = grid_img
 
         print(f"attention coord: {attention_coordinate}")
         print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
