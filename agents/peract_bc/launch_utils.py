@@ -230,6 +230,9 @@ def _add_keypoints_to_replay(
 
         others.update(final_obs) # update with gripper pose and expert action
         others.update(obs_dict) # update with language goal and embeddings
+        # print(f"input low dim state {obs_dict['low_dim_state']}") 
+        # print(f"output rot {rot_grip_indicies[:-1]} gripper open {rot_grip_indicies[-1]} trans {trans_indicies}") 
+        # print(f"rgb added has shape {[np.max(obs_dict['rgb'], axis=0), np.min(obs_dict['rgb'], axis=0)]}")
 
         timeout = False
         replay.add(action, reward, terminal, timeout, **others)
@@ -299,6 +302,7 @@ def fill_replay(cfg: DictConfig,
         demo_ep = demo[f"traj_{d_idx}"]
         # print(f"demo position-ctl epi length {len(demo_ep)}")
         demo_len = demo_loading_utils._get_demo_len(demo_ep)
+        # print(f"demo rgb range {demo_loading_utils._get_rgb_range_from_pcd_obs(demo_ep, 0)}")
         for i in range(demo_len - 1):
             if not demo_augmentation and i > 0:
                 break
@@ -311,10 +315,10 @@ def fill_replay(cfg: DictConfig,
             if len(episode_keypoints) == 0:
                 break
 
-            # small trick: ignore frames closed to the keyframes from the back
-            kp = episode_keypoints[0]
-            if kp - i <= 10:
-                continue
+            # # small trick: ignore frames closed to the keyframes from the back
+            # kp = episode_keypoints[0]
+            # if kp - i <= 10:
+            #     continue
 
             # print(f"adding demo and frame index {d_idx, i}")
             _add_keypoints_to_replay(

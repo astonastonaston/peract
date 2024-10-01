@@ -38,6 +38,7 @@ class QAttentionStackAgent(Agent):
     def update(self, step: int, replay_sample: dict) -> dict:
         priorities = 0
         total_losses = 0.
+        # print(f"at stack agent now rgb {replay_sample['rgb'][0][0]}")
         for qa in self._qattention_agents: # update agents under each voxel resolution
             update_dict = qa.update(step, replay_sample)
             replay_sample.update(update_dict)
@@ -54,8 +55,10 @@ class QAttentionStackAgent(Agent):
         infos = {}
         for depth, qagent in enumerate(self._qattention_agents):
             act_results = qagent.act(step, observation, deterministic)
+            voxel_img = act_results.observation_elements['voxel_grid_img'].cpu().numpy()
             attention_coordinate = act_results.observation_elements['attention_coordinate'].cpu().numpy()
             observation_elements['attention_coordinate_layer_%d' % depth] = attention_coordinate[0]
+            observation_elements['voxel_grid_img_%d' % depth] = voxel_img
 
             translation_idxs, rot_grip_idxs, ignore_collisions_idxs = act_results.action
             translation_results.append(translation_idxs)

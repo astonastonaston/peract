@@ -15,6 +15,13 @@ def _get_rgb_from_pcd_obs(demo, i):
     # get rgb at step i from pointcloud observations
     return demo["obs"]["pointcloud"]["rgb"][i]
 
+def _get_rgb_range_from_pcd_obs(demo, i):
+    # get the range of rgb at step i from pointcloud observations
+    # print(demo["obs"]["pointcloud"]["rgb"][i].shape)
+    return [np.max(demo["obs"]["pointcloud"]["rgb"][i], axis=0), np.min(demo["obs"]["pointcloud"]["rgb"][i], axis=0)]
+
+
+
 def _get_ignore_collision(demo, i):
     # get the collision avoidance bit (indicating whether or not to do collision avodiance planning) at step i
     # since current tasks are simple, we set it False by default

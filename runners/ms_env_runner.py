@@ -14,6 +14,7 @@ from mani_skill.utils.io_utils import load_json
 from runners.rollout_generator import RolloutGenerator
 from runners.stat_accumulator import StatAccumulator, SimpleAccumulator
 from runners.log_writer import LogWriter
+from torchvision import transforms
 from agents.agent import Summary, ScalarSummary
 # from yarr.replay_buffer.replay_buffer import ReplayBuffer
 # from helpers.custom_ms_env import CustomManiskillEnv
@@ -257,10 +258,18 @@ class IndependentEnvRunner(object):
                     reset_kwargs=reset_kwargs, vis_pose=vis_pose)
                     # TODO: enable recording
                     # record_enabled=rec_cfg.enabled)
-                    
+                
+                step_cnt = 0
                 for replay_transition in generator:
                     # print("summary of replay tran")
-                    # print(replay_transition.summaries)
+                    # print(f"replay transi {replay_transition.observation.keys()}")
+                    # img = replay_transition.observation['voxel_grid_img_0']
+                    # img = img.transpose(1, 2, 0)
+                    # print(f"shape of voxel img {img.shape}")
+                    # to_pil = transforms.ToPILImage()
+                    # img = to_pil(img)
+                    # img.save(os.path.join(self._logdir, f'ep_{eval_demo_seed}_step_{step_cnt}_image.png'))
+                    
                     while True:
                         if self._kill_signal.value:
                             # env.shutdown()
@@ -283,6 +292,7 @@ class IndependentEnvRunner(object):
                             for s in self._agent.act_summaries():
                                 self.agent_summaries.append(s)
                     episode_rollout.append(replay_transition)
+                    step_cnt += 1
 
                 with self.write_lock:
                     for transition in episode_rollout:

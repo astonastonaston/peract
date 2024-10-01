@@ -28,7 +28,11 @@ class PreprocessAgent(Agent):
             if self._norm_rgb and 'rgb' in k:
                 replay_sample[k] = self._norm_rgb_(v)
             else:
-                replay_sample[k] = v.float()
+                if type(v) == dict:
+                    for i, j in v.items():
+                        replay_sample[k][i] = j.float()
+                else:
+                    replay_sample[k] = v.float()
         self._replay_sample = replay_sample
         return self._pose_agent.update(step, replay_sample)
 
@@ -37,23 +41,47 @@ class PreprocessAgent(Agent):
 
     def act(self, step: int, observation: dict,
             deterministic=False) -> ActResult:
-        # here assumes the maniskill obs has at most 2 levels of dicts
+        # # here assumes the maniskill obs has at most 2 levels of dicts
+        # print(f"keys to preprocess: {observation.keys()}")
+        # for k, v in observation.items():
+        #     # print(k)
+        #     # print(v)
+        #     if type(v) == dict:
+        #         for i, j in v.items():
+        #             if self._norm_rgb and 'rgb' in i:
+        #                 print(f"norming {k, i}")
+        #                 observation[k][i] = self._norm_rgb_(j)
+        #             else:
+        #                 if ((j is not None) and (type(j) == torch.Tensor)): # no need to use sensor_param
+        #                     print(f"converting {k, i} to float")
+        #                     observation[k][i] = j.float()
+        #     elif ((v is not None) and (type(v) == torch.Tensor)): # no need to use sensor_param
+        #         print(f"converting {k} to float")
+        #         observation[k] = v.float()
+
+        # Samples are (B, N, ...) where N is number of buffers/tasks. This is a single task setup, so 0 index.
+        # TODO: support multi-task replays
         print(f"keys to preprocess: {observation.keys()}")
+        # for k, v in observation.items():
+        #     if type(v) == dict:
+        #         print(k, v.keys())
+        #         for j, k in v.items():
+        #             print(j, k.shape)
+        #     else:
+        #         print(k, v.shape)
+        # observation = {k: v[:, 0] if len(v.shape) > 2 else v for k, v in observation.items()}
         for k, v in observation.items():
-            # print(k)
-            # print(v)
-            if type(v) == dict:
-                for i, j in v.items():
-                    if self._norm_rgb and 'rgb' in i:
-                        print(f"norming {k, i}")
-                        observation[k][i] = self._norm_rgb_(j)
-                    else:
-                        if ((j is not None) and (type(j) == torch.Tensor)): # no need to use sensor_param
-                            print(f"converting {k, i} to float")
-                            observation[k][i] = j.float()
-            elif ((v is not None) and (type(v) == torch.Tensor)): # no need to use sensor_param
-                print(f"converting {k} to float")
-                observation[k] = v.float()
+            if self._norm_rgb and 'rgb' in k:
+                # print(f"rgb in v {k, v.shape}")
+                observation[k] = self._norm_rgb_(v)
+            else:
+                if type(v) == dict:
+                    for i, j in v.items():
+                        # print(f"dict in v {i, j.shape}")
+                        observation[k][i] = j.float()
+                else:
+                    # print(f"no dict in v {k, v.shape}")
+                    observation[k] = v.float()
 
         act_res = self._pose_agent.act(step, observation, deterministic)
         act_res.replay_elements.update({'demo': False})

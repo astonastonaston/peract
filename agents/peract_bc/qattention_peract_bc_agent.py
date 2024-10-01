@@ -310,6 +310,8 @@ class QAttentionPerActBCAgent(Agent):
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
         rgb = replay_sample['rgb']
+        # print(f"replay rgb scale {rgb.shape}")
+        # print(f"replay rgb scale {rgb[0][0]}")
         pcd = replay_sample['point_cloud']
         seg = replay_sample['segmentation']
         
@@ -348,6 +350,8 @@ class QAttentionPerActBCAgent(Agent):
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
         rgb = observation["rgb"].to(device=self._device)
+        # print(f"act rgb scale {rgb.shape}")
+        # print(f"act rgb scale {rgb.max(dim=1).values}")
         pcd = observation["xyzw"].to(device=self._device)
         seg = observation["segmentation"].to(device=self._device)
         
@@ -374,6 +378,7 @@ class QAttentionPerActBCAgent(Agent):
 
         # reshape rgb to (b, 3, -1) 
         rgb = rgb.view(b, 3, -1)
+        # rgb = rgb / 255.0
         # print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
 
         obs.append([rgb, pcd])
@@ -483,6 +488,15 @@ class QAttentionPerActBCAgent(Agent):
                              bounds,
                              prev_layer_bounds,
                              prev_layer_voxel_grid)
+
+        # # visualize voxel grids
+        # print(f"shae {voxel_grid.shape}")
+        # rgbs = voxel_grid[0, 3:6, ...]
+        # voxel_grid_sel = voxel_grid[0, ...]
+        # max_values = rgbs.view(3, -1).max(dim=1).values
+        # max_values_all = voxel_grid_sel.view(10, -1).max(dim=1).values
+        # print(f"training vox max rgb values {max_values}")
+        # print(f"vox max values all {max_values_all}")
 
         # argmax to choose best action
         coords, \
@@ -633,6 +647,7 @@ class QAttentionPerActBCAgent(Agent):
         prev_layer_voxel_grid = prev_layer_voxel_grid.to(self._device) if prev_layer_voxel_grid is not None else None
         prev_layer_bounds = prev_layer_bounds.to(self._device) if prev_layer_bounds is not None else None
 
+        # print(f"input low dim state {proprio}")
         # inference
         q_trans, \
         q_rot_grip, \
@@ -645,6 +660,20 @@ class QAttentionPerActBCAgent(Agent):
                            bounds,
                            prev_layer_bounds,
                            prev_layer_voxel_grid)
+
+        # # visualize voxel grids
+        # print(f"shae {vox_grid.shape}")
+        # rgbs = vox_grid[0, 3:6, ...]
+        # voxel_grid_sel = vox_grid[0, ...]
+        # max_values = rgbs.view(3, -1).max(dim=1).values
+        # max_values_all = voxel_grid_sel.view(10, -1).max(dim=1).values
+        # print(f"training vox max rgb values {max_values}")
+        # print(f"vox max values all {max_values_all}")
+
+# shae torch.Size([1, 10, 50, 50, 50])
+# training vox max rgb values tensor([0.9922, 0.7816, 0.7882], device='cuda:0')
+# vox max values all tensor([0.4590, 1.1852, 0.5249, 0.9922, 0.7816, 0.7882, 0.9800, 0.9800, 0.9800,
+#         1.0000], device='cuda:0')
 
         # softmax Q predictions
         print(f"shapes of qs: {q_trans.shape, q_rot_grip.shape, q_ignore_collisions.shape}")
@@ -688,11 +717,21 @@ class QAttentionPerActBCAgent(Agent):
             'voxel_grid_depth%d' % self._layer: vox_grid,
             'q_depth%d' % self._layer: q_trans,
             'voxel_idx_depth%d' % self._layer: coords,
-            # 'trans_coordinate': trans_coordinate
         }
         self._act_voxel_grid = vox_grid[0]
         self._act_max_coordinate = coords[0]
         self._act_qvalues = q_trans[0].detach()
+
+        # # visualize voxel grids
+        # rgbs = self._act_voxel_grid[3:6, ...]
+        # max_values = rgbs.view(3, -1).max(dim=1).values
+        # print(f"voxecl grid hsape {self._act_voxel_grid.shape, max_values}")
+        # grid_img = transforms.ToTensor()(visualise_voxel(
+        #                      self._act_voxel_grid.cpu().numpy(),
+        #                      self._act_qvalues.cpu().numpy(),
+        #                      self._act_max_coordinate.cpu().numpy()))
+        # observation_elements["voxel_grid_img"] = grid_img
+
         print(f"attention coord: {attention_coordinate}")
         print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
@@ -732,13 +771,13 @@ class QAttentionPerActBCAgent(Agent):
         return summaries
 
     def act_summaries(self) -> List[Summary]:
-        return []
-        # return [
-        #     ImageSummary('%s/act_Qattention' % self._name,
-        #                  transforms.ToTensor()(visualise_voxel(
-        #                      self._act_voxel_grid.cpu().numpy(),
-        #                      self._act_qvalues.cpu().numpy(),
-        #                      self._act_max_coordinate.cpu().numpy())))]
+        # return []
+        return [
+            ImageSummary('%s/act_Qattention' % self._name,
+                         transforms.ToTensor()(visualise_voxel(
+                             self._act_voxel_grid.cpu().numpy(),
+                             self._act_qvalues.cpu().numpy(),
+                             self._act_max_coordinate.cpu().numpy())))]
 
     def load_weights(self, savedir: str):
         device = self._device if not self._training else torch.device('cuda:%d' % self._device)

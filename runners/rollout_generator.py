@@ -55,6 +55,7 @@ class RolloutGenerator(object):
 
             act_result = agent.act(step_signal.value, prepped_data,
                                    deterministic=eval)
+            # print(f"act obs kys {act_result.observation_elements.keys()}")
             print(f"result action {act_result.action}")
             agent_obs_elems = {k: np.array(v) for k, v in
                                act_result.observation_elements.items()}

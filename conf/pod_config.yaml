@@ -85,7 +85,8 @@ maniskill3:
   desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
   cameras: [base_camera, left_shoulder_camera, right_shoulder_camera, hand_camera]
   camera_resolution: [128, 128]
-  scene_bounds: [-1, -1, -1, 2, 2, 2]
+  # scene_bounds: [-1, -1, -1, 2, 2, 2]
+  scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
   include_lang_goal_in_obs: True
 
 replay:
@@ -109,8 +110,8 @@ framework:
   transitions_before_train: 200
   tensorboard_logging: True
   csv_logging: True
-  training_iterations: 15000
-  # training_iterations: 40000
+  # training_iterations: 15000
+  training_iterations: 40000
   gpu: 0
   env_gpu: 0
   logdir: '/tmp/arm_test/'

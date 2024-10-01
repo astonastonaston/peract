@@ -85,6 +85,7 @@ class OfflineTrainRunner():
             shutil.rmtree(prev_dir)
 
     def _step(self, i, sampled_batch):
+        # print(f"in step, rgb scale {sampled_batch['rgb'][0][0][0]}")
         update_dict = self._agent.update(i, sampled_batch)
         total_losses = update_dict['total_losses'].item()
         return total_losses
@@ -134,6 +135,10 @@ class OfflineTrainRunner():
 
             batch = {k: v.to(self._train_device) for k, v in sampled_batch.items() if type(v) == torch.Tensor}
             t = time.time()
+            print(batch.keys())
+            print(batch["rgb"].shape)
+            print(batch["rgb"][0][0][0])
+            
             loss = self._step(i, batch)
             step_time = time.time() - t
 
