@@ -135,9 +135,9 @@ class OfflineTrainRunner():
 
             batch = {k: v.to(self._train_device) for k, v in sampled_batch.items() if type(v) == torch.Tensor}
             t = time.time()
-            print(batch.keys())
-            print(batch["rgb"].shape)
-            print(batch["rgb"][0][0][0])
+            # print(batch.keys())
+            # print(batch["rgb"].shape)
+            # print(batch["rgb"][0][0][0])
             
             loss = self._step(i, batch)
             step_time = time.time() - t
