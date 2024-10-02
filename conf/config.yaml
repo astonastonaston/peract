@@ -73,7 +73,7 @@ maniskill3:
   tasks: [PushCube-v1]
   # episode_length: 25 # TODO: Set this number
   # episode_length: 7 # TODO: Set this number
-  episode_length: 5 # TODO: Set this number
+  episode_length: 6 # TODO: Set this number
   # demos: 150
   demos: 10
   traj_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/multiCam/trajectory.pointcloud.pd_joint_pos.h5
