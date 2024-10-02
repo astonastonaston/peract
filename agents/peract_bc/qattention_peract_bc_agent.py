@@ -510,16 +510,16 @@ class QAttentionPerActBCAgent(Agent):
         for b in range(bs):
             gt_coord = action_trans[b, :].int()
             action_trans_one_hot[b, :, gt_coord[0], gt_coord[1], gt_coord[2]] = 1
-            # if (step%1 == 0):
-            #     logging.info(f"Translation pred {coords} gt {gt_coord}")
+            if (step%1 == 0):
+                logging.info(f"Translation pred {coords} gt {gt_coord}")
         # translation loss
         q_trans_flat = q_trans.view(bs, -1)
         action_trans_one_hot_flat = action_trans_one_hot.view(bs, -1)
         q_trans_loss = self._celoss(q_trans_flat, action_trans_one_hot_flat)
 
         with_rot_and_grip = rot_and_grip_indicies is not None
-        # if (step%1 == 0):
-        #     logging.info(f"Demo {demo_number} input {input_frame} supervision {supervision_frame}")
+        if (step%1 == 0):
+            logging.info(f"Demo {demo_number} input {input_frame} supervision {supervision_frame}")
         if with_rot_and_grip:
             # rotation, gripper, and collision one-hots
             action_rot_x_one_hot = self._action_rot_x_one_hot_zeros.clone()
@@ -538,8 +538,8 @@ class QAttentionPerActBCAgent(Agent):
                 gt_ignore_collisions = action_ignore_collisions[b, :].int()
                 action_ignore_collisions_one_hot[b, gt_ignore_collisions[0]] = 1
 
-                # if (step%1 == 0):
-                #     logging.info(f"Rotation gripper pred {rot_and_grip_indicies} gt {gt_rot_grip}")
+                if (step%1 == 0):
+                    logging.info(f"Rotation gripper pred {rot_and_grip_indicies} gt {gt_rot_grip}")
             # flatten predictions
             q_rot_x_flat = q_rot_grip[:, 0*self._num_rotation_classes:1*self._num_rotation_classes]
             q_rot_y_flat = q_rot_grip[:, 1*self._num_rotation_classes:2*self._num_rotation_classes]
@@ -557,14 +557,15 @@ class QAttentionPerActBCAgent(Agent):
 
             # collision loss
             q_collision_loss += self._celoss(q_ignore_collisions_flat, action_ignore_collisions_one_hot)
-        # if (step%1 == 0):
-        #     print(f"trans and rot loss {q_trans_loss} {q_rot_loss}")
 
         combined_losses = (q_trans_loss * self._trans_loss_weight) + \
                           (q_rot_loss * self._rot_loss_weight) + \
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
+        if (step%1 == 0):
+            print(f"trans rot total loss {q_trans_loss} {q_rot_loss} {total_loss}")
+            print()
 
         self._optimizer.zero_grad()
         total_loss.backward()
@@ -588,11 +589,11 @@ class QAttentionPerActBCAgent(Agent):
         self._vis_gt_coordinate = action_trans[0]
 
         # save result img
-        img = transforms.ToTensor()(visualise_voxel(
-                         self._vis_voxel_grid.detach().cpu().numpy(),
-                         self._vis_translation_qvalue.detach().cpu().numpy(),
-                         self._vis_max_coordinate.detach().cpu().numpy(),
-                         self._vis_gt_coordinate.detach().cpu().numpy()))
+        # img = transforms.ToTensor()(visualise_voxel(
+        #                  self._vis_voxel_grid.detach().cpu().numpy(),
+        #                  self._vis_translation_qvalue.detach().cpu().numpy(),
+        #                  self._vis_max_coordinate.detach().cpu().numpy(),
+        #                  self._vis_gt_coordinate.detach().cpu().numpy()))
         
         # Note: PerAct doesn't use multi-layer voxel grids like C2FARM
         # stack prev_layer_voxel_grid(s) from previous layers into a list
@@ -611,10 +612,10 @@ class QAttentionPerActBCAgent(Agent):
             'total_loss': total_loss,
             'prev_layer_voxel_grid': prev_layer_voxel_grid,
             'prev_layer_bounds': prev_layer_bounds,
-            'voxel_img': img,
-            'demo_number': demo_number,
-            'input_frame': input_frame,
-            'supervision_frame': supervision_frame
+            # 'voxel_img': img,
+            # 'demo_number': demo_number,
+            # 'input_frame': input_frame,
+            # 'supervision_frame': supervision_frame
         }
 
     def act(self, step: int, observation: dict,

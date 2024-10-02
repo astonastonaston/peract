@@ -45,6 +45,10 @@ class QAttentionStackAgent(Agent):
             total_losses += update_dict['total_loss']
         return {
             'total_losses': total_losses,
+            # 'voxel_img': replay_sample['voxel_img'],
+            # 'demo_number': replay_sample['demo_number'],
+            # 'input_frame': replay_sample['input_frame'],
+            # 'supervision_frame': replay_sample['supervision_frame']
         }
 
     def act(self, step: int, observation: dict,
