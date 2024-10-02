@@ -1,4 +1,4 @@
-# git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
+# git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
 
 cp -r /dev/nanxiao-vol1/demos_multi_view ./
 mv ./demos_multi_view ./demos
