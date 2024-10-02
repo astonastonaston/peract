@@ -6,7 +6,6 @@ from mani_skill.envs.scene import ManiSkillScene
 from mani_skill.envs.sapien_env import BaseEnv
 from transforms3d import quaternions
 import sapien
-import demo_loading_utils
 
 def extract_obs(obs):
     # extract maniskill obs so that only one level of keys are kept
