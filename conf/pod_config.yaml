@@ -73,8 +73,8 @@ maniskill3:
   # task_name: "single" 
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
   tasks: [PushCube-v1]
+  # episode_length: 7 # TODO: Set this number
   episode_length: 5 # TODO: Set this number
-  # episode_length: 3 # TODO: Set this number
   # demos: 150
   demos: 10
   # demos: 30
@@ -96,6 +96,7 @@ maniskill3:
   # scene_bounds: [-1, -1, -1, 2, 2, 2]
   scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
   include_lang_goal_in_obs: True
+  lang_stage_num: 3
 
 replay:
   batch_size: 1

@@ -43,7 +43,7 @@ class RolloutGenerator(object):
         obs = extract_obs(obs) # flatten obs to 2 levels of dicts only for easier
         agent.reset()
         # obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
-        obs_history = {k: [v] * timesteps for k, v in obs.items()}
+        obs_history = {k: [v] * timesteps for k, v in obs.items()} # timestep = 1 or so
         urdf_path = env.agent.urdf_path
         time_step = env.unwrapped.control_timestep
         
@@ -95,7 +95,7 @@ class RolloutGenerator(object):
                 truncated = True
                 # break
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
-            obs = add_low_dim_states(obs, step, episode_length)
+            obs = add_low_dim_states(obs, step+1, episode_length)
             obs = extract_obs(obs)
             transition = {"observation": obs, 
                           "info": info, 
@@ -152,8 +152,8 @@ class RolloutGenerator(object):
             obs_and_replay_elems.update(agent_obs_elems)
             obs_and_replay_elems.update(extra_replay_elements)
 
-            print(f"History keys {obs_history.keys()}")
-            print(f"Transition obs {transition['observation'].keys()}")
+            # print(f"History keys {obs_history.keys()}")
+            # print(f"Transition obs {transition['observation'].keys()}")
             for k in obs_history.keys():
                 obs_history[k].append(transition["observation"][k])
                 obs_history[k].pop(0)

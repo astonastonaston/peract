@@ -18,6 +18,7 @@ maniskill3:
   task_name: "multi"
   tasks: [PushCube-v1]
   # episode_length: 2 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+  # episode_length: 7 # TODO: Set this number. Note this is the number of POSE-based plannings to do
   episode_length: 5 # TODO: Set this number. Note this is the number of POSE-based plannings to do
   # demos: 150
   demos: 100

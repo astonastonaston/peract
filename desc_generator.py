@@ -1,5 +1,8 @@
 import pickle
 
+# desc = ["close the gripper",
+#         "move the gripper to the back of the cube",
+#         "push the cube to the center of the red white target"]
 desc = ["push the cube to the center of the red white target"]
 
 # Save the description to a file
