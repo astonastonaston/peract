@@ -587,6 +587,13 @@ class QAttentionPerActBCAgent(Agent):
         self._vis_max_coordinate = coords[0]
         self._vis_gt_coordinate = action_trans[0]
 
+        # save result img
+        img = transforms.ToTensor()(visualise_voxel(
+                         self._vis_voxel_grid.detach().cpu().numpy(),
+                         self._vis_translation_qvalue.detach().cpu().numpy(),
+                         self._vis_max_coordinate.detach().cpu().numpy(),
+                         self._vis_gt_coordinate.detach().cpu().numpy()))
+        
         # Note: PerAct doesn't use multi-layer voxel grids like C2FARM
         # stack prev_layer_voxel_grid(s) from previous layers into a list
         if prev_layer_voxel_grid is None:
@@ -604,6 +611,10 @@ class QAttentionPerActBCAgent(Agent):
             'total_loss': total_loss,
             'prev_layer_voxel_grid': prev_layer_voxel_grid,
             'prev_layer_bounds': prev_layer_bounds,
+            'voxel_img': img,
+            'demo_number': demo_number,
+            'input_frame': input_frame,
+            'supervision_frame': supervision_frame
         }
 
     def act(self, step: int, observation: dict,
