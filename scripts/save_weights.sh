@@ -4,17 +4,17 @@
 # cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_kp_red_cam_3
 # cp -r /tmp/arm /dev/nanxiao-vol1/arm_kp_red_cam_3
 
-# # save results to permanent storage
-# mkdir /dev/nanxiao-vol1/arm_test_bnd_10
-# mkdir /dev/nanxiao-vol1/arm_bnd_10
-# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_bnd_10
-# cp -r /tmp/arm /dev/nanxiao-vol1/arm_bnd_10
-
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_bnd_30
-mkdir /dev/nanxiao-vol1/arm_bnd_30
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_bnd_30
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_bnd_30
+mkdir /dev/nanxiao-vol1/arm_test_bnd_10
+mkdir /dev/nanxiao-vol1/arm_bnd_10
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_bnd_10
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_bnd_10
+
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_bnd_30
+# mkdir /dev/nanxiao-vol1/arm_bnd_30
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_bnd_30
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_bnd_30
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_bnd_50
