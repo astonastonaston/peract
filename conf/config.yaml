@@ -72,7 +72,7 @@ maniskill3:
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
   tasks: [PushCube-v1]
   # episode_length: 25 # TODO: Set this number
-  episode_length: 8 # TODO: Set this number
+  episode_length: 5 # TODO: Set this number
   # demos: 150
   demos: 10
   traj_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/multiCam/trajectory.pointcloud.pd_joint_pos.h5
