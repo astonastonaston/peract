@@ -206,7 +206,7 @@ def _add_keypoints_to_replay(
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
         # print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
-        obs_dict = utils.extract_obs(demo, step=i, t=k+stage_num, prev_action=prev_action,
+        obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
         # print(f"input low dim state {obs_dict['low_dim_state']} output gripper open {rot_grip_indicies[-1]}")
         tokens = tokenize(description).numpy()
