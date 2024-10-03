@@ -389,6 +389,7 @@ def extract_obs(demo: Dict,
     obs_dict['low_dim_state'] = np.concatenate(
         [obs_dict['low_dim_state'], [time]]).astype(np.float32)
 
+    # print(f"add low dim state {obs_dict['low_dim_state']}")
     # convert pcd and rgb formats
     # print(f"before cvt {obs_dict['point_cloud'].shape}")
     obs_dict["point_cloud"] = obs_dict["point_cloud"][0]

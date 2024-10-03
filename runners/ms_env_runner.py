@@ -261,10 +261,10 @@ class IndependentEnvRunner(object):
                 
                 step_cnt = 0
                 for replay_transition in generator:
-                    print(f"replay transi {replay_transition.observation.keys()}")
+                    # print(f"replay transi {replay_transition.observation.keys()}")
                     img = replay_transition.observation['voxel_grid_img_0']
                     img = img.transpose(1, 2, 0)
-                    print(f"shape of voxel img {img.shape}")
+                    # print(f"shape of voxel img {img.shape}")
                     to_pil = transforms.ToPILImage()
                     img = to_pil(img)
                     img.save(os.path.join(self._logdir, f'ep_{eval_demo_seed}_step_{step_cnt}_image.png'))

@@ -645,7 +645,7 @@ class QAttentionPerActBCAgent(Agent):
 
         if self._include_low_dim_state:
             proprio = observation['low_dim_state']
-
+        # print(f"proprio at step {step}: {proprio}")
         obs, pcd = self._act_preprocess_inputs(observation)
 
         # correct batch size and device

@@ -53,7 +53,7 @@ class RolloutGenerator(object):
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
             # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
 
-            act_result = agent.act(step_signal.value, prepped_data,
+            act_result = agent.act(step, prepped_data,
                                    deterministic=eval)
             # print(f"act obs kys {act_result.observation_elements.keys()}")
             print(f"result action {act_result.action}")
@@ -173,7 +173,7 @@ class RolloutGenerator(object):
                 if len(act_result.observation_elements) > 0:
                     # prepped_data = {k: torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
                     prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
-                    act_result = agent.act(step_signal.value, prepped_data,
+                    act_result = agent.act(step, prepped_data,
                                            deterministic=eval)
                     agent_obs_elems_tp1 = {k: np.array(v) for k, v in
                                            act_result.observation_elements.items()}
