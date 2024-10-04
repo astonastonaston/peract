@@ -76,18 +76,18 @@ maniskill3:
   # episode_length: 7 # TODO: Set this number
   episode_length: 6 # TODO: Set this number
   # demos: 150
-  demos: 5
+  demos: 10
   # demos: 30
   # demos: 50
   traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.h5
   json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.json
-  train_index_range: [0, 3]
+  train_index_range: [0, 7]
   # train_index_range: [0, 21]
   # train_index_range: [0, 35]
-  val_index_range: [3, 4]
+  val_index_range: [7, 8]
   # val_index_range: [21, 24]
   # val_index_range: [35, 40]
-  test_index_range: [4, 5]
+  test_index_range: [8, 10]
   # test_index_range: [24, 30]
   # test_index_range: [40, 50]
   desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
