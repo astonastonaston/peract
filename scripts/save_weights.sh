@@ -5,10 +5,10 @@
 # cp -r /tmp/arm /dev/nanxiao-vol1/arm_kp_red_cam_3
 
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_bnd_ts_desc_long_2
-mkdir /dev/nanxiao-vol1/arm_bnd_ts_desc_long_2
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_bnd_ts_desc_long_2
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_bnd_ts_desc_long_2
+mkdir /dev/nanxiao-vol1/arm_test_bnd_ts_desc_long_3
+mkdir /dev/nanxiao-vol1/arm_bnd_ts_desc_long_3
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_bnd_ts_desc_long_3
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_bnd_ts_desc_long_3
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_bnd_30
