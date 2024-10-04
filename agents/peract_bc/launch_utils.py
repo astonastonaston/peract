@@ -87,7 +87,8 @@ def create_replay(batch_size: int, timesteps: int,
                       np.float32), # extracted from CLIP's language encoder
         ReplayElement('task', (),
                       str),
-        ReplayElement('lang_goal', (1,),
+        ReplayElement('lang_goal', (),
+        # ReplayElement('lang_goal', (1,),
                       object),  # language goal string for debugging and visualization
         ReplayElement('demo_number', (),
                       np.int32),
@@ -327,7 +328,7 @@ def fill_replay(cfg: DictConfig,
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
                 scene_bounds, voxel_sizes, bounds_offset,
-                rotation_resolution, crop_augmentation, description=desc,
+                rotation_resolution, crop_augmentation, description=desc[min(stage_num, len(desc)-1)],
                 clip_model=clip_model, device=device, demo_number=d_idx, stage_num=stage_num)
     if cfg.replay.save_keypoints:
         keypt_dir = cfg.replay.save_keypoints_dir
