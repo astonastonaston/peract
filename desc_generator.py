@@ -1,9 +1,9 @@
 import pickle
 
-desc = ["close the gripper",
-        "reach the cube on the table by moving the gripper to the back of the cube",
-        "push the cube to a red white goal region in front of it"]
-# desc = ["push the cube to the center of the red white target"]
+# desc = ["close the gripper",
+#         "reach the cube on the table by moving the gripper to the back of the cube",
+#         "push the cube to a red white goal region in front of it"]
+desc = ["push the cube to the red white target on the table"]
 # desc = ["push the cube on the table to the center of the red white target on the table"]
 # desc = ["A simple task where the objective is to reach a cube and then push the cube to a red white goal region in front of it. \
 #         The cube's xy position is randomized on top of a table in the region [0.1, 0.1] times [-0.1, -0.1]. It is placed flat on the table."] 
