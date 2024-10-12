@@ -43,11 +43,11 @@ framework:
     record_every_n: 5
 
     eval_envs: 1
-    eval_from_eps_number: 3 # current eatio: train/val/test = 150/25/25
+    eval_from_eps_number: 0 # current eatio: train/val/test = 150/25/25
     # eval_from_eps_number: 175 # current eatio: train/val/test = 150/25/25
     # eval_episodes: 20
     # eval_episodes: 25
-    eval_episodes: 7
+    eval_episodes: 2
     # eval_type: 'missing' # or 'best'
     eval_type: 'last' # or 'best'
     eval_save_metrics: True

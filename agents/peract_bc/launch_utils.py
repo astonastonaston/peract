@@ -211,8 +211,10 @@ def _add_keypoints_to_replay(
                                      cameras=cameras, episode_length=episode_length)
         # print(f"input low dim state {obs_dict['low_dim_state']} output gripper open {rot_grip_indicies[-1]}")
         tokens = tokenize(description).numpy()
+        print(f"Training, tokenizing desc {description}")
         token_tensor = torch.from_numpy(tokens).to(device)
         sentence_emb, token_embs = clip_model.encode_text_with_embeddings(token_tensor)
+        print(f"Embedding shapes {token_tensor.shape, sentence_emb[0].shape, token_embs[0].shape}")
         obs_dict['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
         obs_dict['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
 

@@ -366,6 +366,8 @@ class PerceiverVoxelLangEncoder(nn.Module):
 
         # language ablation
         if self.no_language:
+            print("No langg!!!!")
+            print()
             lang_goal_emb = torch.zeros_like(lang_goal_emb)
             lang_token_embs = torch.zeros_like(lang_token_embs)
 
@@ -406,7 +408,12 @@ class PerceiverVoxelLangEncoder(nn.Module):
 
         # option 2: add lang token embs as a sequence
         if self.lang_fusion_type == 'seq':
+            # print("Lang tok emb under seq")
+            # print(lang_token_embs, lang_token_embs.shape)
             l = self.lang_preprocess(lang_token_embs)         # [B,77,1024] -> [B,77,128]
+            # print("after preprocessing")
+            # print(l, l.shape)
+            # print()
             ins = torch.cat((l, ins), dim=1)                  # [B,8077,128]
 
         # add pos encoding to language + flattened grid (the recommended way)

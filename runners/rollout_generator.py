@@ -37,8 +37,12 @@ class RolloutGenerator(object):
         # print(obs["agent"])
         # print(obs["agent"].keys())
         # obs = extract_obs(obs)
-        lang_goal_tokens = tokenize([lang_goal[0]])[0]  # assume only one desc for each task only
-        obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
+        # lang_goal_tokens = tokenize([lang_goal[0]])[0]  # assume only one desc for each task only
+        tokens = tokenize(lang_goal[0]).numpy()
+        print(f"Tokenizing goal {lang_goal[0]}")
+        token_tensor = torch.from_numpy(tokens).to("cuda")
+        lang_goal_tokens = token_tensor  # assume only one desc for each task only
+        obs["lang_goal_tokens"] = token_tensor # all data arrays in obs should be torch.Tensor
         obs = add_low_dim_states(obs, 0, episode_length)
         obs = extract_obs(obs) # flatten obs to 2 levels of dicts only for easier
         agent.reset()
@@ -63,7 +67,15 @@ class RolloutGenerator(object):
             # agent_obs_elems = add_low_dim_states(agent_obs_elems)
             extra_replay_elements = {k: np.array(v) for k, v in
                                      act_result.replay_elements.items()}
+# [-8.50001164e-03  1.84999686e-02  4.95499969e-01 -6.12323400e-17
+#   1.00000000e+00 -6.12323400e-17  3.74939946e-33  0.00000000e+00
+#   0.00000000e+00]
 
+
+
+# [-4.45000231e-02  9.49996524e-03  2.74999719e-02 -6.12323400e-17
+#   1.00000000e+00 -6.12323400e-17  3.74939946e-33  0.00000000e+00
+#   0.00000000e+00]
             # plan the path to the target pose
             trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
             # rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
