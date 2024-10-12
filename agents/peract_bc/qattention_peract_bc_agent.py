@@ -478,14 +478,14 @@ class QAttentionPerActBCAgent(Agent):
                                          self._device)
 
         # forward pass
-        print("Inputing to q network:")
-        print("obs")
-        print(obs)
-        print("proprio")
-        print(proprio)
-        print("pcd")
-        print(pcd)
-        print()
+        # print("Inputing to q network:")
+        # print("obs")
+        # print(obs)
+        # print("proprio")
+        # print(proprio)
+        # print("pcd")
+        # print(pcd)
+        # print()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -571,9 +571,9 @@ class QAttentionPerActBCAgent(Agent):
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
-        if (step%1 == 0):
-            print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
-            print()
+        # if (step%1 == 0):
+        #     print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
+        #     print()
 
         self._optimizer.zero_grad()
         total_loss.backward()
@@ -672,13 +672,13 @@ class QAttentionPerActBCAgent(Agent):
 
         # print(f"input low dim state {proprio}")
         # inference
-        print("Inputing to q network:")
-        print("obs")
-        print(obs)
-        print("proprio")
-        print(proprio)
-        print("pcd")
-        print(pcd)
+        # print("Inputing to q network:")
+        # print("obs")
+        # print(obs)
+        # print("proprio")
+        # print(proprio)
+        # print("pcd")
+        # print(pcd)
         q_trans, \
         q_rot_grip, \
         q_ignore_collisions, \
@@ -765,9 +765,9 @@ class QAttentionPerActBCAgent(Agent):
         # img.save('saved_image.png')
         observation_elements["voxel_grid_img"] = grid_img
 
-        print("Predictions:")
-        print(f"attention coord: {attention_coordinate}")
-        print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
+        # print("Predictions:")
+        # print(f"attention coord: {attention_coordinate}")
+        # print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
                          observation_elements=observation_elements,
                          info=info)

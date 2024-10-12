@@ -39,7 +39,7 @@ class RolloutGenerator(object):
         # obs = extract_obs(obs)
         # lang_goal_tokens = tokenize([lang_goal[0]])[0]  # assume only one desc for each task only
         tokens = tokenize(lang_goal[0]).numpy()
-        print(f"Tokenizing goal {lang_goal[0]}")
+        # print(f"Tokenizing goal {lang_goal[0]}")
         token_tensor = torch.from_numpy(tokens).to("cuda")
         lang_goal_tokens = token_tensor  # assume only one desc for each task only
         obs["lang_goal_tokens"] = token_tensor # all data arrays in obs should be torch.Tensor
