@@ -478,14 +478,15 @@ class QAttentionPerActBCAgent(Agent):
                                          self._device)
 
         # forward pass
-        # print("Inputing to q network:")
-        # print("obs")
-        # print(obs)
-        # print("proprio")
-        # print(proprio)
-        # print("pcd")
-        # print(pcd)
-        # print()
+        if demo_number == 0:
+            print("Inputing to q network:")
+            print("obs")
+            print(obs)
+            print("proprio")
+            print(proprio)
+            print("pcd")
+            print(pcd)
+            print()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -571,9 +572,9 @@ class QAttentionPerActBCAgent(Agent):
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
-        # if (step%1 == 0):
-        #     print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
-        #     print()
+        if (step%1 == 0):
+            print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
+            print()
 
         self._optimizer.zero_grad()
         total_loss.backward()
