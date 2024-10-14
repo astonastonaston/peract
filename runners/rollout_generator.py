@@ -25,11 +25,34 @@ class RolloutGenerator(object):
                   eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, reset_kwargs: dict = None, vis_pose=False):
                 #   record_enabled: bool = False):
 
+        # reset env and agent 
         if eval:
             obs, _ = env.reset(**reset_kwargs)
         else:
             obs, _ = env.reset()
-        # reset env and agent 
+
+        # move to cube back to simplify the task
+        planner = PandaArmMotionPlanningSolver(
+            env,
+            debug=False,
+            # vis=False, # visualization of next pose mode
+            vis=vis_pose, # visualization of next pose mode
+            base_pose=env.unwrapped.agent.robot.pose,
+            visualize_target_grasp_pose=True,
+            print_env_info=False,
+        )
+
+        # do gripper action
+        planner.close_gripper()
+
+        # set and reach the target pose behind the cube
+        env = env.unwrapped
+        reach_pose = sapien.Pose(p=env.obj.pose.sp.p + np.array([-0.05, 0, 0]), q=env.agent.tcp.pose.sp.q)
+        obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
+
+
+
+            
         # print(obs)
         # print(type(obs))
         # print(obs.keys())
