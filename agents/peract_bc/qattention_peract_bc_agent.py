@@ -479,6 +479,7 @@ class QAttentionPerActBCAgent(Agent):
 
         # forward pass
         if demo_number == 0:
+            print(f"Doing demo {demo_number, input_frame, supervision_frame}")
             print("Inputing to q network:")
             print("obs")
             print(obs)
