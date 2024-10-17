@@ -455,6 +455,15 @@ class QAttentionPerActBCAgent(Agent):
         if self._include_low_dim_state:
             proprio = replay_sample['low_dim_state']
 
+        # # visualize raw input rgb and pcds
+        # if demo_number == 0:
+        #     rw_rgb = replay_sample['rgb']
+        #     rw_pcd = replay_sample['point_cloud']
+        #     print("raw rgb and pcd when loading replay")
+        #     print(rw_pcd)
+        #     print(rw_rgb)
+        #     print()
+
         obs, pcd = self._preprocess_inputs(replay_sample)
 
         # batch size
@@ -477,17 +486,17 @@ class QAttentionPerActBCAgent(Agent):
                                          self._rotation_resolution,
                                          self._device)
 
-        # forward pass
-        if demo_number == 0:
-            print(f"Doing demo {demo_number, input_frame, supervision_frame}")
-            print("Inputing to q network:")
-            print("obs")
-            print(obs)
-            print("proprio")
-            print(proprio)
-            print("pcd")
-            print(pcd)
-            print()
+        # # forward pass
+        # if demo_number == 0:
+        #     print(f"Doing demo {demo_number, input_frame, supervision_frame}")
+        #     print("Inputing to q network:")
+        #     print("obs")
+        #     print(obs)
+        #     print("proprio")
+        #     print(proprio)
+        #     print("pcd")
+        #     print(pcd)
+        #     print()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -520,16 +529,16 @@ class QAttentionPerActBCAgent(Agent):
         for b in range(bs):
             gt_coord = action_trans[b, :].int()
             action_trans_one_hot[b, :, gt_coord[0], gt_coord[1], gt_coord[2]] = 1
-            if (step%1 == 0):
-                logging.info(f"Translation pred {coords} gt {gt_coord}")
+            # if (step%1 == 0):
+            #     logging.info(f"Translation pred {coords} gt {gt_coord}")
         # translation loss
         q_trans_flat = q_trans.view(bs, -1)
         action_trans_one_hot_flat = action_trans_one_hot.view(bs, -1)
         q_trans_loss = self._celoss(q_trans_flat, action_trans_one_hot_flat)
 
         with_rot_and_grip = rot_and_grip_indicies is not None
-        if (step%1 == 0):
-            logging.info(f"Demo {demo_number} input {input_frame} supervision {supervision_frame}")
+        # if (step%1 == 0):
+        #     logging.info(f"Demo {demo_number} input {input_frame} supervision {supervision_frame}")
         if with_rot_and_grip:
             # rotation, gripper, and collision one-hots
             action_rot_x_one_hot = self._action_rot_x_one_hot_zeros.clone()
@@ -548,8 +557,8 @@ class QAttentionPerActBCAgent(Agent):
                 gt_ignore_collisions = action_ignore_collisions[b, :].int()
                 action_ignore_collisions_one_hot[b, gt_ignore_collisions[0]] = 1
 
-                if (step%1 == 0):
-                    logging.info(f"Rotation gripper pred {rot_and_grip_indicies} gt {gt_rot_grip}")
+                # if (step%1 == 0):
+                #     logging.info(f"Rotation gripper pred {rot_and_grip_indicies} gt {gt_rot_grip}")
             # flatten predictions
             q_rot_x_flat = q_rot_grip[:, 0*self._num_rotation_classes:1*self._num_rotation_classes]
             q_rot_y_flat = q_rot_grip[:, 1*self._num_rotation_classes:2*self._num_rotation_classes]
@@ -573,9 +582,9 @@ class QAttentionPerActBCAgent(Agent):
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
-        if (step%1 == 0):
-            print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
-            print()
+        # if (step%1 == 0):
+        #     print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
+        #     print()
 
         self._optimizer.zero_grad()
         total_loss.backward()
@@ -674,13 +683,13 @@ class QAttentionPerActBCAgent(Agent):
 
         # print(f"input low dim state {proprio}")
         # inference
-        # print("Inputing to q network:")
-        # print("obs")
-        # print(obs)
-        # print("proprio")
-        # print(proprio)
-        # print("pcd")
-        # print(pcd)
+        print("Inputing to q network:")
+        print("obs")
+        print(obs)
+        print("proprio")
+        print(proprio)
+        print("pcd")
+        print(pcd)
         q_trans, \
         q_rot_grip, \
         q_ignore_collisions, \

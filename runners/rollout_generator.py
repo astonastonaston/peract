@@ -51,6 +51,12 @@ class RolloutGenerator(object):
         obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
 
 
+        # print("The very initial obs:")
+        # print("obs")
+        # print(obs['pointcloud']['rgb'])
+        # print("pcd")
+        # print(obs['pointcloud']['xyzw'])
+        # print()
 
             
         # print(obs)

@@ -248,7 +248,7 @@ class IndependentEnvRunner(object):
                 episode = episodes[ep]
 
                 reset_kwargs = episode["reset_kwargs"].copy()
-                reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
+                # reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
 
                 # TODO: modify this to keeping stepping till one episode finishes
                 generator = self._rollout_generator.generator(
