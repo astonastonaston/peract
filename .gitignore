@@ -7,5 +7,6 @@ data/
 build/
 outputs/
 voxel_visualizer.ipynb
+pcd_visualizer.py
 *__pycache__*
 *.pyc
