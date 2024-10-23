@@ -683,13 +683,13 @@ class QAttentionPerActBCAgent(Agent):
 
         # print(f"input low dim state {proprio}")
         # inference
-        print("Inputing to q network:")
-        print("obs")
-        print(obs)
-        print("proprio")
-        print(proprio)
-        print("pcd")
-        print(pcd)
+        # print("Inputing to q network:")
+        # print("obs")
+        # print(obs)
+        # print("proprio")
+        # print(proprio)
+        # print("pcd")
+        # print(pcd)
         q_trans, \
         q_rot_grip, \
         q_ignore_collisions, \

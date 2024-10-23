@@ -74,7 +74,7 @@ class QAttentionStackAgent(Agent):
             observation['attention_coordinate'] = act_results.observation_elements['attention_coordinate']
             observation['prev_layer_voxel_grid'] = act_results.observation_elements['prev_layer_voxel_grid']
             observation['prev_layer_bounds'] = act_results.observation_elements['prev_layer_bounds']
-            print(observation.keys())
+            # print(observation.keys())
             # print(observation["sensor_param"].keys())
             # print(observation["sensor_param"]["base_camera"].keys())
             for n in self._camera_names:

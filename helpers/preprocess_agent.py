@@ -61,7 +61,7 @@ class PreprocessAgent(Agent):
 
         # Samples are (B, N, ...) where N is number of buffers/tasks. This is a single task setup, so 0 index.
         # TODO: support multi-task replays
-        print(f"keys to preprocess: {observation.keys()}")
+        # print(f"keys to preprocess: {observation.keys()}")
         # for k, v in observation.items():
         #     if type(v) == dict:
         #         print(k, v.keys())

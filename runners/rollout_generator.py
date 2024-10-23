@@ -10,7 +10,6 @@ from agents.agent import Agent, VideoSummary, TextSummary
 from helpers.transition import ReplayTransition
 from helpers.ms3_utils import add_low_dim_states, extract_obs
 from runners.motion_planner import PandaArmMotionPlanningSolver
-
 from clip import tokenize
 
 class RolloutGenerator(object):
@@ -42,13 +41,13 @@ class RolloutGenerator(object):
             print_env_info=False,
         )
 
-        # do gripper action
-        planner.close_gripper()
+        # # do gripper action
+        # planner.close_gripper()
 
-        # set and reach the target pose behind the cube
-        env = env.unwrapped
-        reach_pose = sapien.Pose(p=env.obj.pose.sp.p + np.array([-0.05, 0, 0]), q=env.agent.tcp.pose.sp.q)
-        obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
+        # # set and reach the target pose behind the cube
+        # env = env.unwrapped
+        # reach_pose = sapien.Pose(p=env.obj.pose.sp.p + np.array([-0.05, 0, 0]), q=env.agent.tcp.pose.sp.q)
+        # obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
 
 
         # print("The very initial obs:")
@@ -82,29 +81,21 @@ class RolloutGenerator(object):
         
         # start episode generation (episode_length: the number of pose-based control steps)
         for step in range(episode_length):
-            print(f"step {step} in episode with len {episode_length}")
+            # print(f"step {step} in episode with len {episode_length}")
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
             # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
 
             act_result = agent.act(step, prepped_data,
                                    deterministic=eval)
             # print(f"act obs kys {act_result.observation_elements.keys()}")
-            print(f"result action {act_result.action}")
+            # print(f"result action {act_result.action}")
             agent_obs_elems = {k: np.array(v) for k, v in
                                act_result.observation_elements.items()}
             agent_obs_elems["lang_goal_tokens"] = lang_goal_tokens
             # agent_obs_elems = add_low_dim_states(agent_obs_elems)
             extra_replay_elements = {k: np.array(v) for k, v in
                                      act_result.replay_elements.items()}
-# [-8.50001164e-03  1.84999686e-02  4.95499969e-01 -6.12323400e-17
-#   1.00000000e+00 -6.12323400e-17  3.74939946e-33  0.00000000e+00
-#   0.00000000e+00]
-
-
-
-# [-4.45000231e-02  9.49996524e-03  2.74999719e-02 -6.12323400e-17
-#   1.00000000e+00 -6.12323400e-17  3.74939946e-33  0.00000000e+00
-#   0.00000000e+00]
+            
             # plan the path to the target pose
             trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
             # rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
@@ -149,8 +140,8 @@ class RolloutGenerator(object):
 
             if transition["terminal"]: # Reset when terminated
                 if "needs_reset" in transition["info"]:
-                    print("Reset needed! transition info keys:")
-                    print(transition["info"])
+                    # print("Reset needed! transition info keys:")
+                    # print(transition["info"])
                     transition["info"]["needs_reset"] = True
 
             # # TODO: add video and error summaries

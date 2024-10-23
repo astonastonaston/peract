@@ -366,8 +366,8 @@ class PerceiverVoxelLangEncoder(nn.Module):
 
         # language ablation
         if self.no_language:
-            print("No langg!!!!")
-            print()
+            # print("No langg!!!!")
+            # print()
             lang_goal_emb = torch.zeros_like(lang_goal_emb)
             lang_token_embs = torch.zeros_like(lang_token_embs)
 
