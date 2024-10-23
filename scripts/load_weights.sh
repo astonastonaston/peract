@@ -1,6 +1,6 @@
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_unified_demos_30_single_cam/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_unified_demos_30_single_cam/arm /tmp/
+cp -r /dev/nanxiao-vol1/arm_test_unified_demos_50_single_cam/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_unified_demos_50_single_cam/arm /tmp/
 
 # # load weights from permanent storage to the runtime directory
 # cp -r /dev/nanxiao-vol1/arm_test_bnd_30/arm_test /tmp/

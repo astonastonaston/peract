@@ -1,7 +1,7 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
 
-cp -r /dev/nanxiao-vol1/demos_single_view ./
-mv ./demos_single_view ./demos
+cp -r /dev/nanxiao-vol1/demos_single_view_50 ./
+mv ./demos_single_view_50 ./demos
 
 # cp -r /dev/nanxiao-vol1/demos_multi_view ./
 # mv ./demos_multi_view ./demos
