@@ -1,7 +1,10 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
 
-cp -r /dev/nanxiao-vol1/demos_multi_view ./
-mv ./demos_multi_view ./demos
+cp -r /dev/nanxiao-vol1/demos_single_view ./
+mv ./demos_single_view ./demos
+
+# cp -r /dev/nanxiao-vol1/demos_multi_view ./
+# mv ./demos_multi_view ./demos
 # sh scripts/ms3_demo_download.sh
 
 # install pytorch3d from the wheel
@@ -14,5 +17,7 @@ python desc_generator.py
 
 mv conf/config.yaml conf/__config.yaml
 mv conf/eval.yaml conf/__eval.yaml
-mv conf/pod_config.yaml conf/config.yaml
-mv conf/pod_eval.yaml conf/eval.yaml
+mv conf/pod_config_single_cam.yaml conf/config.yaml
+mv conf/pod_eval_single_cam.yaml conf/eval.yaml
+# mv conf/pod_config.yaml conf/config.yaml
+# mv conf/pod_eval.yaml conf/eval.yaml

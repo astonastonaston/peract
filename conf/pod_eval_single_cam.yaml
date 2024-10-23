@@ -1,0 +1,61 @@
+method:
+  name: "PERACT_BC"
+
+# rlbench:
+#     task_name: "multi"
+#     tasks: [open_drawer,slide_block_to_color_target]
+#     demo_path: /my/demo/path
+#     episode_length: 25
+#     cameras: [front,left_shoulder,right_shoulder,wrist]
+#     camera_resolution: [128, 128]
+#     scene_bounds: [-0.3, -0.5, 0.6, 0.7, 0.5, 1.6]
+#     include_lang_goal_in_obs: True
+#     time_in_state: True
+#     headless: True
+
+maniskill3:
+  # task_name: "single" # multi-task training is not supported yet
+  task_name: "multi"
+  tasks: [PushCube-v1]
+  # episode_length: 2 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+  # episode_length: 7 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+  episode_length: 6 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+  # demos: 150
+  demos: 100
+  traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
+  json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
+  # train_ind_start: 0
+  # val_ind_start: 150
+  # test_ind_start: 175
+  desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
+  cameras: [base_camera]
+  camera_resolution: [128, 128]
+  # scene_bounds: [-1, -1, -1, 2, 2, 2]
+  scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
+  time_in_state: True
+  include_lang_goal_in_obs: True
+  vis_pose: False
+
+framework:
+  tensorboard_logging: True
+  csv_logging: True
+  gpu: 0
+  logdir: '/peract/ckpts/'
+  start_seed: 0
+  record_every_n: 5
+
+  eval_envs: 1
+  eval_from_eps_number: 80 # current eatio: train/val/test = 150/25/25
+  # eval_from_eps_number: 175 # current eatio: train/val/test = 150/25/25
+  # eval_episodes: 25
+  eval_episodes: 20
+  # eval_type: 'missing' # or 'best'
+  eval_type: 'last' # or 'best'
+  eval_save_metrics: True
+
+cinematic_recorder:
+  enabled: False
+  camera_resolution: [1280, 720]
+  fps: 30
+  rotate_speed: 0.005
+  save_path: '/tmp/videos/'

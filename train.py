@@ -8,7 +8,7 @@ from typing import List
 import hydra
 import numpy as np
 from omegaconf import DictConfig, OmegaConf, ListConfig
-from tasks import push_cube
+# from tasks import push_cube
 
 import run_seed_fn
 # from helpers.utils import create_obs_config
