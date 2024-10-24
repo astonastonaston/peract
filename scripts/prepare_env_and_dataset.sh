@@ -5,8 +5,8 @@
 # sh scripts/ms3_demo_download.sh
 # cp -r /dev/nanxiao-vol1/demos_multi_view_50_demos ./
 # mv ./demos_multi_view_50_demos ./demos
-cp -r /dev/nanxiao-vol1/demos_single_view_30 ./
-mv ./demos_single_view_30 ./demos
+cp -r /dev/nanxiao-vol1/demos_single_view_50 ./
+mv ./demos_single_view_50 ./demos
 
 # install pytorch3d from the wheel
 # pip install fvcore
