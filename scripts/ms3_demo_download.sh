@@ -1,4 +1,5 @@
 # Download PushCube demos
+pip install git+https://github.com/haosulab/ManiSkill.git
 mkdir demos
 python -m mani_skill.utils.download_demo "PushCube-v1" -o "demos"
 
