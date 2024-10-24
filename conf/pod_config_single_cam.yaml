@@ -77,8 +77,8 @@ maniskill3:
   episode_length: 6 # TODO: Set this number
   # demos: 150
   # demos: 10
-  # demos: 30
-  demos: 50
+  demos: 30
+  # demos: 50
   traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.singleCam.h5
   json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.singleCam.json
   # train_index_range: [0, 7]
