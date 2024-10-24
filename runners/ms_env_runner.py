@@ -236,8 +236,8 @@ class IndependentEnvRunner(object):
             # evaluate on N tasks * M episodes per task = total eval episodes
             reward_list = []
             success_list = []
+            print(f"Evaluating from episode {self._eval_from_eps_number} in total {self._eval_episodes} episodes")
             for ep in range(self._eval_episodes):
-                # print(f"episode num {ep} under total {self._eval_episodes} episodes")
                 eval_demo_seed = ep + self._eval_from_eps_number
                 logging.info('%s: Starting episode %d, seed %d.' % (name, ep, eval_demo_seed))
 

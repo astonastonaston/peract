@@ -35,7 +35,7 @@ from torch.multiprocessing import Process, Manager
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-from tasks import push_cube
+# from tasks import push_cube
 
 
 def eval_seed(train_cfg,
