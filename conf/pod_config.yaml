@@ -79,8 +79,8 @@ maniskill3:
   # demos: 10
   # demos: 30
   demos: 50
-  traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.h5
-  json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.json
+  traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
+  json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   # train_index_range: [0, 7]
   # train_index_range: [0, 21]
   # train_index_range: [0, 35]

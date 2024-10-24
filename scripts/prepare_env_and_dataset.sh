@@ -3,9 +3,10 @@
 # cp -r /dev/nanxiao-vol1/demos_single_view_50 ./
 # mv ./demos_single_view_50 ./demos
 
-# cp -r /dev/nanxiao-vol1/demos_multi_view ./
-# mv ./demos_multi_view ./demos
-sh scripts/ms3_demo_download.sh
+# Replace this with copying pre-generated demos will accelerate demo preparation greatly
+# sh scripts/ms3_demo_download.sh
+cp -r /dev/nanxiao-vol1/demos_multi_view_50_demos ./
+mv ./demos_multi_view_50_demos ./demos
 
 # install pytorch3d from the wheel
 # pip install fvcore
