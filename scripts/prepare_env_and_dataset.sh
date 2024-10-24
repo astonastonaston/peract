@@ -18,7 +18,7 @@ python desc_generator.py
 
 mv conf/config.yaml conf/__config.yaml
 mv conf/eval.yaml conf/__eval.yaml
-mv conf/pod_config_single_cam.yaml conf/config.yaml
-mv conf/pod_eval_single_cam.yaml conf/eval.yaml
-# mv conf/pod_config.yaml conf/config.yaml
-# mv conf/pod_eval.yaml conf/eval.yaml
+# mv conf/pod_config_single_cam.yaml conf/config.yaml
+# mv conf/pod_eval_single_cam.yaml conf/eval.yaml
+mv conf/pod_config.yaml conf/config.yaml
+mv conf/pod_eval.yaml conf/eval.yaml
