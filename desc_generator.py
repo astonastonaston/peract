@@ -3,7 +3,8 @@ import pickle
 # desc = ["close the gripper",
 #         "reach the cube on the table by moving the gripper to the back of the cube",
 #         "push the cube to a red white goal region in front of it"]
-desc = ["push the cube to the red white target on the table"]
+desc = ["grasp the red cube and move it to the target goal position."]
+# desc = ["push the cube to the red white target on the table"]
 # desc = ["push the cube on the table to the center of the red white target on the table"]
 # desc = ["A simple task where the objective is to reach a cube and then push the cube to a red white goal region in front of it. \
 #         The cube's xy position is randomized on top of a table in the region [0.1, 0.1] times [-0.1, -0.1]. It is placed flat on the table."] 
@@ -22,5 +23,5 @@ desc = ["push the cube to the red white target on the table"]
 #     "] # long 1
 
 # Save the description to a file
-with open('demos/PushCube-v1/motionplanning/desc.pkl', 'wb') as file:
+with open('demos/PickCube-v1/motionplanning/desc.pkl', 'wb') as file:
     pickle.dump(desc, file)
