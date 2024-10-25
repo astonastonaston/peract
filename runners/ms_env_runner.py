@@ -11,6 +11,7 @@ from multiprocessing import Value, Process, Manager
 from agents.agent import Agent
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.utils.io_utils import load_json
+from mani_skill.utils.wrappers.record import RecordEpisode
 from runners.rollout_generator import RolloutGenerator
 from runners.stat_accumulator import StatAccumulator, SimpleAccumulator
 from runners.log_writer import LogWriter
@@ -235,8 +236,8 @@ class IndependentEnvRunner(object):
             # evaluate on N tasks * M episodes per task = total eval episodes
             reward_list = []
             success_list = []
+            print(f"Evaluating from episode {self._eval_from_eps_number} in total {self._eval_episodes} episodes")
             for ep in range(self._eval_episodes):
-                print(f"episode num {ep} under total {self._eval_episodes} episodes")
                 eval_demo_seed = ep + self._eval_from_eps_number
                 logging.info('%s: Starting episode %d, seed %d.' % (name, ep, eval_demo_seed))
 
@@ -244,11 +245,12 @@ class IndependentEnvRunner(object):
                 episode_rollout = []
 
                 # get reset status for the current episode
-                episodes = self._demo_meta_data["episodes"]
-                episode = episodes[ep]
+                # episodes = self._demo_meta_data["episodes"]
+                # episode = episodes[ep]
 
-                reset_kwargs = episode["reset_kwargs"].copy()
-                reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
+                # reset_kwargs = episode["reset_kwargs"].copy()
+                # reset_kwargs["seed"] = eval_demo_seed # demo reset seed, which is also the episode number
+                reset_kwargs = {"seed": eval_demo_seed} # demo reset seed, which is also the episode number
 
                 # TODO: modify this to keeping stepping till one episode finishes
                 generator = self._rollout_generator.generator(
@@ -261,10 +263,10 @@ class IndependentEnvRunner(object):
                 
                 step_cnt = 0
                 for replay_transition in generator:
-                    print(f"replay transi {replay_transition.observation.keys()}")
+                    # print(f"replay transi {replay_transition.observation.keys()}")
                     img = replay_transition.observation['voxel_grid_img_0']
                     img = img.transpose(1, 2, 0)
-                    print(f"shape of voxel img {img.shape}")
+                    # print(f"shape of voxel img {img.shape}")
                     to_pil = transforms.ToPILImage()
                     img = to_pil(img)
                     img.save(os.path.join(self._logdir, f'ep_{eval_demo_seed}_step_{step_cnt}_image.png'))
@@ -313,12 +315,12 @@ class IndependentEnvRunner(object):
                     success = episode_rollout[-1].info["success"]
                     success_list.append(success)
                     print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
-                    print("Final state info:")
-                    print(episode_rollout[-1].observation.keys())
-                    print(episode_rollout[-1].action.shape)
-                    print(episode_rollout[-1].terminal)
-                    print(episode_rollout[-1].terminated)
-                    print(episode_rollout[-1].truncated)
+                    # print("Final state info:")
+                    # print(episode_rollout[-1].observation.keys())
+                    # print(episode_rollout[-1].action.shape)
+                    # print(episode_rollout[-1].terminal)
+                    # print(episode_rollout[-1].terminated)
+                    # print(episode_rollout[-1].truncated)
                 else:
                     print(f"Evaluating {task_name} | Episode {ep} | Score: {0} () | Lang Goal: {lang_goal} | Success: {0}")
                 # # TODO: save recording at maniskill
@@ -334,6 +336,10 @@ class IndependentEnvRunner(object):
 
                 #     tr.save(record_file, lang_goal, reward)
                 #     tr._cam_motion.restore_pose()
+
+            # reset at last to save the video for the last episode
+            if cinematic_recorder_cfg.enabled:
+                _, _ = env.reset(**reset_kwargs)
 
             # report summaries
             summaries = []
@@ -402,6 +408,8 @@ class IndependentEnvRunner(object):
                       "obs_mode": "pointcloud",
                       "num_envs": self._eval_envs,
                       "max_episode_steps": 1000}
+        if cinematic_recorder_cfg.enabled:
+            env_kwargs["render_mode"] = "rgb_array"
         # env_kwargs = {'control_mode': "pd_joint_pos", 
         #               "obs_mode": "pointcloud",
         #               "num_envs": self._eval_envs}
@@ -423,6 +431,9 @@ class IndependentEnvRunner(object):
             raise NotImplementedError("Multi-task evaluation not supported yet")
         else:
             eval_env = gym.make(env_config[0], **env_kwargs)
+            if cinematic_recorder_cfg.enabled:
+                eval_env = RecordEpisode(eval_env, output_dir=cinematic_recorder_cfg.save_path, save_trajectory=True, trajectory_name="trajectory", save_video=True, video_fps=30)
+
 
         # self._internal_env_runner = _IndependentEnvRunner(
         #     self._train_env, eval_env, self._agent, self._timesteps, self._train_envs,

@@ -31,7 +31,7 @@ def _get_gripper_joint_positions_ms(obs):
     # get the left and right finger joints' positions of the gripper
     return obs["agent"]["qpos"][..., -2:]
 
-def _check_gripper_open_ms(obs, delta=0):
+def _check_gripper_open_ms(obs, delta=1e-3):
     # check if the gripper is open at the i-th step
     return obs["agent"]["qpos"][..., -1] >= delta
 

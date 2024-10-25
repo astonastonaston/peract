@@ -15,6 +15,7 @@ import numpy as np
 import psutil
 import torch
 import pandas as pd
+from torchvision import transforms
 from agents.agent import Agent
 from runners.wrappers.pytorch_replay_buffer import \
     PyTorchReplayBuffer
@@ -86,8 +87,20 @@ class OfflineTrainRunner():
 
     def _step(self, i, sampled_batch):
         # print(f"in step, rgb scale {sampled_batch['rgb'][0][0][0]}")
+        # if sampled_batch["demo_number"][0] == 0:
+        #     print("in step, sampled batch has pcd rgb")
+        #     print(sampled_batch['point_cloud'])
+        #     print(sampled_batch['rgb'])
+        #     print()
         update_dict = self._agent.update(i, sampled_batch)
         total_losses = update_dict['total_losses'].item()
+        # # save voxel img
+        # img, demo_num, inp_fr, sup_fr = update_dict['voxel_img'], update_dict['demo_number'], update_dict['input_frame'], update_dict['supervision_frame']
+        # img = img.transpose(1, 2, 0)
+        # print(f"shape of voxel img {img.shape}")
+        # to_pil = transforms.ToPILImage()
+        # img = to_pil(img)
+        # img.save(os.path.join(self._logdir, f'step_{i}_demo_{demo_num}_inp_{inp_fr}_sup_{sup_fr}_loss_{total_losses:0.5f}.png'))
         return total_losses
 
     def _get_resume_eval_epoch(self):

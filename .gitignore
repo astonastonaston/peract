@@ -5,7 +5,9 @@ ckpts/
 peract.egg-info/
 data/
 build/
+videos/
 outputs/
 voxel_visualizer.ipynb
+pcd_visualizer.py
 *__pycache__*
 *.pyc

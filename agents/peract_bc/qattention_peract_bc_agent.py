@@ -455,6 +455,15 @@ class QAttentionPerActBCAgent(Agent):
         if self._include_low_dim_state:
             proprio = replay_sample['low_dim_state']
 
+        # # visualize raw input rgb and pcds
+        # if demo_number == 0:
+        #     rw_rgb = replay_sample['rgb']
+        #     rw_pcd = replay_sample['point_cloud']
+        #     print("raw rgb and pcd when loading replay")
+        #     print(rw_pcd)
+        #     print(rw_rgb)
+        #     print()
+
         obs, pcd = self._preprocess_inputs(replay_sample)
 
         # batch size
@@ -477,7 +486,17 @@ class QAttentionPerActBCAgent(Agent):
                                          self._rotation_resolution,
                                          self._device)
 
-        # forward pass
+        # # forward pass
+        # if demo_number == 0:
+        #     print(f"Doing demo {demo_number, input_frame, supervision_frame}")
+        #     print("Inputing to q network:")
+        #     print("obs")
+        #     print(obs)
+        #     print("proprio")
+        #     print(proprio)
+        #     print("pcd")
+        #     print(pcd)
+        #     print()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -557,14 +576,15 @@ class QAttentionPerActBCAgent(Agent):
 
             # collision loss
             q_collision_loss += self._celoss(q_ignore_collisions_flat, action_ignore_collisions_one_hot)
-        # if (step%1 == 0):
-        #     print(f"trans and rot loss {q_trans_loss} {q_rot_loss}")
 
         combined_losses = (q_trans_loss * self._trans_loss_weight) + \
                           (q_rot_loss * self._rot_loss_weight) + \
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
+        # if (step%1 == 0):
+        #     print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
+        #     print()
 
         self._optimizer.zero_grad()
         total_loss.backward()
@@ -587,6 +607,13 @@ class QAttentionPerActBCAgent(Agent):
         self._vis_max_coordinate = coords[0]
         self._vis_gt_coordinate = action_trans[0]
 
+        # save result img
+        # img = transforms.ToTensor()(visualise_voxel(
+        #                  self._vis_voxel_grid.detach().cpu().numpy(),
+        #                  self._vis_translation_qvalue.detach().cpu().numpy(),
+        #                  self._vis_max_coordinate.detach().cpu().numpy(),
+        #                  self._vis_gt_coordinate.detach().cpu().numpy()))
+        
         # Note: PerAct doesn't use multi-layer voxel grids like C2FARM
         # stack prev_layer_voxel_grid(s) from previous layers into a list
         if prev_layer_voxel_grid is None:
@@ -604,6 +631,10 @@ class QAttentionPerActBCAgent(Agent):
             'total_loss': total_loss,
             'prev_layer_voxel_grid': prev_layer_voxel_grid,
             'prev_layer_bounds': prev_layer_bounds,
+            # 'voxel_img': img,
+            # 'demo_number': demo_number,
+            # 'input_frame': input_frame,
+            # 'supervision_frame': supervision_frame
         }
 
     def act(self, step: int, observation: dict,
@@ -623,8 +654,11 @@ class QAttentionPerActBCAgent(Agent):
             lang_goal_tokens = lang_goal_tokens.to(device=self._device)
             # print(lang_goal_tokens.shape, lang_goal_tokens[0], lang_goal_tokens)
             # print(self._device)
-            lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens.unsqueeze(0))
-        print(f"lang embedding shapes {lang_goal_emb.shape} {lang_token_embs.shape}")
+            lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens)
+            # lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens.unsqueeze(0))
+            # lang_goal_emb = lang_goal_emb[0].float().detach().cpu().numpy()
+            # lang_token_embs = lang_token_embs[0].float().detach().cpu().numpy()
+        # print(f"Lang embedding shapes {lang_goal_tokens.shape, lang_goal_emb.shape} {lang_token_embs.shape}")
 
         # voxelization resolution
         res = (bounds[0, 3:] - bounds[0, :3]) / self._voxel_size
@@ -633,7 +667,7 @@ class QAttentionPerActBCAgent(Agent):
 
         if self._include_low_dim_state:
             proprio = observation['low_dim_state']
-
+        # print(f"proprio at step {step}: {proprio}")
         obs, pcd = self._act_preprocess_inputs(observation)
 
         # correct batch size and device
@@ -649,6 +683,13 @@ class QAttentionPerActBCAgent(Agent):
 
         # print(f"input low dim state {proprio}")
         # inference
+        # print("Inputing to q network:")
+        # print("obs")
+        # print(obs)
+        # print("proprio")
+        # print(proprio)
+        # print("pcd")
+        # print(pcd)
         q_trans, \
         q_rot_grip, \
         q_ignore_collisions, \
@@ -676,7 +717,7 @@ class QAttentionPerActBCAgent(Agent):
 #         1.0000], device='cuda:0')
 
         # softmax Q predictions
-        print(f"shapes of qs: {q_trans.shape, q_rot_grip.shape, q_ignore_collisions.shape}")
+        # print(f"shapes of qs: {q_trans.shape, q_rot_grip.shape, q_ignore_collisions.shape}")
         q_trans = self._softmax_q_trans(q_trans)
         q_rot_grip =  self._softmax_q_rot_grip(q_rot_grip) if q_rot_grip is not None else q_rot_grip
         q_ignore_collisions = self._softmax_ignore_collision(q_ignore_collisions) \
@@ -725,7 +766,7 @@ class QAttentionPerActBCAgent(Agent):
         # visualize voxel grids
         rgbs = self._act_voxel_grid[3:6, ...]
         max_values = rgbs.view(3, -1).max(dim=1).values
-        print(f"voxel grid hsape {self._act_voxel_grid.shape, max_values}")
+        # print(f"voxel grid hsape {self._act_voxel_grid.shape, max_values}")
         grid_img = transforms.ToTensor()(visualise_voxel(
                              self._act_voxel_grid.cpu().numpy(),
                              self._act_qvalues.cpu().numpy(),
@@ -735,8 +776,9 @@ class QAttentionPerActBCAgent(Agent):
         # img.save('saved_image.png')
         observation_elements["voxel_grid_img"] = grid_img
 
-        print(f"attention coord: {attention_coordinate}")
-        print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
+        # print("Predictions:")
+        # print(f"attention coord: {attention_coordinate}")
+        # print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
                          observation_elements=observation_elements,
                          info=info)

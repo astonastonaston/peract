@@ -10,7 +10,6 @@ from agents.agent import Agent, VideoSummary, TextSummary
 from helpers.transition import ReplayTransition
 from helpers.ms3_utils import add_low_dim_states, extract_obs
 from runners.motion_planner import PandaArmMotionPlanningSolver
-
 from clip import tokenize
 
 class RolloutGenerator(object):
@@ -25,11 +24,40 @@ class RolloutGenerator(object):
                   eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, reset_kwargs: dict = None, vis_pose=False):
                 #   record_enabled: bool = False):
 
+        # reset env and agent 
         if eval:
             obs, _ = env.reset(**reset_kwargs)
         else:
             obs, _ = env.reset()
-        # reset env and agent 
+
+        # move to cube back to simplify the task
+        planner = PandaArmMotionPlanningSolver(
+            env,
+            debug=False,
+            # vis=False, # visualization of next pose mode
+            vis=vis_pose, # visualization of next pose mode
+            base_pose=env.unwrapped.agent.robot.pose,
+            visualize_target_grasp_pose=True,
+            print_env_info=False,
+        )
+
+        # # do gripper action
+        # planner.close_gripper()
+
+        # # set and reach the target pose behind the cube
+        # env = env.unwrapped
+        # reach_pose = sapien.Pose(p=env.obj.pose.sp.p + np.array([-0.05, 0, 0]), q=env.agent.tcp.pose.sp.q)
+        # obs, reward, terminated, truncated, info = planner.move_to_pose_with_screw(reach_pose)
+
+
+        # print("The very initial obs:")
+        # print("obs")
+        # print(obs['pointcloud']['rgb'])
+        # print("pcd")
+        # print(obs['pointcloud']['xyzw'])
+        # print()
+
+            
         # print(obs)
         # print(type(obs))
         # print(obs.keys())
@@ -37,33 +65,37 @@ class RolloutGenerator(object):
         # print(obs["agent"])
         # print(obs["agent"].keys())
         # obs = extract_obs(obs)
-        lang_goal_tokens = tokenize([lang_goal[0]])[0]  # assume only one desc for each task only
-        obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
+        # lang_goal_tokens = tokenize([lang_goal[0]])[0]  # assume only one desc for each task only
+        tokens = tokenize(lang_goal[0]).numpy()
+        # print(f"Tokenizing goal {lang_goal[0]}")
+        token_tensor = torch.from_numpy(tokens).to("cuda")
+        lang_goal_tokens = token_tensor  # assume only one desc for each task only
+        obs["lang_goal_tokens"] = token_tensor # all data arrays in obs should be torch.Tensor
         obs = add_low_dim_states(obs, 0, episode_length)
         obs = extract_obs(obs) # flatten obs to 2 levels of dicts only for easier
         agent.reset()
         # obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
-        obs_history = {k: [v] * timesteps for k, v in obs.items()}
+        obs_history = {k: [v] * timesteps for k, v in obs.items()} # timestep = 1 or so
         urdf_path = env.agent.urdf_path
         time_step = env.unwrapped.control_timestep
         
         # start episode generation (episode_length: the number of pose-based control steps)
         for step in range(episode_length):
-            print(f"step {step} in episode with len {episode_length}")
+            # print(f"step {step} in episode with len {episode_length}")
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
             # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
 
-            act_result = agent.act(step_signal.value, prepped_data,
+            act_result = agent.act(step, prepped_data,
                                    deterministic=eval)
             # print(f"act obs kys {act_result.observation_elements.keys()}")
-            print(f"result action {act_result.action}")
+            # print(f"result action {act_result.action}")
             agent_obs_elems = {k: np.array(v) for k, v in
                                act_result.observation_elements.items()}
             agent_obs_elems["lang_goal_tokens"] = lang_goal_tokens
             # agent_obs_elems = add_low_dim_states(agent_obs_elems)
             extra_replay_elements = {k: np.array(v) for k, v in
                                      act_result.replay_elements.items()}
-
+            
             # plan the path to the target pose
             trans_coordinate, rot, gripper_open, _ = act_result.action[:3], act_result.action[3:7], act_result.action[7], act_result.action[8]
             # rot = np.concatenate([[rot[3]], rot[:3]]) # convert to wxyz
@@ -95,7 +127,7 @@ class RolloutGenerator(object):
                 truncated = True
                 # break
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
-            obs = add_low_dim_states(obs, step, episode_length)
+            obs = add_low_dim_states(obs, step+1, episode_length)
             obs = extract_obs(obs)
             transition = {"observation": obs, 
                           "info": info, 
@@ -108,8 +140,8 @@ class RolloutGenerator(object):
 
             if transition["terminal"]: # Reset when terminated
                 if "needs_reset" in transition["info"]:
-                    print("Reset needed! transition info keys:")
-                    print(transition["info"])
+                    # print("Reset needed! transition info keys:")
+                    # print(transition["info"])
                     transition["info"]["needs_reset"] = True
 
             # # TODO: add video and error summaries
@@ -152,8 +184,8 @@ class RolloutGenerator(object):
             obs_and_replay_elems.update(agent_obs_elems)
             obs_and_replay_elems.update(extra_replay_elements)
 
-            print(f"History keys {obs_history.keys()}")
-            print(f"Transition obs {transition['observation'].keys()}")
+            # print(f"History keys {obs_history.keys()}")
+            # print(f"Transition obs {transition['observation'].keys()}")
             for k in obs_history.keys():
                 obs_history[k].append(transition["observation"][k])
                 obs_history[k].pop(0)
@@ -173,7 +205,7 @@ class RolloutGenerator(object):
                 if len(act_result.observation_elements) > 0:
                     # prepped_data = {k: torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
                     prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
-                    act_result = agent.act(step_signal.value, prepped_data,
+                    act_result = agent.act(step, prepped_data,
                                            deterministic=eval)
                     agent_obs_elems_tp1 = {k: np.array(v) for k, v in
                                            act_result.observation_elements.items()}

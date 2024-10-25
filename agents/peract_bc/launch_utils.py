@@ -87,7 +87,8 @@ def create_replay(batch_size: int, timesteps: int,
                       np.float32), # extracted from CLIP's language encoder
         ReplayElement('task', (),
                       str),
-        ReplayElement('lang_goal', (1,),
+        ReplayElement('lang_goal', (),
+        # ReplayElement('lang_goal', (1,),
                       object),  # language goal string for debugging and visualization
         ReplayElement('demo_number', (),
                       np.int32),
@@ -189,7 +190,8 @@ def _add_keypoints_to_replay(
         description: str = '',
         clip_model = None,
         device = 'cpu',
-        demo_number=None):
+        demo_number=None,
+        stage_num=None):
     prev_action = None
     episode_length = cfg.maniskill3.episode_length # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
     # print(f"Desc is {description}")
@@ -204,13 +206,21 @@ def _add_keypoints_to_replay(
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
-        # print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length)
+        # if demo_number == 0:
+        #     print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
+        #     print("pcd")
+        #     print(obs_dict["point_cloud"])
+        #     print("rgb")
+        #     print(obs_dict["rgb"])
+        #     print()
         # print(f"input low dim state {obs_dict['low_dim_state']} output gripper open {rot_grip_indicies[-1]}")
         tokens = tokenize(description).numpy()
+        # print(f"Training, tokenizing desc {description}")
         token_tensor = torch.from_numpy(tokens).to(device)
         sentence_emb, token_embs = clip_model.encode_text_with_embeddings(token_tensor)
+        # print(f"Embedding shapes {token_tensor.shape, sentence_emb[0].shape, token_embs[0].shape}")
         obs_dict['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
         obs_dict['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
 
@@ -303,6 +313,7 @@ def fill_replay(cfg: DictConfig,
         # print(f"demo position-ctl epi length {len(demo_ep)}")
         demo_len = demo_loading_utils._get_demo_len(demo_ep)
         # print(f"demo rgb range {demo_loading_utils._get_rgb_range_from_pcd_obs(demo_ep, 0)}")
+        stage_num = 0
         for i in range(demo_len - 1):
             if not demo_augmentation and i > 0:
                 break
@@ -311,6 +322,7 @@ def fill_replay(cfg: DictConfig,
 
             # if our starting point is past one of the keypoints, then remove it
             while len(episode_keypoints) > 0 and i >= episode_keypoints[0]:
+                stage_num += 1
                 episode_keypoints = episode_keypoints[1:]
             if len(episode_keypoints) == 0:
                 break
@@ -324,8 +336,8 @@ def fill_replay(cfg: DictConfig,
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
                 scene_bounds, voxel_sizes, bounds_offset,
-                rotation_resolution, crop_augmentation, description=desc,
-                clip_model=clip_model, device=device, demo_number=d_idx)
+                rotation_resolution, crop_augmentation, description=desc[min(stage_num, len(desc)-1)],
+                clip_model=clip_model, device=device, demo_number=d_idx, stage_num=stage_num)
     if cfg.replay.save_keypoints:
         keypt_dir = cfg.replay.save_keypoints_dir
         logging.info(f"Saving keypoints to {keypt_dir}")

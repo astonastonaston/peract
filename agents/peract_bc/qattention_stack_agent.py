@@ -45,6 +45,10 @@ class QAttentionStackAgent(Agent):
             total_losses += update_dict['total_loss']
         return {
             'total_losses': total_losses,
+            # 'voxel_img': replay_sample['voxel_img'],
+            # 'demo_number': replay_sample['demo_number'],
+            # 'input_frame': replay_sample['input_frame'],
+            # 'supervision_frame': replay_sample['supervision_frame']
         }
 
     def act(self, step: int, observation: dict,
@@ -70,7 +74,7 @@ class QAttentionStackAgent(Agent):
             observation['attention_coordinate'] = act_results.observation_elements['attention_coordinate']
             observation['prev_layer_voxel_grid'] = act_results.observation_elements['prev_layer_voxel_grid']
             observation['prev_layer_bounds'] = act_results.observation_elements['prev_layer_bounds']
-            print(observation.keys())
+            # print(observation.keys())
             # print(observation["sensor_param"].keys())
             # print(observation["sensor_param"]["base_camera"].keys())
             for n in self._camera_names:
