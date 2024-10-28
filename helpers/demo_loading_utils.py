@@ -3,7 +3,11 @@ from typing import List
 
 import numpy as np
 
-def _check_gripper_open(demo, i, delta=1e-3): # TODO: adjust delta for your task
+PUSHCUBE_GRIPPER_OPEN_DELTA = 1e-3
+# PickCube treats grasping object as closing gripper as well, instead of just a complete close of the gripper.
+PICKCUBE_GRIPPER_OPEN_DELTA = 2.5e-2 
+
+def _check_gripper_open(demo, i, delta=PICKCUBE_GRIPPER_OPEN_DELTA): # TODO: adjust delta for your task
     # check if the gripper is open at the i-th step
     return demo["obs"]["agent"]["qpos"][i, -1] > delta
 
