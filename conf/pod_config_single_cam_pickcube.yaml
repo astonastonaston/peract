@@ -74,7 +74,7 @@ maniskill3:
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
   tasks: [PickCube-v1]
   # episode_length: 7 # TODO: Set this number
-  episode_length: 6 # TODO: Set this number
+  episode_length: 8 # for pickcube, since the small stop_buffer_init_val (required by the grasp aligning step) brings noise from static frame after grasping the cube, we need more fault-tolerant steps  
   # demos: 150
   # demos: 10
   # demos: 30
@@ -106,7 +106,10 @@ replay:
   use_disk: True
   save_keypoints: True
   save_keypoints_dir: "/tmp/arm"
-  stop_buffer_init_val: 16
+  stop_buffer_init_val: 10 # for pickcube, there's an immediate stop after aligning with the cube's pose, so the buffer should be smaller
+  stopping_delta: 0.2 # for pickcube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  # stopping_delta: 0.15 # for pickcube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  # stop_buffer_init_val: 16
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
   path: '/tmp/arm/replay' # only used when use_disk is True.
   max_parallel_processes: 32

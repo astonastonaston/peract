@@ -3,11 +3,7 @@ from typing import List
 
 import numpy as np
 
-PUSHCUBE_GRIPPER_OPEN_DELTA = 1e-3
-# PickCube treats grasping object as closing gripper as well, instead of just a complete close of the gripper.
-PICKCUBE_GRIPPER_OPEN_DELTA = 2.5e-2 
-
-def _check_gripper_open(demo, i, delta=PICKCUBE_GRIPPER_OPEN_DELTA): # TODO: adjust delta for your task
+def _check_gripper_open(demo, i, delta=1e-3): # TODO: adjust delta for your task
     # check if the gripper is open at the i-th step
     return demo["obs"]["agent"]["qpos"][i, -1] > delta
 
@@ -23,8 +19,6 @@ def _get_rgb_range_from_pcd_obs(demo, i):
     # get the range of rgb at step i from pointcloud observations
     # print(demo["obs"]["pointcloud"]["rgb"][i].shape)
     return [np.max(demo["obs"]["pointcloud"]["rgb"][i], axis=0), np.min(demo["obs"]["pointcloud"]["rgb"][i], axis=0)]
-
-
 
 def _get_ignore_collision(demo, i):
     # get the collision avoidance bit (indicating whether or not to do collision avodiance planning) at step i
@@ -76,7 +70,7 @@ def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1):
     return stopped
 
 def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
-                       stopping_delta=0.1,
+                       stopping_delta=0.1, # note: those stopping parameters should be overridden at conf/config.yaml
                        method='heuristic',
                        skip_stopped_steps=10) -> List[int]:
     episode_keypoints = []
