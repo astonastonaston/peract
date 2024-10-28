@@ -3,8 +3,8 @@
 # cp -r /dev/nanxiao-vol1/arm_unified_demos_30_multi_cam/arm /tmp/
 
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_unified_demos_pickcube_single_view_60_60ksteps_stopadj/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_unified_demos_pickcube_single_view_60_60ksteps_stopadj/arm /tmp/
+cp -r /dev/nanxiao-vol1/arm_test_unified_demos_pickcube_single_view_60_60ksteps_stopadj_dlta015/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_unified_demos_pickcube_single_view_60_60ksteps_stopadj_dlta015/arm /tmp/
 
 # # load weights from permanent storage to the runtime directory
 # cp -r /dev/nanxiao-vol1/arm_test_unified_demos_30_single_cam/arm_test /tmp/
