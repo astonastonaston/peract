@@ -91,7 +91,7 @@ maniskill3:
   # test_index_range: [24, 30]
   # test_index_range: [40, 50]
   desc_pkl_path: /peract/demos/StackCube-v1/motionplanning/desc.pkl
-  cameras: [base_camera]
+  cameras: [base_camera, hand_camera]
   camera_resolution: [128, 128]
   # scene_bounds: [-1, -1, -1, 2, 2, 2]
   scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
@@ -112,6 +112,7 @@ replay:
   stopping_delta: 0.1 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   # stop_buffer_init_val: 16
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
+  gripper_open_delta: 0.025 # for stackcube, the gripper is counted closed while grasping the cube, so this threshold is bigger
   path: '/tmp/arm/replay' # only used when use_disk is True.
   max_parallel_processes: 32
 

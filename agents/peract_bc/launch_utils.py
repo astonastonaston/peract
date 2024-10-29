@@ -300,7 +300,8 @@ def fill_replay(cfg: DictConfig,
         episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, stopped_buffer_init_val=cfg.replay.stop_buffer_init_val,
                                                                   stopping_delta=cfg.replay.stopping_delta,
                                                                   method=keypoint_method,
-                                                                  skip_stopped_steps=cfg.replay.skip_stopped_steps)
+                                                                  skip_stopped_steps=cfg.replay.skip_stopped_steps,
+                                                                  gripper_open_delta=cfg.replay.gripper_open_delta)
         if cfg.replay.save_keypoints:
             keypts[d_idx] = episode_keypoints
 

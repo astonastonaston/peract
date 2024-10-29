@@ -24,5 +24,5 @@ desc = ["pick up a red cube and stack it on top of a green cube and let go of th
 #     "] # long 1
 
 # Save the description to a file
-with open('demos/PickCube-v1/motionplanning/desc.pkl', 'wb') as file:
+with open('demos/StackCube-v1/motionplanning/desc.pkl', 'wb') as file:
     pickle.dump(desc, file)
