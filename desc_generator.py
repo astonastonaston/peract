@@ -3,7 +3,8 @@ import pickle
 # desc = ["close the gripper",
 #         "reach the cube on the table by moving the gripper to the back of the cube",
 #         "push the cube to a red white goal region in front of it"]
-desc = ["grasp the red cube and move it to the target goal position."]
+desc = ["pick up a red cube and stack it on top of a green cube and let go of the cube without it falling."]
+# desc = ["grasp the red cube and move it to the target goal position."]
 # desc = ["push the cube to the red white target on the table"]
 # desc = ["push the cube on the table to the center of the red white target on the table"]
 # desc = ["A simple task where the objective is to reach a cube and then push the cube to a red white goal region in front of it. \
