@@ -183,7 +183,8 @@ def eval_seed(train_cfg,
                               e_idx % torch.cuda.device_count(),
                               eval_cfg.framework.eval_save_metrics,
                               eval_cfg.cinematic_recorder,
-                              eval_cfg.maniskill3.vis_pose))
+                              eval_cfg.maniskill3.vis_pose,
+                              train_cfg.replay.gripper_open_delta))
             p.start()
             processes.append(p)
         for p in processes:

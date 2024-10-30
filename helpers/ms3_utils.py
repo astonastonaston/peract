@@ -7,7 +7,7 @@ from mani_skill.envs.sapien_env import BaseEnv
 from transforms3d import quaternions
 import sapien
 
-def extract_obs(obs):
+def reduce_obs(obs):
     # extract maniskill obs so that only one level of keys are kept
     new_obs = {}
     for k, v in obs.items():
@@ -32,7 +32,7 @@ def _get_gripper_joint_positions_ms(obs):
     return obs["agent"]["qpos"][..., -2:]
 
 def _check_gripper_open_ms(obs, delta=1e-3):
-    # check if the gripper is open at the i-th step
+    # check if the gripper is open at the i-th step during evaluation
     return obs["agent"]["qpos"][..., -1] >= delta
 
 def _get_timestep_encoding(t, episode_length):
@@ -40,12 +40,13 @@ def _get_timestep_encoding(t, episode_length):
     time = (1. - (t / float(episode_length - 1))) * 2. - 1.
     return np.array([time])
 
-def add_low_dim_states(obs, t, episode_length):    
+def add_low_dim_states(obs, t, episode_length, gripper_open_delta):    
+    # add proprioception data to obs
     gripper_joint_positions = _get_gripper_joint_positions_ms(obs)
     if gripper_joint_positions is not None:
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
     robot_state = np.concatenate([
-        _check_gripper_open_ms(obs)[:, None],
+        _check_gripper_open_ms(obs, gripper_open_delta)[:, None],
         gripper_joint_positions, 
         _get_timestep_encoding(t, episode_length)[:, None]], axis=-1) # left and right finger joint positions
     obs['low_dim_state'] = torch.tensor(robot_state, dtype=torch.float)

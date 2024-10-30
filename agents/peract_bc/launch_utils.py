@@ -127,7 +127,8 @@ def _get_action(
         voxel_sizes: List[int],
         bounds_offset: List[float],
         rotation_resolution: int,
-        crop_augmentation: bool):
+        crop_augmentation: bool,
+        gripper_open_delta: float):
     # TODO: change the way to get gripper pose from obs, using ms3 style
     # obs_tp1 = demo[keypoint]
     # obs_tm1 = demo[max(0, keypoint - 1)]
@@ -163,8 +164,8 @@ def _get_action(
         attention_coordinates.append(attention_coordinate)
 
     rot_and_grip_indicies = disc_rot.tolist()
-    grip = float(demo_loading_utils._check_gripper_open(demo, tpl_index))
-    rot_and_grip_indicies.extend([int(demo_loading_utils._check_gripper_open(demo, tpl_index))])
+    grip = float(demo_loading_utils._check_gripper_open(demo, tpl_index, gripper_open_delta))
+    rot_and_grip_indicies.extend([int(demo_loading_utils._check_gripper_open(demo, tpl_index, gripper_open_delta))])
     # rot_and_grip_indicies -> gripper rotation discrete eular angles (indices) + gripper open state index
     # trans_indicies -> gripper translational voxel index
     # attention_coordinates -> gripper translational coordinates
@@ -194,6 +195,7 @@ def _add_keypoints_to_replay(
         stage_num=None):
     prev_action = None
     episode_length = cfg.maniskill3.episode_length # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
+    gripper_open_delta = cfg.replay.gripper_open_delta # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
     # print(f"Desc is {description}")
     for k, keypoint in enumerate(episode_keypoints):
         # obs_tp1 = demo[keypoint]
@@ -201,13 +203,14 @@ def _add_keypoints_to_replay(
         tpl_index, tml_index = keypoint, max(0, keypoint-1)
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
             demo, tpl_index, tml_index, scene_bounds, voxel_sizes, bounds_offset,
-            rotation_resolution, crop_augmentation) # action -> next kf gripper pose
+            rotation_resolution, crop_augmentation, gripper_open_delta) # action -> next kf gripper pose
 
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
-                                     cameras=cameras, episode_length=episode_length)
+                                     cameras=cameras, episode_length=episode_length,
+                                     gripper_open_delta=gripper_open_delta)
         # if demo_number == 0:
         #     print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
         #     print("pcd")
@@ -240,9 +243,9 @@ def _add_keypoints_to_replay(
 
         others.update(final_obs) # update with gripper pose and expert action
         others.update(obs_dict) # update with language goal and embeddings
-        # print(f"input low dim state {obs_dict['low_dim_state']}") 
-        # print(f"output rot {rot_grip_indicies[:-1]} gripper open {rot_grip_indicies[-1]} trans {trans_indicies}") 
-        # print(f"rgb added has shape {[np.max(obs_dict['rgb'], axis=0), np.min(obs_dict['rgb'], axis=0)]}")
+        print(f"input low dim state {obs_dict['low_dim_state']}") 
+        print(f"output rot {rot_grip_indicies[:-1]} gripper open {rot_grip_indicies[-1]} trans {trans_indicies}") 
+        print(f"rgb added has shape {[np.max(obs_dict['rgb'], axis=0), np.min(obs_dict['rgb'], axis=0)]}")
 
         timeout = False
         replay.add(action, reward, terminal, timeout, **others)
@@ -252,7 +255,8 @@ def _add_keypoints_to_replay(
 
     # final step staying static without moving
     obs_dict_tp1 = utils.extract_obs(demo, tpl_index, t=k + 1, prev_action=prev_action, 
-                                     cameras=cameras, episode_length=episode_length)
+                                     cameras=cameras, episode_length=episode_length,
+                                     gripper_open_delta=gripper_open_delta)
     obs_dict_tp1['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
     obs_dict_tp1['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
 

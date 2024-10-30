@@ -337,7 +337,8 @@ def extract_obs(demo: Dict,
                 cameras=None,
                 prev_action=None,
                 channels_last: bool = False,
-                episode_length: int = 10):
+                episode_length: int = 10,
+                gripper_open_delta: float = 1e-3):
     # TODO: extract rgbs and pcds of each camera to obs_dict
     # Maniskill3 pointcloud has w coordinate: Indicating whether it's infinite far. To this end, it can be more robust then the original rlbench-based peract's pointcloud
     # all rgbs and pcds are aggregated from all cameras, so you don't have to aggregate again during training
@@ -352,7 +353,7 @@ def extract_obs(demo: Dict,
         gripper_joint_positions = np.clip(gripper_joint_positions, 0., 0.04)
 
     robot_state = np.concatenate([
-        [demo_loading_utils._check_gripper_open(demo, step)],
+        [demo_loading_utils._check_gripper_open(demo, step, gripper_open_delta)],
         # np.array([demo_loading_utils._check_gripper_open(demo, t)])[:, None],
         gripper_joint_positions], axis=-1) # left and right finger joint positions
     # print(robot_state.shape)
