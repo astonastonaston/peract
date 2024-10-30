@@ -243,9 +243,9 @@ def _add_keypoints_to_replay(
 
         others.update(final_obs) # update with gripper pose and expert action
         others.update(obs_dict) # update with language goal and embeddings
-        print(f"input low dim state {obs_dict['low_dim_state']}") 
-        print(f"output rot {rot_grip_indicies[:-1]} gripper open {rot_grip_indicies[-1]} trans {trans_indicies}") 
-        print(f"rgb added has shape {[np.max(obs_dict['rgb'], axis=0), np.min(obs_dict['rgb'], axis=0)]}")
+        # print(f"input low dim state {obs_dict['low_dim_state']}") 
+        # print(f"output rot {rot_grip_indicies[:-1]} gripper open {rot_grip_indicies[-1]} trans {trans_indicies}") 
+        # print(f"rgb added has shape {[np.max(obs_dict['rgb'], axis=0), np.min(obs_dict['rgb'], axis=0)]}")
 
         timeout = False
         replay.add(action, reward, terminal, timeout, **others)
