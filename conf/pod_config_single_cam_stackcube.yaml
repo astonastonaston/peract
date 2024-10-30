@@ -106,9 +106,9 @@ replay:
   use_disk: True
   save_keypoints: True
   save_keypoints_dir: "/tmp/arm"
-  # stop_buffer_init_val: 8 # for StackCube, there's an immediate stop after aligning with the cube's pose, so the buffer should be smaller
+  stop_buffer_init_val: 8 # for StackCube, there's an immediate stop after aligning with the cube's pose, so the buffer should be smaller
   # stop_buffer_init_val: 10
-  stop_buffer_init_val: 6
+  # stop_buffer_init_val: 6
   # stopping_delta: 0.2 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   # stopping_delta: 0.1 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
@@ -129,7 +129,8 @@ framework:
   # training_iterations: 15000
   # training_iterations: 20000
   # training_iterations: 40000
-  training_iterations: 60000
+  # training_iterations: 60000
+  training_iterations: 100000
   gpu: 0
   env_gpu: 0
   logdir: '/tmp/arm_test/'

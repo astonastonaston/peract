@@ -73,6 +73,8 @@ class RolloutGenerator(object):
         obs["lang_goal_tokens"] = token_tensor # all data arrays in obs should be torch.Tensor
         obs = add_low_dim_states(obs, 0, episode_length)
         obs = extract_obs(obs) # flatten obs to 2 levels of dicts only for easier
+        # print("obs.keys()")
+        # print(obs.keys())
         agent.reset()
         # obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history = {k: [v] * timesteps for k, v in obs.items()} # timestep = 1 or so
