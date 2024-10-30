@@ -11,10 +11,10 @@
 # cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_demos_30_multi_cam
 
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_3090
-mkdir /dev/nanxiao-vol1/arm_unified_demos_stackcube_demofixed_3090
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_3090
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_demos_stackcube_demofixed_3090
+mkdir /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_4090
+mkdir /dev/nanxiao-vol1/arm_unified_demos_stackcube_demofixed_4090
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_4090
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_demos_stackcube_demofixed_4090
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_unified_demos_30_single_cam
