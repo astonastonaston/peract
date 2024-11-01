@@ -131,7 +131,8 @@ framework:
   # training_iterations: 40000
   # training_iterations: 100000
   # training_iterations: 80000
-  training_iterations: 60000
+  training_iterations: 100
+  # training_iterations: 60000
   # training_iterations: 120000
   gpu: 0
   env_gpu: 0
