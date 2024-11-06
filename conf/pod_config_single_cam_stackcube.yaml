@@ -110,8 +110,8 @@ replay:
   # stop_buffer_init_val: 10
   # stop_buffer_init_val: 6
   # stopping_delta: 0.2 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
-  stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
-  # stopping_delta: 0.1 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  # stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  stopping_delta: 0.1 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   # stop_buffer_init_val: 16
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
   gripper_open_delta: 0.03 # for stackcube, the gripper is counted closed while grasping the cube, so this threshold is bigger
@@ -129,10 +129,10 @@ framework:
   # training_iterations: 15000
   # training_iterations: 20000
   # training_iterations: 40000
-  training_iterations: 80000
+  # training_iterations: 80000
   # training_iterations: 100
   # training_iterations: 100000
-  # training_iterations: 60000
+  training_iterations: 60000
   # training_iterations: 120000
   gpu: 0
   env_gpu: 0
