@@ -8,7 +8,7 @@ import sapien
 from mani_skill.envs.sapien_env import BaseEnv
 from agents.agent import Agent, VideoSummary, TextSummary
 from helpers.transition import ReplayTransition
-from helpers.ms3_utils import add_low_dim_states, extract_obs
+from helpers.ms3_utils import add_low_dim_states, reduce_obs
 from runners.motion_planner import PandaArmMotionPlanningSolver
 from clip import tokenize
 
@@ -21,7 +21,9 @@ class RolloutGenerator(object):
 
     def generator(self, step_signal: Value, env: BaseEnv, agent: Agent,
                   episode_length: int, timesteps: int,
-                  eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, reset_kwargs: dict = None, vis_pose=False):
+                  eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, 
+                  reset_kwargs: dict = None, vis_pose=False,
+                  gripper_open_delta: float = 1e-3):
                 #   record_enabled: bool = False):
 
         # reset env and agent 
@@ -64,15 +66,17 @@ class RolloutGenerator(object):
         # print(type(obs["agent"]))
         # print(obs["agent"])
         # print(obs["agent"].keys())
-        # obs = extract_obs(obs)
+        # obs = reduce_obs(obs)
         # lang_goal_tokens = tokenize([lang_goal[0]])[0]  # assume only one desc for each task only
         tokens = tokenize(lang_goal[0]).numpy()
         # print(f"Tokenizing goal {lang_goal[0]}")
         token_tensor = torch.from_numpy(tokens).to("cuda")
         lang_goal_tokens = token_tensor  # assume only one desc for each task only
         obs["lang_goal_tokens"] = token_tensor # all data arrays in obs should be torch.Tensor
-        obs = add_low_dim_states(obs, 0, episode_length)
-        obs = extract_obs(obs) # flatten obs to 2 levels of dicts only for easier
+        obs = add_low_dim_states(obs, 0, episode_length, gripper_open_delta)
+        obs = reduce_obs(obs) # flatten obs to 2 levels of dicts only for easier
+        # print("obs.keys()")
+        # print(obs.keys())
         agent.reset()
         # obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history = {k: [v] * timesteps for k, v in obs.items()} # timestep = 1 or so
@@ -127,8 +131,8 @@ class RolloutGenerator(object):
                 truncated = True
                 # break
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
-            obs = add_low_dim_states(obs, step+1, episode_length)
-            obs = extract_obs(obs)
+            obs = add_low_dim_states(obs, step+1, episode_length, gripper_open_delta)
+            obs = reduce_obs(obs)
             transition = {"observation": obs, 
                           "info": info, 
                           "reward": reward, 

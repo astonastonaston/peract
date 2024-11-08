@@ -20,8 +20,6 @@ def _get_rgb_range_from_pcd_obs(demo, i):
     # print(demo["obs"]["pointcloud"]["rgb"][i].shape)
     return [np.max(demo["obs"]["pointcloud"]["rgb"][i], axis=0), np.min(demo["obs"]["pointcloud"]["rgb"][i], axis=0)]
 
-
-
 def _get_ignore_collision(demo, i):
     # get the collision avoidance bit (indicating whether or not to do collision avodiance planning) at step i
     # since current tasks are simple, we set it False by default
@@ -53,17 +51,17 @@ def _get_camera_extrinsics_intrinsics(demo, i, camera_name):
     assert camera_name in demo["obs"]["sensor_param"].keys(), f"No such camera sensor with name {camera_name} in observations"
     return demo["obs"]["sensor_param"][camera_name]["cam2world_gl"][i], demo["obs"]["sensor_param"][camera_name]["intrinsic_cv"][i]
 
-def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1):
+def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1, gripper_open_delta=0.025):
     next_is_not_final = i == (demo_len - 2)
     gripper_state_no_change = (
             i < (demo_len - 2) and i >= 2 and
-            (_check_gripper_open(demo, i) == _check_gripper_open(demo, i+1) and
-             _check_gripper_open(demo, i) == _check_gripper_open(demo, i-1) and
-             _check_gripper_open(demo, i-2) == _check_gripper_open(demo, i-1)))
+            (_check_gripper_open(demo, i, gripper_open_delta) == _check_gripper_open(demo, i+1, gripper_open_delta) and
+             _check_gripper_open(demo, i, gripper_open_delta) == _check_gripper_open(demo, i-1, gripper_open_delta) and
+             _check_gripper_open(demo, i-2, gripper_open_delta) == _check_gripper_open(demo, i-1, gripper_open_delta)))
     small_delta = np.allclose(_get_joint_velocities(demo, i), 0, atol=delta)
     # logging.info(demo_len)
     # if i < (demo_len - 2) and i >= 2:
-    #     logging.info(f"Frame {i} gripper states {_check_gripper_open(demo, i+1), _check_gripper_open(demo, i), _check_gripper_open(demo, i-1), _check_gripper_open(demo, i-2)}")
+    #     logging.info(f"Frame {i} gripper states {_check_gripper_open(demo, i+1, gripper_open_delta), _check_gripper_open(demo, i, gripper_open_delta), _check_gripper_open(demo, i-1, gripper_open_delta), _check_gripper_open(demo, i-2, gripper_open_delta)}")
     # logging.info(f"Frame {i} joint vel {_get_joint_velocities(demo, i)}")
     # logging.info(f"Frame {i} stop buffer {stopped_buffer}, delta {small_delta}, not final {not next_is_not_final}, gripper state not change {gripper_state_no_change}")
     stopped = (stopped_buffer <= 0 and small_delta and
@@ -72,29 +70,30 @@ def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1):
     return stopped
 
 def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
-                       stopping_delta=0.1,
+                       stopping_delta=0.1, # note: those stopping parameters should be overridden at conf/config.yaml
                        method='heuristic',
-                       skip_stopped_steps=10) -> List[int]:
+                       skip_stopped_steps=10,
+                       gripper_open_delta=0.025) -> List[int]:
     episode_keypoints = []
     demo = h5_file[f"traj_{d_idx}"]
     demo_len = _get_demo_len(demo)
     # print(f"Demo len {demo_len}")
     if method == 'heuristic':
         # demo = h5_file[f"traj_{episode_idx}"]
-        prev_gripper_open = _check_gripper_open(demo, 0)
+        prev_gripper_open = _check_gripper_open(demo, 0, gripper_open_delta)
         stopped_buffer = skip_stopped_steps # Not counting stopping for the first few frames
         for i in range(demo_len):
-            stopped = _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta)
+            stopped = _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta, gripper_open_delta)
             stopped_buffer = stopped_buffer_init_val if stopped else stopped_buffer - 1
             # If change in gripper, or end of episode.
             last = i == (demo_len - 1)
-            curr_gripper_open = _check_gripper_open(demo, i)
+            curr_gripper_open = _check_gripper_open(demo, i, gripper_open_delta)
             # if d_idx == 25:
             if i != 0 and (curr_gripper_open != prev_gripper_open or
                            last or stopped):
                 # logging.info(f"Found kp! Frame {i}, gripper different {demo['obs']['agent']['qpos'][i, -1], curr_gripper_open, prev_gripper_open, curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
                 episode_keypoints.append(i)
-            prev_gripper_open = _check_gripper_open(demo, i)
+            prev_gripper_open = _check_gripper_open(demo, i, gripper_open_delta)
         if len(episode_keypoints) > 1 and (episode_keypoints[-1] - 1) == \
                 episode_keypoints[-2]: # pop a repetitive final keypoint
             episode_keypoints.pop(-2)
