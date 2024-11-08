@@ -163,7 +163,6 @@ class PandaArmMotionPlanningSolver:
                 if result["status"] != "Success":
                     self.render_wait()
                     print(f"Error! RRTConnect planning failed")
-                    # print(f"Error! Planning from {self.robot.get_qpos().cpu().numpy()[0]} to {pose} failed")
                     obs, reward, terminated, truncated, info = self.get_current_env_states()
                     info["plan_failed"] = True
                     return obs, reward, terminated, truncated, info

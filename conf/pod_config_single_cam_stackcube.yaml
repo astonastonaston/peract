@@ -8,9 +8,9 @@ method:
 
   # Voxelization
   image_crop_size: 64
-  bounds_offset: [0.15]
+  bounds_offset: [ 0.15 ]
   # voxel_sizes: [50]
-  voxel_sizes: [100]
+  voxel_sizes: [ 100 ]
   include_prev_layer: False
 
   # Perceiver
@@ -54,9 +54,9 @@ method:
   crop_augmentation: True
   transform_augmentation:
     apply_se3: False
-    aug_xyz: [0.050, 0.050, 0.050]
+    aug_xyz: [ 0.050, 0.050, 0.050 ]
     # aug_xyz: [0.125, 0.125, 0.125]
-    aug_rpy: [0.0, 0.0, 15.0]
+    aug_rpy: [ 0.0, 0.0, 15.0 ]
     # aug_rpy: [0.0, 0.0, 45.0]
     aug_rot_resolution: ${method.rotation_resolution}
 
@@ -72,9 +72,10 @@ method:
 maniskill3:
   # task_name: "single" 
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
-  tasks: [StackCube-v1]
+  tasks: [ StackCube-v1 ]
   # episode_length: 7 # TODO: Set this number
-  episode_length: 15 # for StackCube, since the small stop_buffer_init_val (required by the grasp aligning step) brings noise from static frame after grasping the cube, we need more fault-tolerant steps  
+  episode_length: 12 # for StackCube, since the small stop_buffer_init_val (required by the grasp aligning step) brings noise from static frame after grasping the cube, we need more fault-tolerant steps  
+  # episode_length: 15 # for StackCube, since the small stop_buffer_init_val (required by the grasp aligning step) brings noise from static frame after grasping the cube, we need more fault-tolerant steps  
   # demos: 150
   # demos: 10
   # demos: 30
@@ -91,10 +92,10 @@ maniskill3:
   # test_index_range: [24, 30]
   # test_index_range: [40, 50]
   desc_pkl_path: /peract/demos/StackCube-v1/motionplanning/desc.pkl
-  cameras: [base_camera, hand_camera]
-  camera_resolution: [128, 128]
+  cameras: [ base_camera, hand_camera ]
+  camera_resolution: [ 128, 128 ]
   # scene_bounds: [-1, -1, -1, 2, 2, 2]
-  scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
+  scene_bounds: [ -0.4, -0.4, -0.4, 0.5, 0.5, 0.5 ]
   include_lang_goal_in_obs: True
   lang_stage_num: 3
 
@@ -109,8 +110,9 @@ replay:
   stop_buffer_init_val: 8 # for StackCube, there's an immediate stop after aligning with the cube's pose, so the buffer should be smaller
   # stop_buffer_init_val: 10
   # stop_buffer_init_val: 6
-  stopping_delta: 0.2 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
-  # stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  # stopping_delta: 0.3 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  # stopping_delta: 0.2 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
+  stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   # stopping_delta: 0.1 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   # stop_buffer_init_val: 16
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
@@ -131,7 +133,7 @@ framework:
   # training_iterations: 40000
   # training_iterations: 80000
   # training_iterations: 100
-  # training_iterations: 100000
+  # training_iterations: 140000
   training_iterations: 60000
   # training_iterations: 120000
   gpu: 0
