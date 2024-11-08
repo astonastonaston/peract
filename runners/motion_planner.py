@@ -127,7 +127,8 @@ class PandaArmMotionPlanningSolver:
         return self.follow_path(result, refine_steps=refine_steps)
 
     def get_current_env_states(self):
-        return self.env.step(None)
+        qpos = self.robot.get_qpos()[..., :-1]
+        return self.env.step(qpos)
 
     def move_to_pose_with_screw(
         self, pose: sapien.Pose, dry_run: bool = False, refine_steps: int = 0
@@ -161,7 +162,8 @@ class PandaArmMotionPlanningSolver:
                                                         time_step=self.base_env.control_timestep)
                 if result["status"] != "Success":
                     self.render_wait()
-                    print(f"Error! Planning from {self.robot.get_qpos().cpu().numpy()[0]} to {pose} failed")
+                    print(f"Error! RRTConnect planning failed")
+                    # print(f"Error! Planning from {self.robot.get_qpos().cpu().numpy()[0]} to {pose} failed")
                     obs, reward, terminated, truncated, info = self.get_current_env_states()
                     info["plan_failed"] = True
                     return obs, reward, terminated, truncated, info
