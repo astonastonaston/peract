@@ -86,21 +86,8 @@ class OfflineTrainRunner():
             shutil.rmtree(prev_dir)
 
     def _step(self, i, sampled_batch):
-        # print(f"in step, rgb scale {sampled_batch['rgb'][0][0][0]}")
-        # if sampled_batch["demo_number"][0] == 0:
-        #     print("in step, sampled batch has pcd rgb")
-        #     print(sampled_batch['point_cloud'])
-        #     print(sampled_batch['rgb'])
-        #     print()
         update_dict = self._agent.update(i, sampled_batch)
         total_losses = update_dict['total_losses'].item()
-        # # save voxel img
-        # img, demo_num, inp_fr, sup_fr = update_dict['voxel_img'], update_dict['demo_number'], update_dict['input_frame'], update_dict['supervision_frame']
-        # img = img.transpose(1, 2, 0)
-        # print(f"shape of voxel img {img.shape}")
-        # to_pil = transforms.ToPILImage()
-        # img = to_pil(img)
-        # img.save(os.path.join(self._logdir, f'step_{i}_demo_{demo_num}_inp_{inp_fr}_sup_{sup_fr}_loss_{total_losses:0.5f}.png'))
         return total_losses
 
     def _get_resume_eval_epoch(self):
@@ -148,10 +135,7 @@ class OfflineTrainRunner():
 
             batch = {k: v.to(self._train_device) for k, v in sampled_batch.items() if type(v) == torch.Tensor}
             t = time.time()
-            # print(batch.keys())
-            # print(batch["rgb"].shape)
-            # print(batch["rgb"][0][0][0])
-            
+
             loss = self._step(i, batch)
             step_time = time.time() - t
 
@@ -159,9 +143,6 @@ class OfflineTrainRunner():
             if self._rank == 0:
                 if log_iteration and self._writer is not None:
                     agent_summaries = self._agent.update_summaries()
-                    # print(agent_summaries)
-                    # for j in agent_summaries:
-                    #     print(j.name)
                     self._writer.add_summaries(i, agent_summaries)
 
                     self._writer.add_scalar(
@@ -171,12 +152,7 @@ class OfflineTrainRunner():
                         i, 'monitoring/cpu_percent',
                         process.cpu_percent(interval=None) / num_cpu)
 
-                    # demo_number = batch['demo_number'].int()
-                    # input_frame = batch['input_frame'].int()
-                    # supervision_frame = batch['supervision_frame'].int()
-
                     logging.info(f"Train Step {i:06d} | Loss: {loss:0.5f} | Sample time: {sample_time:0.6f} | Step time: {step_time:0.4f}.")
-                    # logging.info(f"Using demo {demo_number} from frame {input_frame} to frame {supervision_frame}")
                 self._writer.end_iteration()
 
                 if i % self._save_freq == 0 and self._weightsdir is not None:
