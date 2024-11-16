@@ -90,44 +90,54 @@ This will generate a .pkl file with a language goal description of the task unde
 
 ### Training
 
-Train a `PERACT_BC` agent with `50` demos on PushCube-v1:
+#### Config preparations
+
+Make sure you have `config.yaml` under the directory `conf`. `conf` has fine-tuned configs for some tabletop tasks, so if you want to train on those tasks you can directly copy them. For example, if you want to train on **PushCube-v1**, you can run: 
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python train.py \
-    method=PERACT_BC \
-    rlbench.tasks=[close_jar,insert_onto_square_peg,light_bulb_in,meat_off_grill,open_drawer,place_cups,place_shape_in_shape_sorter,push_buttons,put_groceries_in_cupboard,put_item_in_drawer,put_money_in_safe,reach_and_drag,stack_blocks,stack_cups,turn_tap,place_wine_at_rack_location,slide_block_to_color_target,sweep_to_dustpan_of_size] \
-    rlbench.task_name='multi_18T' \
-    rlbench.cameras=[front,left_shoulder,right_shoulder,wrist] \
-    rlbench.demos=100 \
-    rlbench.demo_path=$PERACT_ROOT/data/train \
-    replay.batch_size=1 \
-    replay.path=/tmp/replay \
-    replay.max_parallel_processes=32 \
-    method.voxel_sizes=[100] \
-    method.voxel_patch_size=5 \
-    method.voxel_patch_stride=5 \
-    method.num_latents=2048 \
-    method.transform_augmentation.apply_se3=True \
-    method.transform_augmentation.aug_rpy=[0.0,0.0,45.0] \
-    method.pos_encoding_with_lang=True \
-    framework.training_iterations=600000 \
-    framework.num_weights_to_keep=60 \
-    framework.start_seed=0 \
-    framework.log_freq=1000 \
-    framework.save_freq=10000 \
-    framework.logdir=$PERACT_ROOT/logs/ \
-    framework.csv_logging=True \
-    framework.tensorboard_logging=True \
-    ddp.num_devices=8
+cp conf/config_pushcube.yaml conf/config.yaml
 ```
 
-Make sure there is enough disk-space for `replay.path` and `framework.logdir`. Adjust `replay.max_parallel_processes` to fill the replay buffer in parallel based on your resources. You can also train on fewer GPUs, but training will take a long time to converge. 
+Note that you need to change the following paths in `config.yaml` for your runtime environment: 
 
-To get started, you should probably train on a small number of `rlbench.tasks`. 
+* `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (with success rate 0.5 trained on 50 demos and evaled on 10 demos) and **PushCube-v1** (with success rate 1 trained on 50 demos and evaled on 10 demos) for now. We only support single-task training for now, so only 1 task can be in the list
+* `framework.logdir`: The directory to save your training results (weights, csv file with rotation and translation losses if enabled, tensorboard events, etc)
+* `maniskill3.traj_path`: The path to your Maniskill demo trajectory (the h5 file)
+* `maniskill3.json_path` : The path to your Maniskill demos trajectory metadata (the json) file. 
+* `maniskill3.desc_pkl_path`: The path to your language goal file (should be a .pkl file generated from the previous section) 
+* `replay.save_keypoints_dir`: The directory to save your detected keypoints in the replays (a json file)
 
-Use `tensorboard` to monitor training progress with logs inside `framework.logdir`.
+In addition, you can change the following hyperparameters for ablation study. Here is an incomplete lits of them *(if you just want a quickstart, you can skip these readings and go to [Training](#training-1) directly)*:
 
-### Testing
+* `maniskill3.episode_length`: The maximal number of steps (in terms of next-best pose) to reach the goal
+* `maniskill3.demos`: The number of demo trajectories to train on
+* `maniskill3.scene_bounds`: Scene bounds for voxelization from point clouds
+
+Here is another incomplete list of hyperparameters for replay keypoint detection:
+
+* `replay.skip_stopped_steps`: The number of frames skipped for robot stop checking at the beginning of the episode. This is to prevent detecting the first few frames, where the robot remains static, to be the keyframes
+* `replay.stop_buffer_init_val`: Initial value of the stop buffer. This is the number of next frames skipped for robot stop checking in the middle of the episode when a stop frame is detected. See `helpers/demo_loading_utils.py`
+* `replay.stopping_delta`: The delta of joint velocities for stop checking: A stop frame is marked if all joint velocities are closed to 0 in the range of this delta. See `helpers/demo_loading_utils.py`
+* `replay.gripper_open_delta`: The delta for gripper open checking: A gripper is detected open if the gripper position (`qpos[..., -1]`) is greater than this delta. See `helpers/demo_loading_utils.py`
+
+Here are some hyperparameters for the agent training framework:
+
+* `framework.training_iterations`: The number of training steps
+* `framework.save_freq`: The frequency for saving the weights: The number of intermediate steps between two weight saves
+* `framework.tensorboard_logging`: Whether or not to use `tensorboard` to monitor training progress and save the results of losses, weights, etc. The logs are inside `framework.logdir`
+* `framework.csv_logging`: Whether or not to save a `csv` file with logging results of losses, weights, etc. The logs are inside `framework.logdir`
+
+#### Training
+After preparing the above configs, you can simply run training with:
+```bash
+python train.py
+```
+
+
+
+
+
+### Evaluations
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python eval.py \

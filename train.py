@@ -35,10 +35,6 @@ def main(cfg: DictConfig) -> None:
 
     cfg.maniskill3.cameras = cfg.maniskill3.cameras \
         if isinstance(cfg.maniskill3.cameras, ListConfig) else [cfg.maniskill3.cameras]
-    # TODO: Do obs config
-    # obs_config = create_obs_config(cfg.maniskill3.cameras,
-    #                                cfg.maniskill3.camera_resolution,
-    #                                cfg.method.name)
     multi_task = len(cfg.maniskill3.tasks) > 1
     
     cwd = os.getcwd()

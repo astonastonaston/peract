@@ -2,7 +2,7 @@ method:
   name: "PERACT_BC"
 
 maniskill3:
-  # task_name: "single" # multi-task training is not supported yet
+  # multi-task training is not supported yet
   task_name: "multi"
   tasks: [StackCube-v1]
   episode_length: 12 # TODO: Set this number. Note this is the number of POSE-based plannings to do
@@ -13,7 +13,6 @@ maniskill3:
   cameras: [base_camera, hand_camera]
   camera_resolution: [128, 128]
   scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
-  # scene_bounds: [-1, -1, -1, 2, 2, 2]
   time_in_state: True
   include_lang_goal_in_obs: True
   vis_pose: False
@@ -27,7 +26,7 @@ framework:
   record_every_n: 5
   eval_envs: 1
   eval_from_eps_number: 50 # current eatio: train/val/test = 150/25/25
-  eval_episodes: 3
+  eval_episodes: 10
   eval_type: 'last' # or 'best'
   eval_save_metrics: True
 
