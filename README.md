@@ -14,7 +14,7 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 
 - Getting Started: [Installation](#installation)
 - Data Generation: [Data Generation](#data-generation)
-- Training & Evaluation: [Single-Task Training and Evaluation](#training-and-evaluation)
+- Training & Evaluation: [Training and Evaluation](#training-and-evaluation)
 - Miscellaneous: [Recording Videos](#recording-videos)
 - Acknowledgements: [Acknowledgements](#acknowledgements), [Citations](#citations)
 
@@ -37,31 +37,38 @@ Install Maniskill from the latest commit:
 ```bash
 pip install git+https://github.com/haosulab/ManiSkill.git 
 ```
+#### 3. Pytorch3d Installation
+You need Pytorch3d to convert rotation and translations. Here's how to install it from source
 
-#### 3. Install other python libraries
+```bash
+# Install pytorch3d from github source
+pip install "git+https://github.com/facebookresearch/pytorch3d.git"
+# Or install pytorch3d from pre-built wheel. This one is faster, but you need to find the wheel that matches your python, cuda, and torch versions
+# Here's an example with python==3.9, cuda==11.3, torch==1.12.1
+pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu113_pyt1121/pytorch3d-0.7.2-cp39-cp39-linux_x86_64.whl
+```
+
+#### 4. Install other python libraries
 
 Install other python libraries needed:
 
 ```bash
 # Install peract package requirements
 pip install -r requirements.txt
-
-# Install pytorch3d from source
-pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu113_pyt1121/pytorch3d-0.7.2-cp39-cp39-linux_x86_64.whl
 ```
 
 ## Data Generation
 
-### Demonstration Generation
+### Replay Demonstration
 
-Download demonstrations for a desired task e.g. PushCube-v1. "-o" specifies the output directory of your downloaded demo.
+Download demonstrations for a desired task e.g. **PushCube-v1**. "-o" specifies the output directory of your downloaded demo.
 
 ```bash
 mkdir demos
 python -m mani_skill.utils.download_demo "PushCube-v1" -o "demos"
 ```
 
-Then, we need to process the demonstrations (for PushCube-v1) in preparation for the learning workflow. Note that we replayed 60 demos though not all frames in them are useful: We only extract and use the keyframes. Hence, the replay size during training is not that big.
+Then, we need to process the demonstrations (for PushCube-v1) in preparation for the learning workflow. Note that we replayed 60 demos though not all frames in them are useful: We only extract and use the keyframes. Hence, the replay buffer size during training is not that big.
 
 ```bash 
 python -m replay_tools.replay_trajectory \
@@ -92,13 +99,13 @@ This will generate a .pkl file with a language goal description of the task unde
 
 #### Config preparations
 
-Make sure you have `config.yaml` under the directory `conf`. `conf` has fine-tuned configs for some tabletop tasks, so if you want to train on those tasks you can directly copy them. For example, if you want to train on **PushCube-v1**, you can run: 
+Make sure you have `config.yaml` under the directory `conf`. `conf` has fine-tuned configs for some tabletop tasks, so if you want to train on those tasks you can directly copy them. For example, if you want to train on **PushCube-v1**, you can prepare configs simply by
 
 ```bash
 cp conf/config_pushcube.yaml conf/config.yaml
 ```
 
-Note that you need to change the following paths in `config.yaml` for your runtime environment: 
+Note that you need to **change the following paths** in `config.yaml` for your runtime environment: 
 
 * `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (with success rate 0.5 trained on 50 demos and evaled on 10 demos) and **PushCube-v1** (with success rate 1 trained on 50 demos and evaled on 10 demos) for now. We only support single-task training for now, so only 1 task can be in the list
 * `framework.logdir`: The directory to save your training results (weights, csv file with rotation and translation losses if enabled, tensorboard events, etc)
@@ -107,7 +114,8 @@ Note that you need to change the following paths in `config.yaml` for your runti
 * `maniskill3.desc_pkl_path`: The path to your language goal file (should be a .pkl file generated from the previous section) 
 * `replay.save_keypoints_dir`: The directory to save your detected keypoints in the replays (a json file)
 
-In addition, you can change the following hyperparameters for ablation study. Here is an incomplete lits of them *(if you just want a quickstart, you can skip these readings and go to [Training](#training-1) directly)*:
+In addition, you can change the following hyperparameters for ablation study. Here is an incomplete lits of them 
+*(if you just want a quickstart, you can skip these readings and go to [Training](#training-1) directly)*:
 
 * `maniskill3.episode_length`: The maximal number of steps (in terms of next-best pose) to reach the goal
 * `maniskill3.demos`: The number of demo trajectories to train on
@@ -133,54 +141,63 @@ After preparing the above configs, you can simply run training with:
 python train.py
 ```
 
+The results will be saved in `train_data.csv` under `framework.logdir`. 
+You may view tensorboard logging events of training in `framework.logdir` as well via
 
-
-
-
-### Evaluations
-
-```bash
-CUDA_VISIBLE_DEVICES=0 python eval.py \
-    rlbench.tasks=[close_jar,insert_onto_square_peg,light_bulb_in,meat_off_grill,open_drawer,place_cups,place_shape_in_shape_sorter,push_buttons,put_groceries_in_cupboard,put_item_in_drawer,put_money_in_safe,reach_and_drag,stack_blocks,stack_cups,turn_tap,place_wine_at_rack_location,slide_block_to_color_target,sweep_to_dustpan_of_size] \
-    rlbench.task_name='multi_18T' \
-    rlbench.demo_path=$PERACT_ROOT/data/test \
-    framework.logdir=$PERACT_ROOT/logs/ \
-    framework.csv_logging=True \
-    framework.tensorboard_logging=True \
-    framework.eval_envs=1 \
-    framework.start_seed=0 \
-    framework.eval_from_eps_number=0 \
-    framework.eval_episodes=25 \
-    framework.eval_type='best' \
-    rlbench.headless=True
+```
+tensorboard --logdir={framework.logdir}
 ```
 
-The final results will be saved in `test_data.csv`.
 
-## Recording Videos
 
-To save high-resolution videos of agent executions, set `cinematic_recorder.enabled=True` with `eval.py`:
+
+
+### Evaluation
+#### Config preparations
+
+Similar to training, make sure you have `eval.yaml` under the directory `conf`. To evaluate on **PushCube-v1**, you can simply prepare configs by 
 
 ```bash
-cd $PERACT_ROOT
-CUDA_VISIBLE_DEVICES=0 python eval.py \
-    rlbench.tasks=[open_drawer] \
-    rlbench.task_name='multi' \
-    rlbench.demo_path=$PERACT_ROOT/data/val \
-    framework.gpu=0 \
-    framework.logdir=$PERACT_ROOT/ckpts/ \
-    framework.start_seed=0 \
-    framework.eval_envs=1 \
-    framework.eval_from_eps_number=0 \
-    framework.eval_episodes=3 \
-    framework.csv_logging=True \
-    framework.tensorboard_logging=True \
-    framework.eval_type='last' \
-    rlbench.headless=True \
-    cinematic_recorder.enabled=True
+cp conf/eval_pushcube.yaml conf/eval.yaml
 ```
 
-Videos will be saved at `$PERACT_ROOT/ckpts/multi/PERACT_BC/seed0/videos/open_drawer_w600000_s0_succ.mp4`.
+Note that you need to change the following paths in `eval.yaml` for your runtime environment: 
+
+* `maniskill3.tasks`: The task to evaluate on. We only support **StackCube-v1** and **PushCube-v1** for now. We only support single-task evaluation for now, so only 1 task can be in the list
+* `maniskill3.traj_path`: The path to your Maniskill evaluation demo trajectory (the h5 file), though it's not actually used and we only use the ids to generate evaluation trajectories
+* `maniskill3.json_path` : The path to your Maniskill evaluation demos trajectory metadata (the json file)
+* `maniskill3.desc_pkl_path`: The path to your language goal file 
+* `framework.logdir`: The directory to find weights and save your evaluation results
+
+To **save evaluation videos**, you can change those hyperparameters:
+
+* `cinematic_recorder.enabled`: Enable evaluation video saving
+* `cinematic_recorder.save_path`: The directory to save your evaluation videos
+
+
+In addition, you can change the following hyperparameters for ablation study. Here is an incomplete lits of them:
+
+* `maniskill3.episode_length`: The maximal number of pose steps to reach the goal. This should be consistent with those used in training usually
+* `maniskill3.eval_from_eps_number`: Starting episode index for evaluation
+* `maniskill3.eval_episodes`: The number of episodes to evaluate on
+
+#### Evaluation
+After preparing evaluation configs, you can simply run evaluations via
+
+```bash
+python eval.py 
+```
+
+The final results will be saved in `eval_data.csv` under `framework.logdir`. 
+You may view tensorboard logging events of evaluation in `framework.logdir` as well via
+
+```
+tensorboard --logdir={framework.logdir}
+```
+
+
+
+
 
 ## Hardware Requirements
 

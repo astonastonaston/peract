@@ -318,58 +318,21 @@ class IndependentEnvRunner(object):
               gripper_open_delta):
         multi_task = isinstance(env_config[0], list)
 
-        # env_config = (tasks,
-        #               control_mode,
-        #               eval_cfg.maniskill3.traj_path,
-        #               eval_cfg.maniskill3.json_path,
-        #               eval_cfg.maniskill3.desc_pkl_path,
-        #               eval_cfg.maniskill3.episode_length,
-        #               eval_cfg.framework.eval_episodes,
-        #               train_cfg.maniskill3.include_lang_goal_in_obs,
-        #               eval_cfg.maniskill3.time_in_state,
-        #               eval_cfg.framework.record_every_n)
         env_kwargs = {'control_mode': env_config[1], 
                       "obs_mode": "pointcloud",
                       "num_envs": self._eval_envs,
                       "max_episode_steps": 1000}
         if cinematic_recorder_cfg.enabled:
             env_kwargs["render_mode"] = "rgb_array"
-        # env_kwargs = {'control_mode': "pd_joint_pos", 
-        #               "obs_mode": "pointcloud",
-        #               "num_envs": self._eval_envs}
+            
         print(f"cuda status {torch.cuda.is_available(), sapien.Device('cuda')}")
         if multi_task:
-            # TODO: support multi-task env eval
-            # eval_env = CustomMultiTaskRLBenchEnv(
-            #     task_classes=env_config[0],
-            #     observation_config=env_config[1],
-            #     action_mode=env_config[2],
-            #     dataset_root=env_config[3],
-            #     episode_length=env_config[4],
-            #     headless=env_config[5],
-            #     swap_task_every=env_config[6],
-            #     include_lang_goal_in_obs=env_config[7],
-            #     time_in_state=env_config[8],
-            #     record_every_n=env_config[9])
-            # eval_env = gym.make()
             raise NotImplementedError("Multi-task evaluation not supported yet")
         else:
             eval_env = gym.make(env_config[0], **env_kwargs)
             if cinematic_recorder_cfg.enabled:
                 eval_env = RecordEpisode(eval_env, output_dir=cinematic_recorder_cfg.save_path, save_trajectory=True, trajectory_name="trajectory", save_video=True, video_fps=30)
 
-
-        # self._internal_env_runner = _IndependentEnvRunner(
-        #     self._train_env, eval_env, self._agent, self._timesteps, self._train_envs,
-        #     self._eval_envs, self._rollout_episodes, self._eval_episodes,
-        #     self._training_iterations, self._eval_from_eps_number, self._episode_length, self._kill_signal,
-        #     self._step_signal, self._num_eval_episodes_signal,
-        #     self._eval_epochs_signal, self._eval_report_signal,
-        #     self.log_freq, self._rollout_generator, None,
-        #     self.current_replay_ratio, self.target_replay_ratio,
-        #     self._weightsdir, self._logdir,
-        #     self._env_device, self._previous_loaded_weight_folder,
-        #     num_eval_runs=self._num_eval_runs)
         self._eval_env = eval_env
         self._lang_goal = env_config[2]
 
