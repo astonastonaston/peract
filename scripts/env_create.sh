@@ -1,2 +1,2 @@
-echo $SHELL
-conda init --all
+# echo $SHELL
+# conda init --all
