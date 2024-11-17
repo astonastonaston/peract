@@ -28,6 +28,7 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 # setup a virtualenv with whichever package manager you prefer
 conda create -n "peract" "python==3.10"
 conda activate peract
+git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
 pip install --upgrade pip
 ```
 
@@ -37,18 +38,8 @@ Install Maniskill from the latest commit:
 ```bash
 pip install git+https://github.com/haosulab/ManiSkill.git 
 ```
-#### 3. Pytorch3d Installation
-You need Pytorch3d to convert rotation and translations. Here's how to install it from source
 
-```bash
-# Install pytorch3d from github source
-pip install "git+https://github.com/facebookresearch/pytorch3d.git"
-# Or install pytorch3d from pre-built wheel. This one is faster, but you need to find the wheel that matches your python, cuda, and torch versions
-# Here's an example with python==3.9, cuda==11.3, torch==1.12.1
-pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu113_pyt1121/pytorch3d-0.7.2-cp39-cp39-linux_x86_64.whl
-```
-
-#### 4. Install other python libraries
+#### 3. Install other python libraries
 
 Install other python libraries needed:
 
@@ -56,6 +47,14 @@ Install other python libraries needed:
 # Install peract package requirements
 pip install -r requirements.txt
 ```
+#### 4. Pytorch3d Installation
+You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert rotations and translations as well. Here's how to install it from source
+
+```bash
+# Install pytorch3d from pre-built wheel. This is faster than installing from source
+pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu116_pyt1130/download.html
+```
+
 
 ## Data Generation
 
