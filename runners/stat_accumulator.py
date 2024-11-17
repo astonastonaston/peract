@@ -134,6 +134,9 @@ class _SimpleAccumulator(StatAccumulator):
         self._transitions = 0
         self._reset_data()
 
+    def get_prefix(self):
+        return self._prefix
+
 
 class SimpleAccumulator(StatAccumulator):
 
@@ -159,6 +162,8 @@ class SimpleAccumulator(StatAccumulator):
         self._train_acc.reset()
         self._eval_acc.reset()
 
+    def get_prefix(self):
+        return self._eval_acc.get_prefix()
 
 class MultiTaskAccumulator(StatAccumulator):
 

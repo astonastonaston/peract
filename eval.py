@@ -168,7 +168,6 @@ def eval_seed(train_cfg,
     # evaluate several checkpoints in parallel
     # NOTE: in multi-task settings, each task is evaluated serially, which makes everything slow!
     split_n = utils.split_list(num_weights_to_eval, eval_cfg.framework.eval_envs)
-    # print(f"Num of splits {len(split_n)}")
     for split in split_n:
         processes = []
         print(f"Num of processes {len(split), sapien.Device('cuda')}")

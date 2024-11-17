@@ -211,13 +211,7 @@ def _add_keypoints_to_replay(
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length,
                                      gripper_open_delta=gripper_open_delta)
-        # if demo_number == 0:
-        #     print(f"obs from ind {i} and gripper pose from ind {tpl_index}")
-        #     print("pcd")
-        #     print(obs_dict["point_cloud"])
-        #     print("rgb")
-        #     print(obs_dict["rgb"])
-        #     print()
+
         # print(f"input low dim state {obs_dict['low_dim_state']} output gripper open {rot_grip_indicies[-1]}")
         tokens = tokenize(description).numpy()
         # print(f"Training, tokenizing desc {description}")
@@ -301,7 +295,8 @@ def fill_replay(cfg: DictConfig,
             desc = pickle.load(f)
 
         # extract keypoints (a.k.a keyframes)
-        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, stopped_buffer_init_val=cfg.replay.stop_buffer_init_val,
+        episode_keypoints = demo_loading_utils.keypoint_discovery(d_idx, demo, demo_meta_data, 
+                                                                  stopped_buffer_init_val=cfg.replay.stop_buffer_init_val,
                                                                   stopping_delta=cfg.replay.stopping_delta,
                                                                   method=keypoint_method,
                                                                   skip_stopped_steps=cfg.replay.skip_stopped_steps,

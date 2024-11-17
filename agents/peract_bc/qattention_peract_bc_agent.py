@@ -485,18 +485,6 @@ class QAttentionPerActBCAgent(Agent):
                                          self._voxel_size,
                                          self._rotation_resolution,
                                          self._device)
-
-        # # forward pass
-        # if demo_number == 0:
-        #     print(f"Doing demo {demo_number, input_frame, supervision_frame}")
-        #     print("Inputing to q network:")
-        #     print("obs")
-        #     print(obs)
-        #     print("proprio")
-        #     print(proprio)
-        #     print("pcd")
-        #     print(pcd)
-        #     print()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -507,15 +495,6 @@ class QAttentionPerActBCAgent(Agent):
                              bounds,
                              prev_layer_bounds,
                              prev_layer_voxel_grid)
-
-        # # visualize voxel grids
-        # print(f"shae {voxel_grid.shape}")
-        # rgbs = voxel_grid[0, 3:6, ...]
-        # voxel_grid_sel = voxel_grid[0, ...]
-        # max_values = rgbs.view(3, -1).max(dim=1).values
-        # max_values_all = voxel_grid_sel.view(10, -1).max(dim=1).values
-        # print(f"training vox max rgb values {max_values}")
-        # print(f"vox max values all {max_values_all}")
 
         # argmax to choose best action
         coords, \
@@ -582,9 +561,6 @@ class QAttentionPerActBCAgent(Agent):
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
-        # if (step%1 == 0):
-        #     print(f"total trans rot loss {total_loss} {q_trans_loss} {q_rot_loss}")
-        #     print()
 
         self._optimizer.zero_grad()
         total_loss.backward()
@@ -606,14 +582,6 @@ class QAttentionPerActBCAgent(Agent):
         self._vis_translation_qvalue = self._softmax_q_trans(q_trans[0])
         self._vis_max_coordinate = coords[0]
         self._vis_gt_coordinate = action_trans[0]
-
-        # save result img
-        # img = transforms.ToTensor()(visualise_voxel(
-        #                  self._vis_voxel_grid.detach().cpu().numpy(),
-        #                  self._vis_translation_qvalue.detach().cpu().numpy(),
-        #                  self._vis_max_coordinate.detach().cpu().numpy(),
-        #                  self._vis_gt_coordinate.detach().cpu().numpy()))
-        
         # Note: PerAct doesn't use multi-layer voxel grids like C2FARM
         # stack prev_layer_voxel_grid(s) from previous layers into a list
         if prev_layer_voxel_grid is None:
@@ -631,10 +599,6 @@ class QAttentionPerActBCAgent(Agent):
             'total_loss': total_loss,
             'prev_layer_voxel_grid': prev_layer_voxel_grid,
             'prev_layer_bounds': prev_layer_bounds,
-            # 'voxel_img': img,
-            # 'demo_number': demo_number,
-            # 'input_frame': input_frame,
-            # 'supervision_frame': supervision_frame
         }
 
     def act(self, step: int, observation: dict,
@@ -644,21 +608,11 @@ class QAttentionPerActBCAgent(Agent):
         prev_layer_voxel_grid = observation.get('prev_layer_voxel_grid', None)
         prev_layer_bounds = observation.get('prev_layer_bounds', None)
         lang_goal_tokens = observation.get('lang_goal_tokens', None).long()
-        # TODO: why long()??
-        # if lang_goal_tokens:
-        #     lang_goal_tokens = lang_goal_tokens[0]
-        # lang_goal_tokens = observation.get('lang_goal_tokens', None).long()
 
         # extract CLIP language embs
         with torch.no_grad():
             lang_goal_tokens = lang_goal_tokens.to(device=self._device)
-            # print(lang_goal_tokens.shape, lang_goal_tokens[0], lang_goal_tokens)
-            # print(self._device)
             lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens)
-            # lang_goal_emb, lang_token_embs = self._clip_rn50.encode_text_with_embeddings(lang_goal_tokens.unsqueeze(0))
-            # lang_goal_emb = lang_goal_emb[0].float().detach().cpu().numpy()
-            # lang_token_embs = lang_token_embs[0].float().detach().cpu().numpy()
-        # print(f"Lang embedding shapes {lang_goal_tokens.shape, lang_goal_emb.shape} {lang_token_embs.shape}")
 
         # voxelization resolution
         res = (bounds[0, 3:] - bounds[0, :3]) / self._voxel_size
@@ -667,7 +621,6 @@ class QAttentionPerActBCAgent(Agent):
 
         if self._include_low_dim_state:
             proprio = observation['low_dim_state']
-        # print(f"proprio at step {step}: {proprio}")
         obs, pcd = self._act_preprocess_inputs(observation)
 
         # correct batch size and device
@@ -677,19 +630,11 @@ class QAttentionPerActBCAgent(Agent):
         lang_goal_emb = lang_goal_emb.to(self._device)
         lang_token_embs = lang_token_embs.to(self._device)
         bounds = torch.as_tensor(bounds, device=self._device)
+        
         # TODO: use previous layer voxel grid for inference. Current model doesn't use it at all
         prev_layer_voxel_grid = prev_layer_voxel_grid.to(self._device) if prev_layer_voxel_grid is not None else None
         prev_layer_bounds = prev_layer_bounds.to(self._device) if prev_layer_bounds is not None else None
 
-        # print(f"input low dim state {proprio}")
-        # inference
-        # print("Inputing to q network:")
-        # print("obs")
-        # print(obs)
-        # print("proprio")
-        # print(proprio)
-        # print("pcd")
-        # print(pcd)
         q_trans, \
         q_rot_grip, \
         q_ignore_collisions, \
@@ -701,20 +646,6 @@ class QAttentionPerActBCAgent(Agent):
                            bounds,
                            prev_layer_bounds,
                            prev_layer_voxel_grid)
-
-        # # visualize voxel grids
-        # print(f"shae {vox_grid.shape}")
-        # rgbs = vox_grid[0, 3:6, ...]
-        # voxel_grid_sel = vox_grid[0, ...]
-        # max_values = rgbs.view(3, -1).max(dim=1).values
-        # max_values_all = voxel_grid_sel.view(10, -1).max(dim=1).values
-        # print(f"training vox max rgb values {max_values}")
-        # print(f"vox max values all {max_values_all}")
-
-# shae torch.Size([1, 10, 50, 50, 50])
-# training vox max rgb values tensor([0.9922, 0.7816, 0.7882], device='cuda:0')
-# vox max values all tensor([0.4590, 1.1852, 0.5249, 0.9922, 0.7816, 0.7882, 0.9800, 0.9800, 0.9800,
-#         1.0000], device='cuda:0')
 
         # softmax Q predictions
         # print(f"shapes of qs: {q_trans.shape, q_rot_grip.shape, q_ignore_collisions.shape}")
@@ -732,10 +663,7 @@ class QAttentionPerActBCAgent(Agent):
         ignore_collisions_action = ignore_collisions.int() if ignore_collisions is not None else None
 
         coords = coords.int()
-        # coords = coords - 5
         attention_coordinate = bounds[0, :3] + res * coords + res / 2
-        # attention_coordinate = bounds[0, :3] + res * coords + res / 2
-        # trans_coordinate = bounds[:, :3] + res * coords
 
         # stack prev_layer_voxel_grid(s) into a list
         # NOTE: PerAct doesn't used multi-layer voxel grids like C2FARM
@@ -766,41 +694,23 @@ class QAttentionPerActBCAgent(Agent):
         # visualize voxel grids
         rgbs = self._act_voxel_grid[3:6, ...]
         max_values = rgbs.view(3, -1).max(dim=1).values
-        # print(f"voxel grid hsape {self._act_voxel_grid.shape, max_values}")
         grid_img = transforms.ToTensor()(visualise_voxel(
                              self._act_voxel_grid.cpu().numpy(),
                              self._act_qvalues.cpu().numpy(),
                              self._act_max_coordinate.cpu().numpy()))
-        # to_pil = transforms.ToPILImage()
-        # img = to_pil(grid_img)
-        # img.save('saved_image.png')
         observation_elements["voxel_grid_img"] = grid_img
 
-        # print("Predictions:")
-        # print(f"attention coord: {attention_coordinate}")
-        # print(f"coords, rot_grip_action, ignore_collisions_action: {coords, rot_grip_action, ignore_collisions_action}")
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
                          observation_elements=observation_elements,
                          info=info)
 
     def update_summaries(self) -> List[Summary]:
         summaries = []
-        # summaries = [
-        #     ImageSummary('%s/update_qattention' % self._name,
-        #                  transforms.ToTensor()(visualise_voxel(
-        #                      self._vis_voxel_grid.detach().cpu().numpy(),
-        #                      self._vis_translation_qvalue.detach().cpu().numpy(),
-        #                      self._vis_max_coordinate.detach().cpu().numpy(),
-        #                      self._vis_gt_coordinate.detach().cpu().numpy())))
-        # ]
-
-        for n, v in self._summaries.items():
+        for n, v in self._summaries.items(): # update loss item summaries   
             summaries.append(ScalarSummary('%s/%s' % (self._name, n), v))
 
         for (name, crop) in (self._crop_summary):
             crops = (torch.cat(torch.split(crop, 3, dim=1), dim=3) + 1.0) / 2.0
-            # print('crop dimm')
-            # print(crops)
             summaries.extend([
                 ImageSummary('%s/crops/%s' % (self._name, name), crops)])
 
@@ -829,13 +739,8 @@ class QAttentionPerActBCAgent(Agent):
         weight_file = os.path.join(savedir, '%s.pt' % self._name)
         state_dict = torch.load(weight_file, map_location=device)
 
-        # print("loaded state dict:")
-        # print(state_dict.keys())
-
         # load only keys that are in the current model
         merged_state_dict = self._q.state_dict()
-        # print("merged state dict:")
-        # print(merged_state_dict.keys())
         for k, v in state_dict.items():
             if not self._training:
                 k = k.replace('_qnet.module', '_qnet')
@@ -844,7 +749,6 @@ class QAttentionPerActBCAgent(Agent):
             else:
                 if '_voxelizer' not in k:
                     logging.warning("key %s not found in checkpoint" % k)
-        # print(merged_state_dict.keys())
         self._q.load_state_dict(merged_state_dict)
         print("loaded weights from %s" % weight_file)
 

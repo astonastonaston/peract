@@ -1,29 +1,37 @@
 import pickle
+import argparse
+import os
 
-# desc = ["close the gripper",
-#         "reach the cube on the table by moving the gripper to the back of the cube",
-#         "push the cube to a red white goal region in front of it"]
-desc = ["pick up a red cube and stack it on top of a green cube and let go of the cube without it falling."]
-# desc = ["pick up a red cube, and then stack it on top of a green cube, and then let go of the red cube without it falling."]
-# desc = ["grasp the red cube and move it to the target goal position."]
-# desc = ["push the cube to the red white target on the table"]
-# desc = ["push the cube on the table to the center of the red white target on the table"]
-# desc = ["A simple task where the objective is to reach a cube and then push the cube to a red white goal region in front of it. \
-#         The cube's xy position is randomized on top of a table in the region [0.1, 0.1] times [-0.1, -0.1]. It is placed flat on the table."] 
-        # The target goal region is marked by a red white circular target. The position of the target is fixed to be the cube xy position + [0.1 + goal radius, 0]. \
-        # The success condition is that the cube xy position is within goal_radius (default 0.1) of the target xy position by euclidean distance.\
-        # "] 
+# Define descriptions for different tasks
+task_descriptions = {
+    "StackCube-v1": [
+        "pick up a red cube and stack it on top of a green cube and let go of the cube without it falling."
+    ],
+    "PushCube-v1": [
+        "push the cube to the red white target on the table"
+    ],
+    "PickCube-v1": [
+        "grasp the red cube and move it to the target goal position, then release the cube in a stable position without it falling."
+    ]
+}
 
-# long 2 experiment has only the 1st row
-# long 3 experiment has 1-2 rows
+# Argument parsing
+parser = argparse.ArgumentParser(description="Generate task descriptions and save to specified directory.")
+parser.add_argument("--task", type=str, required=True, help="Task name, e.g., 'PushCube-v1'")
+parser.add_argument("--save_dir", type=str, required=True, help="Directory where the description file will be saved")
+args = parser.parse_args()
 
+# Get the description for the task
+desc = task_descriptions.get(args.task, [])
+if not desc:
+    raise ValueError(f"No description found for task '{args.task}'")
 
-# desc = ["\
-#     Task Description: A simple task where the objective is to reach a cube and then push and move the cube to a goal region in front of it. \
-#     Randomizations: The cube’s xy position is randomized on top of a table in the region [0.1, 0.1] x [-0.1, -0.1]. It is placed flat on the table. The target goal region is marked by a red/white circular target. The position of the target is fixed to be the cube xy position + [0.1 + goal_radius, 0]. \
-#     Success Conditions: The cube’s xy position is within goal_radius (default 0.1) of the target’s xy position by euclidean distance.\
-#     "] # long 1
+# Ensure the save directory exists
+os.makedirs(args.save_dir, exist_ok=True)
 
 # Save the description to a file
-with open('demos/StackCube-v1/motionplanning/desc.pkl', 'wb') as file:
+save_path = os.path.join(args.save_dir, 'desc.pkl')
+with open(save_path, 'wb') as file:
     pickle.dump(desc, file)
+
+print(f"Description for '{args.task}' saved to '{save_path}'")

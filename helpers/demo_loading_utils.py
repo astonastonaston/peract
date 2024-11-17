@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-def _check_gripper_open(demo, i, delta=1e-3): # TODO: adjust delta for your task
+def _check_gripper_open(demo, i, delta=1e-3):
     # check if the gripper is open at the i-th step
     return demo["obs"]["agent"]["qpos"][i, -1] > delta
 
@@ -51,48 +51,47 @@ def _get_camera_extrinsics_intrinsics(demo, i, camera_name):
     assert camera_name in demo["obs"]["sensor_param"].keys(), f"No such camera sensor with name {camera_name} in observations"
     return demo["obs"]["sensor_param"][camera_name]["cam2world_gl"][i], demo["obs"]["sensor_param"][camera_name]["intrinsic_cv"][i]
 
-def _is_stopped(demo, demo_len, i, stopped_buffer, delta=0.1, gripper_open_delta=0.025):
+def _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta=0.1, gripper_open_delta=0.025):
     next_is_not_final = i == (demo_len - 2)
     gripper_state_no_change = (
             i < (demo_len - 2) and i >= 2 and
             (_check_gripper_open(demo, i, gripper_open_delta) == _check_gripper_open(demo, i+1, gripper_open_delta) and
              _check_gripper_open(demo, i, gripper_open_delta) == _check_gripper_open(demo, i-1, gripper_open_delta) and
              _check_gripper_open(demo, i-2, gripper_open_delta) == _check_gripper_open(demo, i-1, gripper_open_delta)))
-    small_delta = np.allclose(_get_joint_velocities(demo, i), 0, atol=delta)
-    # logging.info(demo_len)
-    # if i < (demo_len - 2) and i >= 2:
-    #     logging.info(f"Frame {i} gripper states {_check_gripper_open(demo, i+1, gripper_open_delta), _check_gripper_open(demo, i, gripper_open_delta), _check_gripper_open(demo, i-1, gripper_open_delta), _check_gripper_open(demo, i-2, gripper_open_delta)}")
-    # logging.info(f"Frame {i} joint vel {_get_joint_velocities(demo, i)}")
-    # logging.info(f"Frame {i} stop buffer {stopped_buffer}, delta {small_delta}, not final {not next_is_not_final}, gripper state not change {gripper_state_no_change}")
+    small_delta = np.allclose(_get_joint_velocities(demo, i), 0, atol=stopping_delta)
     stopped = (stopped_buffer <= 0 and small_delta and
                (not next_is_not_final) and gripper_state_no_change)
-    # logging.info(f"Frame {i} stopped {stopped}")
     return stopped
 
 def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
-                       stopping_delta=0.1, # note: those stopping parameters should be overridden at conf/config.yaml
+                       stopping_delta=0.1, # Those stopping parameters are overridden at conf/config.yaml
                        method='heuristic',
                        skip_stopped_steps=10,
                        gripper_open_delta=0.025) -> List[int]:
+    # Note: gripper_open_delta is overriden by replay.gripper_open_delta
+    # stopping_delta is overriden by replay.stopping_delta
+    # stopped_buffer_init_val is overriden by replay.stopped_buffer_init_val
+    # skip_stopped_steps is overriden by replay.skip_stopped_steps
     episode_keypoints = []
     demo = h5_file[f"traj_{d_idx}"]
     demo_len = _get_demo_len(demo)
     # print(f"Demo len {demo_len}")
+    
     if method == 'heuristic':
-        # demo = h5_file[f"traj_{episode_idx}"]
+        # Heuristically select keypoints by robot-stop checking and gripper-open checking.
         prev_gripper_open = _check_gripper_open(demo, 0, gripper_open_delta)
         stopped_buffer = skip_stopped_steps # Not counting stopping for the first few frames
         for i in range(demo_len):
             stopped = _is_stopped(demo, demo_len, i, stopped_buffer, stopping_delta, gripper_open_delta)
             stopped_buffer = stopped_buffer_init_val if stopped else stopped_buffer - 1
-            # If change in gripper, or end of episode.
             last = i == (demo_len - 1)
             curr_gripper_open = _check_gripper_open(demo, i, gripper_open_delta)
-            # if d_idx == 25:
+
+            # If change in gripper, stop, or at end of episode, mark the keypoint
             if i != 0 and (curr_gripper_open != prev_gripper_open or
                            last or stopped):
-                # logging.info(f"Found kp! Frame {i}, gripper different {demo['obs']['agent']['qpos'][i, -1], curr_gripper_open, prev_gripper_open, curr_gripper_open != prev_gripper_open}, last {last}, stopped {stopped}")
                 episode_keypoints.append(i)
+
             prev_gripper_open = _check_gripper_open(demo, i, gripper_open_delta)
         if len(episode_keypoints) > 1 and (episode_keypoints[-1] - 1) == \
                 episode_keypoints[-2]: # pop a repetitive final keypoint
@@ -120,88 +119,6 @@ def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
 
     else:
         raise NotImplementedError
-
-
-# keyframe discovery following my original implementation for PegInsertionSide-v1
-# def keypoint_discovery(episode_idx, h5_file, json_data, 
-#                        stopping_delta=0.1,
-#                        method='heuristic') -> List[int]:
-#     episode_keypoints = []
-#     traj_len = len(h5_file)
-#     if method == 'heuristic':
-#         traj = h5_file[f"traj_{episode_idx}"]
-#         # prev_gripper_open = demo[0].gripper_open
-#         # stopped_buffer = 0
-#         # for i, obs in enumerate(demo):
-#         #     stopped = _is_stopped(demo, i, obs, stopped_buffer, stopping_delta)
-#         #     stopped_buffer = 4 if stopped else stopped_buffer - 1
-#         #     # If change in gripper, or end of episode.
-#         #     last = i == (len(demo) - 1)
-#         #     if i != 0 and (obs.gripper_open != prev_gripper_open or
-#         #                    last or stopped):
-#         #         episode_keypoints.append(i)
-#         #     prev_gripper_open = obs.gripper_open
-#         # if len(episode_keypoints) > 1 and (episode_keypoints[-1] - 1) == \
-#         #         episode_keypoints[-2]:
-#         #     episode_keypoints.pop(-2)
-#         # logging.debug('Found %d keypoints.' % len(episode_keypoints),
-#         #               episode_keypoints)
-
-#         # keep track of robot static transitions
-#         episode_keypoints = []
-#         for i in (range(traj_len)):
-#             curr_qpos = traj['obs']['agent']['qpos'][i]
-#             curr_success = traj['success'][i]
-
-#             if (i != 0):
-#                 # compute the differences in joint and gribber qposes
-#                 diff_qpos = curr_qpos - prev_qpos
-#                 diff_joint, diff_gribber = diff_qpos[:7], diff_qpos[7:]
-#                 # diff_qpos_norm = np.linalg.norm(diff_qpos)
-#                 diff_joint_norm, diff_gribber_norm = np.linalg.norm(diff_joint), np.linalg.norm(diff_gribber)
-
-#                 # checking keyframe criteria:
-#                 # the robot joints doesn't rotate much (the joints are static)
-#                 is_key_frame = np.isclose(diff_joint_norm, 0, atol=5e-3)
-
-#                 # remove duplicate temporally-closed static-joint keyframe
-#                 if (len(episode_keypoints) > 0):
-#                     is_key_frame &= (i-episode_keypoints[-1] > 5)
-
-#                 # if task succeeds, record a keyframe
-#                 is_key_frame |= ((curr_success != prev_success) and (prev_success == False))
-
-#                 # if gribber suddenly closes, record a keyframe
-#                 is_key_frame |= (diff_gribber_norm >= 1e-2)
-
-#                 # store keyframes
-#                 if (is_key_frame):
-#                     episode_keypoints.append(i)
-
-#             prev_qpos = curr_qpos
-#             prev_success = curr_success
-
-#         return episode_keypoints
-
-#     elif method == 'random':
-#         # Randomly select keypoints.
-#         episode_keypoints = np.random.choice(
-#             range(traj_len),
-#             size=20,
-#             replace=False)
-#         episode_keypoints.sort()
-#         return episode_keypoints
-
-#     elif method == 'fixed_interval':
-#         # Fixed interval.
-#         episode_keypoints = []
-#         segment_length = traj_len // 20
-#         for i in range(0, traj_len, segment_length):
-#             episode_keypoints.append(i)
-#         return episode_keypoints
-
-#     else:
-#         raise NotImplementedError
 
 
 # find minimum difference between any two elements in list
