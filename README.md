@@ -15,7 +15,6 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 - Getting Started: [Installation](#installation)
 - Data Generation: [Data Generation](#data-generation)
 - Training & Evaluation: [Training and Evaluation](#training-and-evaluation)
-- Miscellaneous: [Recording Videos](#recording-videos)
 - Acknowledgements: [Acknowledgements](#acknowledgements), [Citations](#citations)
 
 ## Installation
@@ -196,9 +195,7 @@ tensorboard --logdir={framework.logdir}
 ```
 
 
-
-
-
+<!-- 
 ## Hardware Requirements
 
 Here the single-task PerAct agent was trained with 1 RTX 2080 card with batch_size=1 and 16GB of memory, 
@@ -210,7 +207,7 @@ Tested with:
 - **RAM** - 16GB
 - **OS** - Ubuntu 20.04
 
-For inference, a single GPU is sufficient.
+For inference, a single GPU is sufficient. -->
 
 ## Acknowledgements
 
