@@ -2,6 +2,7 @@
 
 # create peract env
 conda create -n "peract" "python==3.10" --yes
+conda init peract
 conda activate peract
 pip install --upgrade pip
 
