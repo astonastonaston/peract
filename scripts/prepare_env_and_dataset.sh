@@ -13,7 +13,7 @@ pip install git+https://github.com/haosulab/ManiSkill.git
 pip install -r requirements.txt
 
 # install pytorch3d from the wheel
-pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu116_pyt1130/download.html
+pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
 
 # Replace this with copying pre-generated demos will accelerate demo preparation greatly
 sh scripts/ms3_demo_download.sh
