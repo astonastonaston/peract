@@ -1,2 +1,2 @@
-echo $0
-conda init zsh
+echo $SHELL
+conda init --all
