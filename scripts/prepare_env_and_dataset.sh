@@ -1,8 +1,8 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
 
 # activate peract env
-# conda create -n "peract" "python==3.10" --yes
-# conda activate peract
+conda create -n "peract" "python==3.10" --yes
+conda activate peract
 pip install --upgrade pip
 
 # install mani_skill
