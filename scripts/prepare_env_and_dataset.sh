@@ -1,7 +1,7 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
 
 # create peract env
-conda create -n "peract" "python==3.10"
+conda create -n "peract" "python==3.10" --yes
 conda activate peract
 pip install --upgrade pip
 
