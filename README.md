@@ -36,6 +36,7 @@ pip install --upgrade pip
 Install Maniskill from the latest commit:
 
 ```bash
+# Install Maniskill
 pip install git+https://github.com/haosulab/ManiSkill.git 
 ```
 
