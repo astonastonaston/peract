@@ -1,5 +1,11 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
 
+# create peract env
+conda create -n "peract" "python==3.10"
+conda activate peract
+git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
+pip install --upgrade pip
+
 # install mani_skill
 pip install git+https://github.com/haosulab/ManiSkill.git 
 
