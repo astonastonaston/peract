@@ -39,16 +39,16 @@ Install Maniskill from the latest commit:
 pip install git+https://github.com/haosulab/ManiSkill.git 
 ```
 
-#### 3. Install other python libraries
+#### 3. Install necessary python libraries
 
-Install other python libraries needed:
+Install necessary python libraries:
 
 ```bash
 # Install peract package requirements
 pip install -r requirements.txt
 ```
 #### 4. Pytorch3d Installation
-You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert rotations and translations as well. Here's how to install it from source
+You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert rotations and translations as well. Here's how to install it from pre-built wheel:
 
 ```bash
 # Install pytorch3d from pre-built wheel. This is faster than installing from source
