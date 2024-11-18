@@ -185,7 +185,7 @@ In addition, you can change the following hyperparameters for ablation study. He
 * `maniskill3.eval_from_eps_number`: Starting episode index for evaluation
 * `maniskill3.eval_episodes`: The number of episodes to evaluate on
 
-For visualization, you can **save voxel images at each episodic steps** under your logging directory as well by toggling the following hyperparameter:
+For visualization, you can **save voxel images at each pose step** under your logging directory as well by toggling the following hyperparameter:
 
 * `framework.eval_save_voxel_images`: A Boolean indicating whether or not to save voxel images at each pose step during evaluation
 
