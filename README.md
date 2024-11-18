@@ -24,9 +24,11 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 #### 1. Environment
 
 ```bash
-# setup a virtualenv with whichever package manager you prefer
+# create conda virtual env
 conda create -n "peract" "python==3.9"
 conda activate peract
+
+# clone peract repo
 git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
 pip install --upgrade pip
 ```

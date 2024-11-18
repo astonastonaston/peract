@@ -3,6 +3,7 @@
 # activate peract env
 conda create -n "peract" "python==3.9" --yes
 . ~/.bashrc
+conda env list
 conda activate peract
 pip install --upgrade pip
 
