@@ -70,7 +70,7 @@ def main(cfg: DictConfig) -> None:
             sys.exit(0)
 
     # run train jobs with multiple seeds (sequentially)
-    print(f"Number of cameras: {len(cfg.maniskill3.cameras)}")
+    print(f"The number of cameras: {len(cfg.maniskill3.cameras)}")
     for seed in range(start_seed, start_seed + cfg.framework.seeds):
         logging.info('Starting seed %d.' % seed)
 

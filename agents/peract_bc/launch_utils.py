@@ -274,7 +274,6 @@ def fill_replay(cfg: DictConfig,
     
     # load demo rgbd and meta data
     demo, demo_meta_data = get_ms_demos(cfg.maniskill3.traj_path, cfg.maniskill3.json_path)
-    # print(f"Num of demos: {num_demos}")
     keypts = {}
     for d_idx in range(num_demos):
         # load language descs
@@ -291,7 +290,6 @@ def fill_replay(cfg: DictConfig,
         if cfg.replay.save_keypoints:
             keypts[d_idx] = episode_keypoints
         # print(f"Keypoints for episode {d_idx}: {episode_keypoints}")
-
 
         if rank == 0:
             logging.info(f"Loading Demo({d_idx}) - found {len(episode_keypoints)} keypoints: {episode_keypoints} - {task}")
@@ -437,7 +435,6 @@ def create_agent(cfg: DictConfig):
             no_language=cfg.method.no_language,
             final_dim=cfg.method.final_dim,
         )
-        # print(f"cam in cfg {cfg.maniskill3.cameras}")
 
         qattention_agent = QAttentionPerActBCAgent(
             layer=depth,

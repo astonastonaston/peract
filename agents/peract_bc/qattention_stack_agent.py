@@ -38,17 +38,12 @@ class QAttentionStackAgent(Agent):
     def update(self, step: int, replay_sample: dict) -> dict:
         priorities = 0
         total_losses = 0.
-        # print(f"at stack agent now rgb {replay_sample['rgb'][0][0]}")
         for qa in self._qattention_agents: # update agents under each voxel resolution
             update_dict = qa.update(step, replay_sample)
             replay_sample.update(update_dict)
             total_losses += update_dict['total_loss']
         return {
             'total_losses': total_losses,
-            # 'voxel_img': replay_sample['voxel_img'],
-            # 'demo_number': replay_sample['demo_number'],
-            # 'input_frame': replay_sample['input_frame'],
-            # 'supervision_frame': replay_sample['supervision_frame']
         }
 
     def act(self, step: int, observation: dict,
@@ -74,13 +69,9 @@ class QAttentionStackAgent(Agent):
             observation['attention_coordinate'] = act_results.observation_elements['attention_coordinate']
             observation['prev_layer_voxel_grid'] = act_results.observation_elements['prev_layer_voxel_grid']
             observation['prev_layer_bounds'] = act_results.observation_elements['prev_layer_bounds']
-            # print(observation.keys())
-            # print(observation["base_camera"].keys())
             for n in self._camera_names:
                 px, py = utils.point_to_pixel_index(
                     attention_coordinate[0],
-                    # observation["sensor_param"][f"{n}"]['extrinsic_cv'][0].cpu().numpy(),
-                    # observation["sensor_param"][f"{n}"]['intrinsic_cv'][0].cpu().numpy())
                     observation[f"{n}"]['extrinsic_cv'][0].cpu().numpy(),
                     observation[f"{n}"]['intrinsic_cv'][0].cpu().numpy())
                 pc_t = torch.tensor([[[py, px]]], dtype=torch.float32, device=self._device)

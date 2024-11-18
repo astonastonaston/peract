@@ -57,7 +57,6 @@ class RolloutGenerator(object):
         
         # start episode generation (episode_length: the number of pose-based control steps)
         for step in range(episode_length):
-            # print(f"step {step} in episode with len {episode_length}")
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
 
             act_result = agent.act(step, prepped_data,
@@ -94,7 +93,6 @@ class RolloutGenerator(object):
             if info["plan_failed"]: # if planning failed, truncate this episode
                 print("Planning failed! Restarting another episode")
                 truncated = True
-                # break
                 
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs = add_low_dim_states(obs, step+1, episode_length, gripper_open_delta)
@@ -110,11 +108,8 @@ class RolloutGenerator(object):
             # Reset when terminated
             if transition["terminal"]: 
                 if "needs_reset" in transition["info"]:
-                    # print("Reset needed! transition info keys:")
-                    # print(transition["info"])
                     transition["info"]["needs_reset"] = True
 
-            # TODO: add truncated and succeed terminal states
             obs_and_replay_elems = {}
             obs_and_replay_elems.update(obs)
             obs_and_replay_elems.update(agent_obs_elems)
@@ -143,11 +138,6 @@ class RolloutGenerator(object):
                                            act_result.observation_elements.items()}
                     obs_tp1.update(agent_obs_elems_tp1)
                 replay_transition.final_observation = obs_tp1
-
-            # TODO: enable recording
-            # if record_enabled and transition.terminal or timeout or step == episode_length - 1:
-            #     env.env._action_mode.arm_action_mode.record_end(env.env._scene,
-            #                                                     steps=60, step_scene=True)
 
             obs = transition["observation"]
             yield replay_transition

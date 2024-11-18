@@ -414,8 +414,6 @@ class UniformReplayBuffer(ReplayBuffer):
                 # Assume it is scalar.
                 arg_shape = tuple()
             store_element_shape = tuple(store_element.shape)
-            # print(f"storage ele is {store_element.name} and shape {store_element_shape}")
-            # print(arg_element)
             if arg_shape != store_element_shape:
                 raise ValueError('arg has shape {}, expected {}'.format(
                     arg_shape, store_element_shape))

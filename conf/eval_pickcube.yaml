@@ -30,6 +30,7 @@ framework:
   eval_episodes: 10
   eval_type: 'last' # or 'best'
   eval_save_metrics: True
+  eval_save_voxel_images: True # whether or not to save voxel images for each pose step during evaluation
 
 cinematic_recorder:
   enabled: True
