@@ -29,7 +29,7 @@ conda create -n "peract" "python==3.9" --yes
 conda activate peract
 
 # clone peract repo
-git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
+git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout release
 pip install --upgrade pip
 ```
 
