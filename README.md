@@ -160,6 +160,7 @@ tensorboard --logdir={framework.logdir}
 Similar to training, make sure you have `eval.yaml` under the directory `conf`. To evaluate on **PushCube-v1**, you can simply prepare configs by 
 
 ```bash
+cp conf/config_pushcube.yaml conf/config.yaml
 cp conf/eval_pushcube.yaml conf/eval.yaml
 ```
 
@@ -170,6 +171,7 @@ Note that you need to change the following paths in `eval.yaml` for your runtime
 * `maniskill3.json_path` : The path to your Maniskill evaluation demos trajectory metadata (the json file)
 * `maniskill3.desc_pkl_path`: The path to your language goal file 
 * `framework.logdir`: The directory to find weights and save your evaluation results
+* `framework.train_cfg_path`: The path to your training config. This is used to build a PerAct agent consistent with the agent during training
 
 To **save evaluation videos**, you can change those hyperparameters *(if you just want a quickstart, you can skip the following readings and go to [Evaluation](#evaluation-1) directly)*:
 
