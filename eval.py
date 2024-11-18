@@ -195,12 +195,12 @@ def main(eval_cfg: DictConfig) -> None:
                                 eval_cfg.method.name,
                                 'seed%d' % start_seed)
 
-    train_config_path = os.path.join(logdir, 'config.yaml')
+    train_config_path = eval_cfg.framework.train_cfg_path
     if os.path.exists(train_config_path):
         with open(train_config_path, 'r') as f:
             train_cfg = OmegaConf.load(f)
     else:
-        raise Exception("Missing seed%d/config.yaml" % start_seed)
+        raise Exception(f"Missing training configs {train_config_path}")
     
     # print(f"CUDA available status: {torch.cuda.is_available(), sapien.Device('cuda')}")
     env_device = utils.get_device(eval_cfg.framework.gpu)
