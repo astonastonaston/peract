@@ -25,7 +25,7 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 
 ```bash
 # setup a virtualenv with whichever package manager you prefer
-conda create -n "peract" "python==3.10"
+conda create -n "peract" "python==3.9"
 conda activate peract
 git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
 pip install --upgrade pip
@@ -53,7 +53,8 @@ You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert r
 ```bash
 # Install pytorch3d from pre-built wheel. This is faster than installing from source
 # Note: the python version in the link should match that on your host
-pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu116_pyt1130/download.html
+# pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu116_pyt1130/download.html
+pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
 ```
 
 
