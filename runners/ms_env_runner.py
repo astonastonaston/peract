@@ -261,16 +261,6 @@ class IndependentEnvRunner(object):
             if cinematic_recorder_cfg.enabled:
                 _, _ = env.reset(**reset_kwargs)
 
-            # # report summaries
-            # summaries = []
-            # summaries.extend(stats_accumulator.pop())
-
-            # eval_task_name, multi_task = self._get_task_name()
-
-            # if eval_task_name and multi_task: # Do multi-task summary
-            #     for s in summaries:
-            #         if 'eval' in s.name:
-            #             s.name = '%s/%s' % (s.name, eval_task_name)
             summaries = self.summaries() # log stat accumulator summary + agent summary
 
             # add scalar success rate summary
