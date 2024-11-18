@@ -117,7 +117,7 @@ Note that you need to **change the following paths** in `config.yaml` for your r
 * `replay.save_keypoints_dir`: The directory to save your detected keypoints in the replays (a json file)
 
 In addition, you can change the following hyperparameters for ablation study. Here is an incomplete lits of them 
-*(if you just want a quickstart, you can skip these readings and go to [Training](#training-1) directly)*:
+*(if you just want a quickstart, you can skip the following readings and go to [Training](#training-1) directly)*:
 
 * `maniskill3.episode_length`: The maximal number of steps (in terms of next-best pose) to reach the goal
 * `maniskill3.demos`: The number of demo trajectories to train on
@@ -171,7 +171,7 @@ Note that you need to change the following paths in `eval.yaml` for your runtime
 * `maniskill3.desc_pkl_path`: The path to your language goal file 
 * `framework.logdir`: The directory to find weights and save your evaluation results
 
-To **save evaluation videos**, you can change those hyperparameters:
+To **save evaluation videos**, you can change those hyperparameters *(if you just want a quickstart, you can skip the following readings and go to [Evaluation](#evaluation-1) directly)*:
 
 * `cinematic_recorder.enabled`: Enable evaluation video saving
 * `cinematic_recorder.save_path`: The directory to save your evaluation videos
@@ -182,6 +182,12 @@ In addition, you can change the following hyperparameters for ablation study. He
 * `maniskill3.episode_length`: The maximal number of pose steps to reach the goal. This should be consistent with those used in training usually
 * `maniskill3.eval_from_eps_number`: Starting episode index for evaluation
 * `maniskill3.eval_episodes`: The number of episodes to evaluate on
+
+For visualization, you can save voxel images at each episodic steps under your logging directory as well by toggling the following hyperparameter:
+
+* `framework.eval_save_voxel_images`: A Boolean indicating whether or not to save voxel images at each pose step during evaluation
+
+
 
 #### Evaluation
 After preparing evaluation configs, you can simply run evaluations via
