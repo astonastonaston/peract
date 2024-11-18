@@ -1,3 +1,4 @@
+# Adapted from https://github.com/MohitShridhar/YARR/blob/peract/yarr/utils/rollout_generator.py
 from multiprocessing import Value
 
 import numpy as np

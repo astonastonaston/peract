@@ -1,3 +1,4 @@
+# Adapted from https://github.com/haosulab/ManiSkill/blob/main/mani_skill/examples/motionplanning/panda/motionplanner.py
 import mplib
 import numpy as np
 import sapien

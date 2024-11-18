@@ -1,3 +1,4 @@
+# Adapted from https://github.com/MohitShridhar/YARR/blob/peract/yarr/replay_buffer/uniform_replay_buffer.py
 """The standard DQN replay memory.
 
 This implementation is an out-of-graph replay memory + in-graph wrapper. It

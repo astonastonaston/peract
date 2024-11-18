@@ -1,5 +1,5 @@
 # Borrowed from https://github.com/haosulab/ManiSkill/blob/main/mani_skill/trajectory/replay_trajectory.py
-# Overridden for multi-view demo collection
+# Overridden for multi-view demo collection. This is useless for now
 """Replay the trajectory stored in HDF5.
 The replayed trajectory can use different observation modes and control modes.
 We support translating actions from certain controllers to a limited number of controllers.

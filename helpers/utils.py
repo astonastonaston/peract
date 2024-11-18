@@ -4,7 +4,6 @@ import torch
 import trimesh
 import json
 from pyrender.trackball import Trackball
-# from rlbench.backend.const import DEPTH_SCALE
 from scipy.spatial.transform import Rotation
 from helpers import demo_loading_utils
 from typing import List, Dict
@@ -339,8 +338,7 @@ def extract_obs(demo: Dict,
                 channels_last: bool = False,
                 episode_length: int = 10,
                 gripper_open_delta: float = 1e-3):
-    # TODO: extract rgbs and pcds of each camera to obs_dict
-    # Maniskill3 pointcloud has w coordinate: Indicating whether it's infinite far. To this end, it can be more robust then the original rlbench-based peract's pointcloud
+    # Maniskill3 pointcloud has w coordinate indicating whether it's infinitely far
     # all rgbs and pcds are aggregated from all cameras, so you don't have to aggregate again during training
     obs_dict = {"rgb": demo_loading_utils._get_rgb_from_pcd_obs(demo, step), 
                 "point_cloud": demo_loading_utils._get_pcd_from_pcd_obs(demo, step),

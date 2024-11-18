@@ -13,20 +13,11 @@ import torch
 import sapien
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf, ListConfig
-# from rlbench.action_modes.action_mode import MoveArmThenGripper
-# from rlbench.action_modes.arm_action_modes import EndEffectorPoseViaPlanning
-# from rlbench.action_modes.gripper_action_modes import Discrete
-# from rlbench.backend.utils import task_file_to_task_class
 from runners.ms_env_runner import IndependentEnvRunner
 from runners.log_writer import LogWriter
 from runners.stat_accumulator import SimpleAccumulator
 
 from agents import peract_bc
-# from agents import c2farm_lingunet_bc
-# from agents import arm
-# from agents.baselines import bc_lang, vit_bc_lang
-
-# from helpers.custom_rlbench_env import CustomRLBenchEnv, CustomMultiTaskRLBenchEnv
 from helpers import utils
 
 from runners.rollout_generator import RolloutGenerator
