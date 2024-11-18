@@ -89,9 +89,6 @@ class _SimpleAccumulator(StatAccumulator):
             if transition.terminal:
                 self._episode_returns.next() # saving metrics to list at the terminal state
                 self._episode_lengths.next()
-            # print("updating return and length:")
-            # print(self._episode_returns)
-            # print(self._episode_lengths)
             self._summaries.extend(list(transition.summaries))
 
     def _get(self) -> List[Summary]:
@@ -119,9 +116,6 @@ class _SimpleAccumulator(StatAccumulator):
 
     def pop(self) -> List[Summary]:
         data = []
-        # print("poping return and length:")
-        # print(self._episode_returns)
-        # print(self._episode_lengths)
         if len(self._episode_returns) > 1:
             data = self._get()
             self._reset_data()

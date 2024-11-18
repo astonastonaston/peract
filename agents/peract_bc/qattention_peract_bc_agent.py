@@ -72,23 +72,17 @@ class QFunction(nn.Module):
     def forward(self, rgb_pcd, proprio, pcd, lang_goal_emb, lang_token_embs,
                 bounds=None, prev_bounds=None, prev_layer_voxel_grid=None):
         # rgb_pcd will be list of list (list of [rgb, pcd])
-        # print(f"input shapes {len(rgb_pcd[0]), rgb_pcd[0][0].shape, rgb_pcd[0][1].shape, proprio.shape, pcd[0].shape}")
         b = rgb_pcd[0][0].shape[0]
-        # print(f"batch size {b}")
         pcd_flat = torch.cat(
             [p.reshape(b, -1, 3) for p in pcd], 1)
-            # [p.permute(0, 2, 3, 1).reshape(b, -1, 3) for p in pcd], 1)
 
         # flatten RGBs and Pointclouds
         rgb = [rp[0] for rp in rgb_pcd]
         feat_size = rgb[0].shape[1]
         flat_imag_features = torch.cat(
             [p.reshape(b, -1, feat_size) for p in rgb], 1)
-            # [p.permute(0, 2, 3, 1).reshape(b, -1, feat_size) for p in rgb], 1)
 
         # construct voxel grid
-        # print(f"img feat size {flat_imag_features.shape, pcd_flat.shape, bounds.shape}")
-        
         voxel_grid = self._voxelizer.coords_to_bounding_voxel_grid(
             pcd_flat, coord_features=flat_imag_features, coord_bounds=bounds)
 
@@ -185,7 +179,7 @@ class QAttentionPerActBCAgent(Agent):
         if device is None:
             device = torch.device('cpu')
 
-        print(f"Num of cams for voxelizer {self._num_cameras, self._camera_names}")
+        print(f"Cameras for voxelization {self._num_cameras, self._camera_names}")
         self._voxelizer = VoxelGrid(
             coord_bounds=self._coordinate_bounds,
             voxel_size=self._voxel_size,
@@ -288,13 +282,13 @@ class QAttentionPerActBCAgent(Agent):
 
     def _extract_crop(self, pixel_action, observation):
         # Pixel action will now be (B, 2)
-        # observation = stack_on_channel(observation)
         h = observation.shape[-1]
         top_left_corner = torch.clamp(
             pixel_action - self._image_crop_size // 2, 0,
             h - self._image_crop_size)
         grid = self._grid_for_crop + top_left_corner.unsqueeze(1)
         grid = ((grid / float(h)) * 2.0) - 1.0  # between -1 and 1
+
         # Used for cropping the images across a batch
         # swap fro y x, to x, y
         grid = torch.cat((grid[:, :, :, 1:2], grid[:, :, :, 0:1]), dim=-1)
@@ -310,19 +304,14 @@ class QAttentionPerActBCAgent(Agent):
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
         rgb = replay_sample['rgb']
-        # print(f"replay rgb scale {rgb.shape}")
-        # print(f"replay rgb scale {rgb[0][0]}")
         pcd = replay_sample['point_cloud']
         seg = replay_sample['segmentation']
         
-        # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
         bb_maxs = self._coordinate_bounds[0, 3:6]
         bb_maxs = bb_maxs.to(torch.float)
         out_indices = (pcd[..., 3] == 0)
         pcd[out_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
-        # pcd[out_indices, :3] = bb_maxs + 1
-        # pcd[out_indices, 3] = 1
 
         # clamp floor points outside the scene bounds
         floor_id = 17
@@ -336,7 +325,6 @@ class QAttentionPerActBCAgent(Agent):
 
         # reshape rgb to (b, 3, -1) 
         rgb = rgb.view(b, 3, -1)
-        # print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
 
         obs.append([rgb, pcd])
         pcds.append(pcd)
@@ -350,20 +338,13 @@ class QAttentionPerActBCAgent(Agent):
         
         # In maniskill3, pointclouds and rgbs from all cameras are already merged as we obtain the pointcloud observation 
         rgb = observation["rgb"].to(device=self._device)
-        # print(f"act rgb scale {rgb.shape}")
-        # print(f"act rgb scale {rgb.max(dim=1).values}")
         pcd = observation["xyzw"].to(device=self._device)
         seg = observation["segmentation"].to(device=self._device)
         
-        # TODO: reshape rgb and pcd to (B, 3, -1). remove the w in pcd. Original shapes are (B, H*W, 3), (B, H*W, 4)
         # clamp w=0 points outside the scene bounds
-        # print(self._coordinate_bounds, self._coordinate_bounds.shape)
         bb_maxs = self._coordinate_bounds[0, 3:6]
         bb_maxs = bb_maxs.to(torch.float)
         out_indices = (pcd[..., 3] == 0)
-        # print(out_indices.shape, torch.sum(out_indices))
-        # print(bb_maxs.shape)
-        # print(pcd.shape, pcd[out_indices, 3].shape)
         pcd[out_indices] = torch.cat([bb_maxs + 1, torch.tensor([1], device=self._device)])
 
         # clamp floor points outside the scene bounds
@@ -378,8 +359,6 @@ class QAttentionPerActBCAgent(Agent):
 
         # reshape rgb to (b, 3, -1) 
         rgb = rgb.view(b, 3, -1)
-        # rgb = rgb / 255.0
-        # print(f"rgb pcd shapes: {rgb.shape} {pcd.shape}")
 
         obs.append([rgb, pcd])
         pcds.append(pcd)

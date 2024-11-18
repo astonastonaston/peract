@@ -129,20 +129,13 @@ def _get_action(
         rotation_resolution: int,
         crop_augmentation: bool,
         gripper_open_delta: float):
-    # TODO: change the way to get gripper pose from obs, using ms3 style
-    # obs_tp1 = demo[keypoint]
-    # obs_tm1 = demo[max(0, keypoint - 1)]
-    # tpl_index, tml_index = keypoint, max(0, keypoint-1)
     tpl_gripper_pose = demo_loading_utils._get_gripper_pose(demo, tpl_index)
     quat = utils.normalize_quaternion(tpl_gripper_pose[3:])
     if quat[-1] < 0:
         quat = -quat
     disc_rot = utils.quaternion_to_discrete_euler(quat, rotation_resolution)
-    # print(f"before correction {disc_rot}")
     disc_rot = utils.correct_rotation_instability(disc_rot, rotation_resolution) # useless?
-    # print(f"after, adding rot indices {disc_rot, quat, tpl_gripper_pose[3:]}")
     disc_rot = utils.clip_edge_angles(disc_rot, rotation_resolution)
-    # print(f"after clipping edge angles {disc_rot}")
 
     attention_coordinate = tpl_gripper_pose[:3]
     trans_indicies, attention_coordinates = [], []
@@ -196,10 +189,7 @@ def _add_keypoints_to_replay(
     prev_action = None
     episode_length = cfg.maniskill3.episode_length # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
     gripper_open_delta = cfg.replay.gripper_open_delta # for single-task training, it should be closed to demo_meta_data["env_info"]["max_episode_steps"]
-    # print(f"Desc is {description}")
     for k, keypoint in enumerate(episode_keypoints):
-        # obs_tp1 = demo[keypoint]
-        # obs_tm1 = demo[max(0, keypoint - 1)]
         tpl_index, tml_index = keypoint, max(0, keypoint-1)
         trans_indicies, rot_grip_indicies, ignore_collisions, action, attention_coordinates = _get_action(
             demo, tpl_index, tml_index, scene_bounds, voxel_sizes, bounds_offset,
@@ -208,23 +198,22 @@ def _add_keypoints_to_replay(
         terminal = (k == len(episode_keypoints) - 1)
         reward = float(terminal) * REWARD_SCALE if terminal else 0
 
+        # prepare input pointcloud and rgb
         obs_dict = utils.extract_obs(demo, step=i, t=k, prev_action=prev_action,
                                      cameras=cameras, episode_length=episode_length,
                                      gripper_open_delta=gripper_open_delta)
 
-        # print(f"input low dim state {obs_dict['low_dim_state']} output gripper open {rot_grip_indicies[-1]}")
+        # Tokenize lang goal
         tokens = tokenize(description).numpy()
-        # print(f"Training, tokenizing desc {description}")
         token_tensor = torch.from_numpy(tokens).to(device)
         sentence_emb, token_embs = clip_model.encode_text_with_embeddings(token_tensor)
-        # print(f"Embedding shapes {token_tensor.shape, sentence_emb[0].shape, token_embs[0].shape}")
         obs_dict['lang_goal_emb'] = sentence_emb[0].float().detach().cpu().numpy()
         obs_dict['lang_token_embs'] = token_embs[0].float().detach().cpu().numpy()
 
         prev_action = np.copy(action)
 
         others = {'demo': True}
-        final_obs = {
+        final_obs = { # prepare output rot and trans
             'trans_action_indicies': trans_indicies,
             'rot_grip_action_indicies': rot_grip_indicies,
             'gripper_pose': demo_loading_utils._get_gripper_pose(demo, tpl_index),
@@ -237,9 +226,6 @@ def _add_keypoints_to_replay(
 
         others.update(final_obs) # update with gripper pose and expert action
         others.update(obs_dict) # update with language goal and embeddings
-        # print(f"input low dim state {obs_dict['low_dim_state']}") 
-        # print(f"output rot {rot_grip_indicies[:-1]} gripper open {rot_grip_indicies[-1]} trans {trans_indicies}") 
-        # print(f"rgb added has shape {[np.max(obs_dict['rgb'], axis=0), np.min(obs_dict['rgb'], axis=0)]}")
 
         timeout = False
         replay.add(action, reward, terminal, timeout, **others)
@@ -285,6 +271,7 @@ def fill_replay(cfg: DictConfig,
         del model
 
     logging.debug('Filling %s replay ...' % task)
+    
     # load demo rgbd and meta data
     demo, demo_meta_data = get_ms_demos(cfg.maniskill3.traj_path, cfg.maniskill3.json_path)
     # print(f"Num of demos: {num_demos}")
@@ -303,17 +290,15 @@ def fill_replay(cfg: DictConfig,
                                                                   gripper_open_delta=cfg.replay.gripper_open_delta)
         if cfg.replay.save_keypoints:
             keypts[d_idx] = episode_keypoints
-
         # print(f"Keypoints for episode {d_idx}: {episode_keypoints}")
+
 
         if rank == 0:
             logging.info(f"Loading Demo({d_idx}) - found {len(episode_keypoints)} keypoints: {episode_keypoints} - {task}")
 
-        # for the episode, add keyframes
+        # for the given episode, add keyframes
         demo_ep = demo[f"traj_{d_idx}"]
-        # print(f"demo position-ctl epi length {len(demo_ep)}")
         demo_len = demo_loading_utils._get_demo_len(demo_ep)
-        # print(f"demo rgb range {demo_loading_utils._get_rgb_range_from_pcd_obs(demo_ep, 0)}")
         stage_num = 0
         for i in range(demo_len - 1):
             if not demo_augmentation and i > 0:
@@ -333,12 +318,14 @@ def fill_replay(cfg: DictConfig,
             # if kp - i <= 10:
             #     continue
 
-            # print(f"adding demo and frame index {d_idx, i}")
+            # print(f"Adding demo at frame index {d_idx, i}")
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
                 scene_bounds, voxel_sizes, bounds_offset,
                 rotation_resolution, crop_augmentation, description=desc[min(stage_num, len(desc)-1)],
                 clip_model=clip_model, device=device, demo_number=d_idx, stage_num=stage_num)
+            
+    # save keypoints in a json file
     if cfg.replay.save_keypoints:
         keypt_dir = cfg.replay.save_keypoints_dir
         logging.info(f"Saving keypoints to {keypt_dir}")
