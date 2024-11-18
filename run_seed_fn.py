@@ -9,17 +9,8 @@ import numpy as np
 import torch
 from omegaconf import DictConfig
 
-# from rlbench import CameraConfig, ObservationConfig
-# from yarr.replay_buffer.wrappers.pytorch_replay_buffer import PyTorchReplayBuffer
-# from yarr.runners.offline_train_runner import OfflineTrainRunner
-# from yarr.utils.stat_accumulator import SimpleAccumulator
-
-# from helpers.custom_rlbench_env import CustomRLBenchEnv, CustomMultiTaskRLBenchEnv
 import torch.distributed as dist
 
-# from agents import c2farm_lingunet_bc
-# from agents import arm
-# from agents.baselines import bc_lang, vit_bc_lang
 from agents import peract_bc
 
 from runners.wrappers.pytorch_replay_buffer import PyTorchReplayBuffer
@@ -89,7 +80,6 @@ def run_seed(rank,
 
     cwd = os.getcwd()
     weightsdir = os.path.join(cwd, 'seed%d' % seed, 'weights')
-    print(f"weight dir {cwd, weightsdir}")
     logdir = os.path.join(cwd, 'seed%d' % seed)
 
     train_runner = OfflineTrainRunner(

@@ -13,20 +13,11 @@ import torch
 import sapien
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf, ListConfig
-# from rlbench.action_modes.action_mode import MoveArmThenGripper
-# from rlbench.action_modes.arm_action_modes import EndEffectorPoseViaPlanning
-# from rlbench.action_modes.gripper_action_modes import Discrete
-# from rlbench.backend.utils import task_file_to_task_class
 from runners.ms_env_runner import IndependentEnvRunner
 from runners.log_writer import LogWriter
 from runners.stat_accumulator import SimpleAccumulator
 
 from agents import peract_bc
-# from agents import c2farm_lingunet_bc
-# from agents import arm
-# from agents.baselines import bc_lang, vit_bc_lang
-
-# from helpers.custom_rlbench_env import CustomRLBenchEnv, CustomMultiTaskRLBenchEnv
 from helpers import utils
 
 from runners.rollout_generator import RolloutGenerator
@@ -50,7 +41,6 @@ def eval_seed(train_cfg,
     tasks = eval_cfg.maniskill3.tasks
     rg = RolloutGenerator()
 
-    # print(train_cfg)
     if train_cfg.method.name == 'ARM':
         raise NotImplementedError('ARM not yet supported for eval.py')
 
@@ -76,7 +66,6 @@ def eval_seed(train_cfg,
 
     cwd = os.getcwd()
     weightsdir = os.path.join(logdir, 'weights')
-    # print(f"weight dir {weightsdir}")
 
     env_runner = IndependentEnvRunner(
         train_env=None,
@@ -96,7 +85,8 @@ def eval_seed(train_cfg,
         rollout_generator=rg,
         num_eval_runs=len(tasks),
         multi_task=multi_task,
-        json_path=eval_cfg.maniskill3.json_path)
+        json_path=eval_cfg.maniskill3.json_path,
+        eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
 
     manager = Manager()
     save_load_lock = manager.Lock()
@@ -170,7 +160,7 @@ def eval_seed(train_cfg,
     split_n = utils.split_list(num_weights_to_eval, eval_cfg.framework.eval_envs)
     for split in split_n:
         processes = []
-        print(f"Num of processes {len(split), sapien.Device('cuda')}")
+        print(f"The number of processes {len(split), sapien.Device('cuda')}")
         for e_idx, weight_idx in enumerate(split):
             weight = weight_folders[weight_idx]
             # TODO: the maniskill gym env is already parallalized, so don't need to rewrite torch multi-processing again
@@ -206,25 +196,18 @@ def main(eval_cfg: DictConfig) -> None:
                                 'seed%d' % start_seed)
 
     train_config_path = os.path.join(logdir, 'config.yaml')
-    # print(f"loading {train_config_path, os.path.exists(train_config_path)}")
     if os.path.exists(train_config_path):
         with open(train_config_path, 'r') as f:
             train_cfg = OmegaConf.load(f)
     else:
         raise Exception("Missing seed%d/config.yaml" % start_seed)
     
-    print("getting the device")
-    print(f"cuda available status: {torch.cuda.is_available(), sapien.Device('cuda')}")
+    # print(f"CUDA available status: {torch.cuda.is_available(), sapien.Device('cuda')}")
     env_device = utils.get_device(eval_cfg.framework.gpu)
     logging.info('Using env device %s.' % str(env_device))
-
-    # gripper_mode = Discrete()
-    # arm_action_mode = EndEffectorPoseViaPlanning()
     control_mode = 'pd_joint_pos'
 
-    # TODO: add task existance check for ms3
-    # task_files = [t.replace('.py', '') for t in os.listdir(rlbench_task.TASKS_PATH)
-    #               if t != '__init__.py' and t.endswith('.py')]
+    # Load language goal
     eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
         eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
     if os.path.exists(eval_cfg.maniskill3.desc_pkl_path):
@@ -240,9 +223,6 @@ def main(eval_cfg: DictConfig) -> None:
 
         for task in tasks:
             # TODO: add task existance check for ms3
-            # if task not in task_files:
-            #     raise ValueError('Task %s not recognised!.' % task)
-            # task_classes.append(task_file_to_task_class(task))
             pass
 
         env_config = (tasks,
@@ -254,13 +234,9 @@ def main(eval_cfg: DictConfig) -> None:
                       eval_cfg.maniskill3.time_in_state,
                       eval_cfg.framework.record_every_n)
     else:
+        # TODO: add task existance check for ms3
         task = eval_cfg.maniskill3.tasks[0]
         multi_task = False
-
-        # TODO: add task existance check for ms3
-        # if task not in task_files:
-        #     raise ValueError('Task %s not recognised!.' % task)
-
         env_config = (task,
                       control_mode,
                       lang_goal_tokens,
@@ -279,8 +255,6 @@ def main(eval_cfg: DictConfig) -> None:
               multi_task, start_seed,
               env_config)
 
-# if __name__ == '__main__':
-#     main()
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method('spawn') # multiprocessing with cuda re-init
     main()

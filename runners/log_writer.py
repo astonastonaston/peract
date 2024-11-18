@@ -59,9 +59,6 @@ class LogWriter(object):
                         # Only grab first item in batch
                         v = (summary.value if summary.value.ndim == 3 else
                              summary.value[0])
-                        # print("v.shape")
-                        # print(v.shape)
-                        # print(i)
                         self._tf_writer.add_image(summary.name, v, i)
                     elif isinstance(summary, VideoSummary):
                         # Only grab first item in batch

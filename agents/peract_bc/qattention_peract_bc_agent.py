@@ -262,7 +262,6 @@ class QAttentionPerActBCAgent(Agent):
                                                                         dtype=int,
                                                                         device=device)
 
-            # print total params
             logging.info('# Q Params: %d' % sum(
                 p.numel() for name, p in self._q.named_parameters() \
                 if p.requires_grad and 'clip' not in name))
@@ -433,15 +432,6 @@ class QAttentionPerActBCAgent(Agent):
         proprio = None
         if self._include_low_dim_state:
             proprio = replay_sample['low_dim_state']
-
-        # # visualize raw input rgb and pcds
-        # if demo_number == 0:
-        #     rw_rgb = replay_sample['rgb']
-        #     rw_pcd = replay_sample['point_cloud']
-        #     print("raw rgb and pcd when loading replay")
-        #     print(rw_pcd)
-        #     print(rw_rgb)
-        #     print()
 
         obs, pcd = self._preprocess_inputs(replay_sample)
 
@@ -627,7 +617,6 @@ class QAttentionPerActBCAgent(Agent):
                            prev_layer_voxel_grid)
 
         # softmax Q predictions
-        # print(f"shapes of qs: {q_trans.shape, q_rot_grip.shape, q_ignore_collisions.shape}")
         q_trans = self._softmax_q_trans(q_trans)
         q_rot_grip =  self._softmax_q_rot_grip(q_rot_grip) if q_rot_grip is not None else q_rot_grip
         q_ignore_collisions = self._softmax_ignore_collision(q_ignore_collisions) \
@@ -729,7 +718,7 @@ class QAttentionPerActBCAgent(Agent):
                 if '_voxelizer' not in k:
                     logging.warning("key %s not found in checkpoint" % k)
         self._q.load_state_dict(merged_state_dict)
-        print("loaded weights from %s" % weight_file)
+        print("Loading weights from %s" % weight_file)
 
     def save_weights(self, savedir: str):
         torch.save(
