@@ -143,6 +143,40 @@ After preparing the above configs, you can simply run training with:
 python train.py
 ```
 
+Or, you can feed command line arguments to override the configs:
+
+```bash
+export PERACT_ROOT=$(pwd)
+python train.py \
+    maniskill3.tasks=["PushCube-v1"] \
+    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5 \
+    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json \
+    maniskill3.desc_pkl_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/desc.pkl \
+    maniskill3.episode_length=6 \
+    maniskill3.demos=50 \
+    method.voxel_sizes=[100] \
+    method.voxel_patch_size=5 \
+    method.voxel_patch_stride=5 \
+    method.num_latents=2048 \
+    method.transform_augmentation.apply_se3=False \
+    method.pos_encoding_with_lang=True \
+    replay.save_keypoints=True \
+    replay.save_keypoints_dir=/tmp/arm \
+    replay.stop_buffer_init_val=8 \
+    replay.stopping_delta=0.15 \
+    replay.skip_stopped_steps=16 \
+    replay.gripper_open_delta=0.03 \
+    framework.log_freq=100 \
+    framework.save_freq=100 \
+    framework.num_weights_to_keep=60 \
+    framework.logdir=$PERACT_ROOT/logs/ \
+    framework.training_iterations=60000 \
+    framework.csv_logging=True \
+    framework.start_seed=0 \
+    framework.tensorboard_logging=True \
+    ddp.num_devices=1
+```
+
 The results will be saved in `train_data.csv` under `framework.logdir`. 
 You may view tensorboard logging events of training in `framework.logdir` as well via
 
@@ -196,6 +230,27 @@ After preparing evaluation configs, you can simply run evaluations via
 
 ```bash
 python eval.py 
+```
+
+Or, you can feed command line arguments to override the configs:
+
+```bash
+export PERACT_ROOT=$(pwd)
+python eval.py \
+    maniskill3.tasks=["PushCube-v1"] \
+    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5 \
+    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json \
+    maniskill3.desc_pkl_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/desc.pkl \
+    maniskill3.episode_length=6 \
+    framework.eval_from_eps_number=50 \
+    framework.eval_episodes=10 \
+    framework.logdir=$PERACT_ROOT/ckpts/ \
+    framework.train_cfg_path=$PERACT_ROOT/conf/config.yaml \
+    framework.eval_save_voxel_images=True \
+    framework.csv_logging=True \
+    framework.tensorboard_logging=True \
+    cinematic_recorder.enabled=True \
+    cinematic_recorder.save_path=$PERACT_ROOT/videos/
 ```
 
 The final results will be saved in `eval_data.csv` under `framework.logdir`. 
