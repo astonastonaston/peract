@@ -29,7 +29,7 @@ conda create -n "peract" "python==3.9" --yes
 conda activate peract
 
 # clone peract repo
-git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
+git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout release
 pip install --upgrade pip
 ```
 
@@ -54,7 +54,7 @@ You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert r
 
 ```bash
 # Install pytorch3d from pre-built wheel. This is faster than installing from source
-# Note: the python version in the link should match that on your host
+# Note: the python version in the link should match that on your env
 pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
 ```
 
@@ -123,14 +123,14 @@ In addition, you can change the following hyperparameters for ablation study. He
 * `maniskill3.demos`: The number of demo trajectories to train on
 * `maniskill3.scene_bounds`: Scene bounds for voxelization from point clouds
 
-Here is another incomplete list of hyperparameters for replay keypoint detection:
+Here is another incomplete list of hyperparameters for **replay keypoint detection**:
 
 * `replay.skip_stopped_steps`: The number of frames skipped for robot stop checking at the beginning of the episode. This is to prevent detecting the first few frames, where the robot remains static, to be the keyframes
 * `replay.stop_buffer_init_val`: Initial value of the stop buffer. This is the number of next frames skipped for robot stop checking in the middle of the episode when a stop frame is detected. See `helpers/demo_loading_utils.py`
 * `replay.stopping_delta`: The delta of joint velocities for stop checking: A stop frame is marked if all joint velocities are closed to 0 in the range of this delta. See `helpers/demo_loading_utils.py`
 * `replay.gripper_open_delta`: The delta for gripper open checking: A gripper is detected open if the gripper position (`qpos[..., -1]`) is greater than this delta. See `helpers/demo_loading_utils.py`
 
-Here are some hyperparameters for the agent training framework:
+Here are some hyperparameters for the agent **training framework**:
 
 * `framework.training_iterations`: The number of training steps
 * `framework.save_freq`: The frequency for saving the weights: The number of intermediate steps between two weight saves
@@ -198,7 +198,7 @@ cp conf/config_pushcube.yaml conf/config.yaml
 cp conf/eval_pushcube.yaml conf/eval.yaml
 ```
 
-Note that you need to change the following paths in `eval.yaml` for your runtime environment: 
+Note that you need to **change the following paths** in `eval.yaml` for your runtime environment: 
 
 * `maniskill3.tasks`: The task to evaluate on. We only support **StackCube-v1** and **PushCube-v1** for now. We only support single-task evaluation for now, so only 1 task can be in the list
 * `maniskill3.traj_path`: The path to your Maniskill evaluation demo trajectory (the h5 file), though it's not actually used and we only use the ids to generate evaluation trajectories
@@ -219,7 +219,7 @@ In addition, you can change the following hyperparameters for ablation study. He
 * `maniskill3.eval_from_eps_number`: Starting episode index for evaluation
 * `maniskill3.eval_episodes`: The number of episodes to evaluate on
 
-For visualization, you can save voxel images at each episodic steps under your logging directory as well by toggling the following hyperparameter:
+For visualization, you can **save voxel images at each pose step** under your logging directory as well by toggling the following hyperparameter:
 
 * `framework.eval_save_voxel_images`: A Boolean indicating whether or not to save voxel images at each pose step during evaluation
 
