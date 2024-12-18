@@ -265,16 +265,6 @@ def main(eval_cfg: DictConfig) -> None:
         for task in tasks:
             # TODO: add task existance check for ms3
             pass
-
-        # env_config = (tasks,
-        #               control_mode,
-        #               lang_goal,
-        #               eval_cfg.maniskill3.episode_length,
-        #               eval_cfg.framework.eval_episodes,
-        #               train_cfg.maniskill3.include_lang_goal_in_obs,
-        #               eval_cfg.maniskill3.time_in_state,
-        #               eval_cfg.framework.record_every_n)
-
         env_config = parse_env_cfg(eval_cfg, train_cfg)
 
 
@@ -282,63 +272,7 @@ def main(eval_cfg: DictConfig) -> None:
         # TODO: add task existance check for ms3
         task = eval_cfg.maniskill3.tasks[0]
         multi_task = False
-        # env_config = (task,
-        #               control_mode,
-        #               lang_goal,
-        #               eval_cfg.maniskill3.episode_length,
-        #               eval_cfg.framework.eval_episodes,
-        #               train_cfg.maniskill3.include_lang_goal_in_obs,
-        #               eval_cfg.maniskill3.time_in_state,
-        #               eval_cfg.framework.record_every_n)
-        
         env_config = parse_env_cfg(eval_cfg, train_cfg)
-
-    # # wandb logging
-    # if eval_cfg.wandb.use:
-    #     # init configs
-    #     sim_backend = "cpu"
-    #     def parse_train_env_cfg(env_cfg):
-    #         return {
-    #             "include_lang_goal_in_obs": env_cfg.maniskill3.include_lang_goal_in_obs,
-    #             "tasks": env_cfg.maniskill3.tasks,
-    #             "episode_length": env_cfg.maniskill3.episode_length,
-    #             "task_name": env_cfg.maniskill3.task_name,
-    #             "keypoint_method": env_cfg.method.keypoint_method,
-    #             "training_iterations": env_cfg.framework.training_iterations,
-    #             "scene_bounds": env_cfg.maniskill3.scene_bounds,
-    #             "demos": env_cfg.maniskill3.demos,
-    #             "cameras": env_cfg.maniskill3.cameras,
-    #         }
-    #     def parse_env_cfg(env_cfg):
-    #         env_kwargs = {'control_mode': control_mode, 
-    #                   "obs_mode": "pointcloud",
-    #                   "num_envs": env_cfg.framework.eval_envs,
-    #                   "max_episode_steps": 1000
-    #                 }
-    #         env_config = {
-    #             "tasks": task,
-    #             "task_name": env_cfg.maniskill3.task_name,
-    #             "lang_goal": lang_goal,
-    #             "env_kwargs": env_kwargs,
-    #             "num_envs": env_cfg.framework.eval_envs,
-    #             "episode_length_position_steps": env_kwargs["max_episode_steps"],
-    #             "episode_length_pose_steps": env_cfg.maniskill3.episode_length,
-    #             "eval_episodes": env_cfg.framework.eval_episodes,
-    #             "sim_backend": sim_backend,
-    #             "obs_mode": "pointcloud",
-    #             "control_mode": env_kwargs["control_mode"],
-    #             "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
-    #             "time_in_state": env_cfg.maniskill3.time_in_state,
-    #             "demo_type": eval_cfg.framework.eval_demo_type
-    #         }
-    #         return env_config
-        
-    #     fixed_wb_cfgs = {"train_env_cfg": parse_train_env_cfg(train_cfg), 
-    #                      "eval_env_cfg": parse_env_cfg(eval_cfg), 
-    #                      "num_demos": eval_cfg.framework.eval_episodes, 
-    #                      "demo_type": eval_cfg.framework.eval_demo_type}
-    #     wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
-    #     wandb_run.tags = ["peract", "evaluation"]
 
     # import wandb if used
     use_wandb = eval_cfg.wandb.use # add train and eval configs to wandb
