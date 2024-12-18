@@ -151,12 +151,18 @@ class IndependentEnvRunner(object):
         # to save or not to save evaluation metrics (set as False for recording videos)
         if self._save_metrics:
             csv_file = 'eval_data.csv' if not self._is_test_set else 'test_data.csv'
-            writer = LogWriter(self._logdir, True, True, True, eval_cfg, 
-                            env_csv=csv_file) 
-            # import wandb if used
-            use_wandb = eval_cfg.wandb.use # add train and eval configs to wandb    
-            if use_wandb: 
-                writer.add_wandb_config(env_config, train_config)
+            # add train and eval configs to wandb if used
+            use_wandb = eval_cfg.wandb.use     
+            if use_wandb:
+                writer = LogWriter(self._logdir, True, True, True, 
+                                project_name=eval_cfg.wandb.project_name, 
+                                exp_name=eval_cfg.wandb.exp_name, 
+                                env_csv=csv_file) 
+                writer.add_wandb_config(train_config, env_config, evaluation=True)
+            else:
+                writer = LogWriter(self._logdir, True, True, False,
+                                env_csv=csv_file)
+
 
         # one weight for all tasks (used for validation). For now, only single-task evaluation is supported
         if type(weight) == int:

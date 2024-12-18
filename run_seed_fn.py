@@ -82,6 +82,22 @@ def run_seed(rank,
     weightsdir = os.path.join(cwd, 'seed%d' % seed, 'weights')
     logdir = os.path.join(cwd, 'seed%d' % seed)
 
+    # prepare train env configs just for logging
+    def parse_train_env_cfg(train_cfg):
+        train_env_config = {
+            "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
+            "tasks": train_cfg.maniskill3.tasks,
+            "episode_length": train_cfg.maniskill3.episode_length,
+            "task_name": train_cfg.maniskill3.task_name,
+            "keypoint_method": train_cfg.method.keypoint_method,
+            "training_iterations": train_cfg.framework.training_iterations,
+            "scene_bounds": train_cfg.maniskill3.scene_bounds,
+            "demos": train_cfg.maniskill3.demos,
+            "cameras": train_cfg.maniskill3.cameras
+        }
+        return train_env_config
+    train_config = parse_train_env_cfg(cfg)
+
     train_runner = OfflineTrainRunner(
         agent=agent,
         wrapped_replay_buffer=wrapped_replay,
@@ -96,9 +112,13 @@ def run_seed(rank,
         save_freq=cfg.framework.save_freq,
         tensorboard_logging=cfg.framework.tensorboard_logging,
         csv_logging=cfg.framework.csv_logging,
+        wandb_logging=cfg.wandb.use,
+        wandb_project_name=cfg.wandb.project_name,
+        wandb_exp_name=cfg.wandb.exp_name,
         load_existing_weights=cfg.framework.load_existing_weights,
         rank=rank,
-        world_size=world_size)
+        world_size=world_size,
+        train_config=train_config)
 
     train_runner.start()
 

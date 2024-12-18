@@ -6,7 +6,6 @@ maniskill3:
   task_name: "multi"
   tasks: [ PushCube-v1 ]
   episode_length: 6 # TODO: Set this number. Note this is the number of POSE-based plannings to do
-  demos: 10
   traj_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
   json_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   desc_pkl_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/desc.pkl

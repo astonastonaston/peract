@@ -40,9 +40,13 @@ class OfflineTrainRunner():
                  save_freq: int = 100,
                  tensorboard_logging: bool = True,
                  csv_logging: bool = False,
+                 wandb_logging: bool = False,
+                 wandb_project_name: bool = False,
+                 wandb_exp_name: bool = False,
                  load_existing_weights: bool = True,
                  rank: int = None,
-                 world_size: int = None):
+                 world_size: int = None,
+                 train_config: dict = None):
         self._agent = agent
         self._wrapped_buffer = wrapped_replay_buffer
         # self._stat_accumulator = stat_accumulator
@@ -58,16 +62,26 @@ class OfflineTrainRunner():
         self._train_device = train_device
         self._tensorboard_logging = tensorboard_logging
         self._csv_logging = csv_logging
+        self._wandb_logging = wandb_logging
         self._load_existing_weights = load_existing_weights
         self._rank = rank
         self._world_size = world_size
+        self._train_config = train_config
 
         self._writer = None
         if logdir is None:
             logging.info("'logdir' was None. No logging will take place.")
         else:
-            self._writer = LogWriter(
-                self._logdir, tensorboard_logging, csv_logging)
+            if wandb_logging:
+                self._writer = LogWriter(
+                    self._logdir, tensorboard_logging, csv_logging, 
+                    True, project_name=wandb_project_name, 
+                    exp_name=wandb_exp_name)
+                self._writer.add_wandb_config(train_config, evaluation=False)
+            else:
+                self._writer = LogWriter(
+                    self._logdir, tensorboard_logging, csv_logging, 
+                    False)
 
         if weightsdir is None:
             logging.info(

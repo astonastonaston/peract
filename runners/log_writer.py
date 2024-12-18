@@ -17,7 +17,8 @@ class LogWriter(object):
                  tensorboard_logging: bool,
                  csv_logging: bool,
                  wandb_logging: bool,
-                 eval_cfg, 
+                 project_name: str = None,
+                 exp_name: str = None,
                  train_csv: str = 'train_data.csv',
                  env_csv: str = 'env_data.csv'):
         self._tensorboard_logging = tensorboard_logging
@@ -36,19 +37,27 @@ class LogWriter(object):
         if wandb_logging: # init wand loggings
             # init wandb instance
             import wandb as wb
-            self._project_name = eval_cfg.wandb.project_name
-            self._exp_name = eval_cfg.wandb.exp_name
+            self._project_name = project_name
+            self._exp_name = exp_name
             self._wandb_id = wb.util.generate_id()
             self._wandb_run = wb.init(project=self._project_name, name=self._exp_name, id=self._wandb_id)
             
-    def add_wandb_config(self, env_config, train_config):
+    def add_wandb_config(self, train_config, env_config=None, evaluation=True):
         import wandb as wb
-        fixed_wb_cfgs = {
-            "train_env_cfg": train_config, 
-            "eval_env_cfg": env_config
-        } 
-        wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
-        self._wandb_run.tags = ["peract", "evaluation"]
+        if evaluation:
+            assert env_config != None, "Please log evaluation environment configs"
+            fixed_wb_cfgs = {
+                "train_env_cfg": train_config, 
+                "eval_env_cfg": env_config
+            } 
+            wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
+            self._wandb_run.tags = ["peract", "evaluation"]
+        else:
+            fixed_wb_cfgs = {
+                "train_env_cfg": train_config, 
+            } 
+            wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
+            self._wandb_run.tags = ["peract", "train"]
         return 0
 
     def add_scalar(self, i, name, value):
