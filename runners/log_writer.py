@@ -16,20 +16,40 @@ class LogWriter(object):
                  logdir: str,
                  tensorboard_logging: bool,
                  csv_logging: bool,
+                 wandb_logging: bool,
+                 eval_cfg, 
                  train_csv: str = 'train_data.csv',
                  env_csv: str = 'env_data.csv'):
         self._tensorboard_logging = tensorboard_logging
         self._csv_logging = csv_logging
+        self._wandb_logging = wandb_logging
         os.makedirs(logdir, exist_ok=True)
-        if tensorboard_logging:
+        if tensorboard_logging: # init tensorboard loggings
             self._tf_writer = SummaryWriter(logdir)
-        if csv_logging:
+        if csv_logging: # init csv loggings
             self._train_prev_row_data = self._train_row_data = OrderedDict()
             self._train_csv_file = os.path.join(logdir, train_csv)
             self._env_prev_row_data = self._env_row_data = OrderedDict()
             self._env_csv_file = os.path.join(logdir, env_csv)
             self._train_field_names = None
             self._env_field_names = None
+        if wandb_logging: # init wand loggings
+            # init wandb instance
+            import wandb as wb
+            self._project_name = eval_cfg.wandb.project_name
+            self._exp_name = eval_cfg.wandb.exp_name
+            self._wandb_id = wb.util.generate_id()
+            self._wandb_run = wb.init(project=self._project_name, name=self._exp_name, id=self._wandb_id)
+            
+    def add_wandb_config(self, env_config, train_config):
+        import wandb as wb
+        fixed_wb_cfgs = {
+            "train_env_cfg": train_config, 
+            "eval_env_cfg": env_config
+        } 
+        wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
+        self._wandb_run.tags = ["peract", "evaluation"]
+        return 0
 
     def add_scalar(self, i, name, value):
         if self._tensorboard_logging:
@@ -45,13 +65,18 @@ class LogWriter(object):
                     self._train_row_data['step'] = i
                 self._train_row_data[name] = value.item() if isinstance(
                     value, torch.Tensor) else value
+        if self._wandb_logging:
+            # TODO: log scalar item to wandb
+            # print(f"wandb adding {name} {value} {i} {type(name), type(value), type(i)}")
+            self._wandb_run.log(data={name: value}, step=int(i))
 
     def add_summaries(self, i, summaries):
         for summary in summaries:
             try:
                 if isinstance(summary, ScalarSummary):
                     self.add_scalar(i, summary.name, summary.value)
-                elif self._tensorboard_logging:
+                # TODO: log multi-media item to wandb
+                if self._tensorboard_logging:
                     if isinstance(summary, HistogramSummary):
                         self._tf_writer.add_histogram(
                             summary.name, summary.value, i)
@@ -68,6 +93,15 @@ class LogWriter(object):
                             summary.name, v, i, fps=summary.fps)
                     elif isinstance(summary, TextSummary):
                         self._tf_writer.add_text(summary.name, summary.value, i)
+                if self._wandb_logging:
+                    import wandb as wb
+                    if isinstance(summary, ImageSummary):
+                        # Only grab first image in batch
+                        v = (summary.value if summary.value.ndim == 3 else
+                             summary.value[0])
+                        image = wb.Image(v, caption=summary.name)
+                        images = [image]
+                        self._wandb_run.log(data={summary.name: images}, step=int(i))
             except Exception as e:
                 logging.error('Error on summary: %s' % summary.name)
                 raise e
@@ -126,3 +160,5 @@ class LogWriter(object):
     def close(self):
         if self._tensorboard_logging:
             self._tf_writer.close()
+        if self._wandb_logging:
+            wb.finish()

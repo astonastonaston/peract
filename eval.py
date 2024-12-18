@@ -36,7 +36,8 @@ def eval_seed(train_cfg,
               env_device,
               multi_task,
               seed,
-              env_config) -> None:
+              env_config,
+              train_config) -> None:
 
     tasks = eval_cfg.maniskill3.tasks
     rg = RolloutGenerator()
@@ -169,11 +170,10 @@ def eval_seed(train_cfg,
                               save_load_lock,
                               writer_lock,
                               env_config,
+                              train_config,
                               e_idx % torch.cuda.device_count(),
-                              eval_cfg.framework.eval_save_metrics,
-                              eval_cfg.cinematic_recorder,
-                              eval_cfg.maniskill3.vis_pose,
-                              train_cfg.replay.gripper_open_delta))
+                              eval_cfg,
+                              train_cfg))
             p.start()
             processes.append(p)
         for p in processes:
@@ -212,12 +212,53 @@ def main(eval_cfg: DictConfig) -> None:
         eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
     if os.path.exists(eval_cfg.maniskill3.desc_pkl_path):
         with open(eval_cfg.maniskill3.desc_pkl_path, "rb") as f:
-            lang_goal_tokens = pickle.load(f) # TODO: only single-task lang goal supported yet
+            lang_goal = pickle.load(f) # TODO: only single-task lang goal supported yet
     else:
         raise Exception("Missing task desc file {}" % eval_cfg.maniskill3.desc_pkl_path)
 
-    # single-task or multi-task
-    if len(eval_cfg.maniskill3.tasks) > 1:
+    # single-task or multi-task env config initializations
+    sim_backend = "cpu"
+    
+    def parse_train_env_cfg(train_cfg):
+        train_env_config = {
+            "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
+            "tasks": train_cfg.maniskill3.tasks,
+            "episode_length": train_cfg.maniskill3.episode_length,
+            "task_name": train_cfg.maniskill3.task_name,
+            "keypoint_method": train_cfg.method.keypoint_method,
+            "training_iterations": train_cfg.framework.training_iterations,
+            "scene_bounds": train_cfg.maniskill3.scene_bounds,
+            "demos": train_cfg.maniskill3.demos,
+            "cameras": train_cfg.maniskill3.cameras
+        }
+        return train_env_config
+    
+    def parse_env_cfg(env_cfg, train_cfg):
+        env_kwargs = {'control_mode': control_mode, 
+                    "obs_mode": "pointcloud",
+                    "num_envs": env_cfg.framework.eval_envs,
+                    "max_episode_steps": 1000
+                }
+        env_config = {
+            "tasks": task,
+            "task_name": env_cfg.maniskill3.task_name,
+            "lang_goal": lang_goal,
+            "env_kwargs": env_kwargs,
+            "num_envs": env_cfg.framework.eval_envs,
+            "episode_length_position_steps": env_kwargs["max_episode_steps"],
+            "episode_length_pose_steps": env_cfg.maniskill3.episode_length,
+            "eval_episodes": env_cfg.framework.eval_episodes,
+            "sim_backend": sim_backend,
+            "obs_mode": "pointcloud",
+            "control_mode": env_kwargs["control_mode"],
+            "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
+            "time_in_state": env_cfg.maniskill3.time_in_state,
+            "demo_type": eval_cfg.framework.eval_demo_type
+        }
+        return env_config
+    
+    train_config = parse_train_env_cfg(train_cfg)
+    if len(eval_cfg.maniskill3.tasks) > 1: # multi-task is not supported yet
         tasks = eval_cfg.maniskill3.tasks
         multi_task = True
 
@@ -225,26 +266,85 @@ def main(eval_cfg: DictConfig) -> None:
             # TODO: add task existance check for ms3
             pass
 
-        env_config = (tasks,
-                      control_mode,
-                      lang_goal_tokens,
-                      eval_cfg.maniskill3.episode_length,
-                      eval_cfg.framework.eval_episodes,
-                      train_cfg.maniskill3.include_lang_goal_in_obs,
-                      eval_cfg.maniskill3.time_in_state,
-                      eval_cfg.framework.record_every_n)
+        # env_config = (tasks,
+        #               control_mode,
+        #               lang_goal,
+        #               eval_cfg.maniskill3.episode_length,
+        #               eval_cfg.framework.eval_episodes,
+        #               train_cfg.maniskill3.include_lang_goal_in_obs,
+        #               eval_cfg.maniskill3.time_in_state,
+        #               eval_cfg.framework.record_every_n)
+
+        env_config = parse_env_cfg(eval_cfg, train_cfg)
+
+
     else:
         # TODO: add task existance check for ms3
         task = eval_cfg.maniskill3.tasks[0]
         multi_task = False
-        env_config = (task,
-                      control_mode,
-                      lang_goal_tokens,
-                      eval_cfg.maniskill3.episode_length,
-                      eval_cfg.framework.eval_episodes,
-                      train_cfg.maniskill3.include_lang_goal_in_obs,
-                      eval_cfg.maniskill3.time_in_state,
-                      eval_cfg.framework.record_every_n)
+        # env_config = (task,
+        #               control_mode,
+        #               lang_goal,
+        #               eval_cfg.maniskill3.episode_length,
+        #               eval_cfg.framework.eval_episodes,
+        #               train_cfg.maniskill3.include_lang_goal_in_obs,
+        #               eval_cfg.maniskill3.time_in_state,
+        #               eval_cfg.framework.record_every_n)
+        
+        env_config = parse_env_cfg(eval_cfg, train_cfg)
+
+    # # wandb logging
+    # if eval_cfg.wandb.use:
+    #     # init configs
+    #     sim_backend = "cpu"
+    #     def parse_train_env_cfg(env_cfg):
+    #         return {
+    #             "include_lang_goal_in_obs": env_cfg.maniskill3.include_lang_goal_in_obs,
+    #             "tasks": env_cfg.maniskill3.tasks,
+    #             "episode_length": env_cfg.maniskill3.episode_length,
+    #             "task_name": env_cfg.maniskill3.task_name,
+    #             "keypoint_method": env_cfg.method.keypoint_method,
+    #             "training_iterations": env_cfg.framework.training_iterations,
+    #             "scene_bounds": env_cfg.maniskill3.scene_bounds,
+    #             "demos": env_cfg.maniskill3.demos,
+    #             "cameras": env_cfg.maniskill3.cameras,
+    #         }
+    #     def parse_env_cfg(env_cfg):
+    #         env_kwargs = {'control_mode': control_mode, 
+    #                   "obs_mode": "pointcloud",
+    #                   "num_envs": env_cfg.framework.eval_envs,
+    #                   "max_episode_steps": 1000
+    #                 }
+    #         env_config = {
+    #             "tasks": task,
+    #             "task_name": env_cfg.maniskill3.task_name,
+    #             "lang_goal": lang_goal,
+    #             "env_kwargs": env_kwargs,
+    #             "num_envs": env_cfg.framework.eval_envs,
+    #             "episode_length_position_steps": env_kwargs["max_episode_steps"],
+    #             "episode_length_pose_steps": env_cfg.maniskill3.episode_length,
+    #             "eval_episodes": env_cfg.framework.eval_episodes,
+    #             "sim_backend": sim_backend,
+    #             "obs_mode": "pointcloud",
+    #             "control_mode": env_kwargs["control_mode"],
+    #             "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
+    #             "time_in_state": env_cfg.maniskill3.time_in_state,
+    #             "demo_type": eval_cfg.framework.eval_demo_type
+    #         }
+    #         return env_config
+        
+    #     fixed_wb_cfgs = {"train_env_cfg": parse_train_env_cfg(train_cfg), 
+    #                      "eval_env_cfg": parse_env_cfg(eval_cfg), 
+    #                      "num_demos": eval_cfg.framework.eval_episodes, 
+    #                      "demo_type": eval_cfg.framework.eval_demo_type}
+    #     wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
+    #     wandb_run.tags = ["peract", "evaluation"]
+
+    # import wandb if used
+    use_wandb = eval_cfg.wandb.use # add train and eval configs to wandb
+    if use_wandb:
+        import wandb as wb
+    
 
     logging.info('Evaluating seed %d.' % start_seed)
     eval_seed(train_cfg,
@@ -253,7 +353,8 @@ def main(eval_cfg: DictConfig) -> None:
               eval_cfg.maniskill3.cameras,
               env_device,
               multi_task, start_seed,
-              env_config)
+              env_config,
+              train_config)
 
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method('spawn') # multiprocessing with cuda re-init

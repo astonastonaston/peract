@@ -106,21 +106,25 @@ class IndependentEnvRunner(object):
     def summaries(self) -> List[Summary]:
         summaries = []
         if self._stat_accumulator is not None:
-            summaries.extend(self._stat_accumulator.pop())
-        summaries.extend(self.agent_summaries)
+            summaries.extend(self._stat_accumulator.pop()) # add task statistics
+        summaries.extend(self.agent_summaries) # add agent summaries (like images)
         return summaries
 
     def _run_eval_independent(self, name: str,
                             stats_accumulator,
-                            eval_env,
                             weight,
                             writer_lock,
+                            eval_cfg,
+                            train_cfg,
+                            env_config, # those configs are for logging purposes only
+                            train_config,
                             eval=True,
                             device_idx=0,
-                            save_metrics=True,
                             cinematic_recorder_cfg=None,
-                            vis_pose=False,
-                            gripper_open_delta=1e-3):
+                            ):
+        save_metrics = eval_cfg.framework.eval_save_metrics
+        vis_pose = eval_cfg.maniskill3.vis_pose
+        gripper_open_delta = train_cfg.replay.gripper_open_delta
 
         self._name = name
         self._save_metrics = save_metrics
@@ -143,12 +147,16 @@ class IndependentEnvRunner(object):
 
         if not os.path.exists(self._weightsdir):
             raise Exception('No weights directory found.')
-
+     
         # to save or not to save evaluation metrics (set as False for recording videos)
         if self._save_metrics:
             csv_file = 'eval_data.csv' if not self._is_test_set else 'test_data.csv'
-            writer = LogWriter(self._logdir, True, True,
-                            env_csv=csv_file)
+            writer = LogWriter(self._logdir, True, True, True, eval_cfg, 
+                            env_csv=csv_file) 
+            # import wandb if used
+            use_wandb = eval_cfg.wandb.use # add train and eval configs to wandb    
+            if use_wandb: 
+                writer.add_wandb_config(env_config, train_config)
 
         # one weight for all tasks (used for validation). For now, only single-task evaluation is supported
         if type(weight) == int:
@@ -306,14 +314,16 @@ class IndependentEnvRunner(object):
     def start(self, weight,
               save_load_lock, writer_lock,
               env_config,
+              train_config, # those configs are for logging purposes only
               device_idx,
-              save_metrics,
-              cinematic_recorder_cfg,
-              vis_pose,
-              gripper_open_delta):
-        multi_task = isinstance(env_config[0], list)
+              eval_cfg,
+              train_cfg
+              ):
+        cinematic_recorder_cfg = eval_cfg.cinematic_recorder
+        
+        multi_task = isinstance(env_config["tasks"], list)
 
-        env_kwargs = {'control_mode': env_config[1], 
+        env_kwargs = {'control_mode': env_config["control_mode"], 
                       "obs_mode": "pointcloud",
                       "num_envs": self._eval_envs,
                       "max_episode_steps": 1000}
@@ -324,21 +334,21 @@ class IndependentEnvRunner(object):
         if multi_task:
             raise NotImplementedError("Multi-task evaluation not supported yet")
         else:
-            eval_env = gym.make(env_config[0], **env_kwargs)
+            eval_env = gym.make(env_config["tasks"], **env_kwargs)
             if cinematic_recorder_cfg.enabled:
                 eval_env = RecordEpisode(eval_env, output_dir=cinematic_recorder_cfg.save_path, save_trajectory=True, trajectory_name="trajectory", save_video=True, video_fps=30)
 
         self._eval_env = eval_env
-        self._lang_goal = env_config[2]
+        self._lang_goal = env_config["lang_goal"]
 
         self._run_eval_independent('eval_env',
                                     self._stat_accumulator,
-                                    eval_env,
                                     weight,
                                     writer_lock,
+                                    eval_cfg,
+                                    train_cfg,
+                                    env_config,
+                                    train_config,
                                     True,
                                     device_idx,
-                                    save_metrics,
-                                    cinematic_recorder_cfg,
-                                    vis_pose,
-                                    gripper_open_delta)
+                                    cinematic_recorder_cfg)
