@@ -267,18 +267,11 @@ def main(eval_cfg: DictConfig) -> None:
             pass
         env_config = parse_env_cfg(eval_cfg, train_cfg)
 
-
     else:
         # TODO: add task existance check for ms3
         task = eval_cfg.maniskill3.tasks[0]
         multi_task = False
-        env_config = parse_env_cfg(eval_cfg, train_cfg)
-
-    # import wandb if used
-    use_wandb = eval_cfg.wandb.use # add train and eval configs to wandb
-    if use_wandb:
-        import wandb as wb
-    
+        env_config = parse_env_cfg(eval_cfg, train_cfg)    
 
     logging.info('Evaluating seed %d.' % start_seed)
     eval_seed(train_cfg,
