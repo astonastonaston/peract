@@ -551,6 +551,12 @@ class QAttentionPerActBCAgent(Agent):
         self._vis_translation_qvalue = self._softmax_q_trans(q_trans[0])
         self._vis_max_coordinate = coords[0]
         self._vis_gt_coordinate = action_trans[0]
+        # grid_img = transforms.ToTensor()(visualise_voxel(
+        #                      self._vis_voxel_grid.cpu().numpy(),
+        #                      self._vis_translation_qvalue.cpu().numpy(),
+        #                      self._vis_max_coordinate.cpu().numpy(),
+        #                      self._vis_gt_coordinate.cpu().numpy()))
+        # self._summaries["voxels/voxel_grid_image"] = grid_img
         # Note: PerAct doesn't use multi-layer voxel grids like C2FARM
         # stack prev_layer_voxel_grid(s) from previous layers into a list
         if prev_layer_voxel_grid is None:

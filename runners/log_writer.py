@@ -170,4 +170,5 @@ class LogWriter(object):
         if self._tensorboard_logging:
             self._tf_writer.close()
         if self._wandb_logging:
+            import wandb as wb
             wb.finish()

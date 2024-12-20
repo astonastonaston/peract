@@ -123,3 +123,8 @@ defaults:
 hydra:
   run:
     dir: ${framework.logdir}/${maniskill3.task_name}/${method.name}
+
+wandb:
+  use: True
+  project_name: 'peract'
+  exp_name: 'peract-train-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}'

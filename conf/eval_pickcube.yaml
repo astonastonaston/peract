@@ -38,3 +38,8 @@ cinematic_recorder:
   fps: 30
   rotate_speed: 0.005
   save_path: '/home/nan/Desktop/peract/videos/'
+
+wandb:
+  use: True
+  project_name: 'peract'
+  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}'
