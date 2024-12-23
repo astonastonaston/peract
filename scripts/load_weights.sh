@@ -14,9 +14,13 @@
 # cp -r /dev/nanxiao-vol1/arm_test_bnd_30/arm_test /tmp/
 # cp -r /dev/nanxiao-vol1/arm_bnd_30/arm /tmp/
 
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_unified/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_pushcube_50demos_80ksteps_unified/arm /tmp/
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_unified/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_pushcube_50demos_80ksteps_unified/arm /tmp/
+cp -r /dev/nanxiao-vol1/arm_test_stackcube_50demos_80ksteps_unified/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_stackcube_50demos_80ksteps_unified/arm /tmp/
+
 
 # cp -r /dev/nanxiao-vol1/arm_test_bnd/arm_test /tmp/
 # cp -r /dev/nanxiao-vol1/arm_bnd/arm /tmp/

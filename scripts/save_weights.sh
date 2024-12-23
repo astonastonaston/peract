@@ -10,11 +10,16 @@
 # cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_demos_30_multi_cam
 # cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_demos_30_multi_cam
 
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_unified_pushcube_50demos_80ksteps_unified
+# mkdir /dev/nanxiao-vol1/arm_unified_pushcube_50demos_80ksteps_unified
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_pushcube_50demos_80ksteps_unified
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_pushcube_50demos_80ksteps_unified
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_unified_pushcube_50demos_80ksteps_unified
-mkdir /dev/nanxiao-vol1/arm_unified_pushcube_50demos_80ksteps_unified
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_pushcube_50demos_80ksteps_unified
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_pushcube_50demos_80ksteps_unified
+mkdir /dev/nanxiao-vol1/arm_test_unified_stackcube_50demos_80ksteps_unified
+mkdir /dev/nanxiao-vol1/arm_unified_stackcube_50demos_80ksteps_unified
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_stackcube_50demos_80ksteps_unified
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_stackcube_50demos_80ksteps_unified
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_60ksteps
