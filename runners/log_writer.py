@@ -111,6 +111,18 @@ class LogWriter(object):
                         image = wb.Image(v, caption=summary.name)
                         images = [image]
                         self._wandb_run.log(data={summary.name: images}, step=int(i))
+                    # elif isinstance(summary, HistogramSummary):
+                    #     # print(summary.name)
+                    #     # print(summary.value.shape)
+                    #     # print(len(summary.value))
+                    #     # print(summary.value[0])
+                    #     # data = [[s] for s in summary.value]
+                    #     table = wb.Table(data=[summary.value], columns=[summary.name])
+                    #     self._wandb_run.log(data={summary.name: wb.plot.histogram(table, summary.name,
+                    #         title=summary.name)}, step=int(i))
+                    elif isinstance(summary, VideoSummary):
+                        self._wandb_run.log(data={summary.name: wb.Video(summary.value)}, step=int(i))
+
             except Exception as e:
                 logging.error('Error on summary: %s' % summary.name)
                 raise e

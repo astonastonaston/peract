@@ -535,7 +535,7 @@ class QAttentionPerActBCAgent(Agent):
         total_loss.backward()
         self._optimizer.step()
 
-        self._summaries = {
+        self._summaries = { # TODO: add timer
             'losses/total_loss': total_loss,
             'losses/trans_loss': q_trans_loss.mean(),
             'losses/rot_loss': q_rot_loss.mean() if with_rot_and_grip else 0.,
@@ -678,7 +678,7 @@ class QAttentionPerActBCAgent(Agent):
                          observation_elements=observation_elements,
                          info=info)
 
-    def update_summaries(self) -> List[Summary]:
+    def update_summaries(self) -> List[Summary]: # update summary only at log iterations
         summaries = []
         for n, v in self._summaries.items(): # update loss item summaries   
             summaries.append(ScalarSummary('%s/%s' % (self._name, n), v))
@@ -688,14 +688,18 @@ class QAttentionPerActBCAgent(Agent):
             summaries.extend([
                 ImageSummary('%s/crops/%s' % (self._name, name), crops)])
 
-        for tag, param in self._q.named_parameters():
-            # assert not torch.isnan(param.grad.abs() <= 1.0).all()
-            summaries.append(
-                HistogramSummary('%s/gradient/%s' % (self._name, tag),
-                                 param.grad))
-            summaries.append(
-                HistogramSummary('%s/weight/%s' % (self._name, tag),
-                                 param.data))
+        # Compute the global L2 gradient norm
+        grad_norm = np.sqrt(sum([torch.norm(p.grad)**2 for p in self._q.parameters()]))
+        summaries.append(ScalarSummary('%s/gradient/gradient_l2_norm' % (self._name), grad_norm))
+
+        # for tag, param in self._q.named_parameters():
+        #     # assert not torch.isnan(param.grad.abs() <= 1.0).all()
+        #     summaries.append(
+        #         HistogramSummary('%s/gradient/%s' % (self._name, tag),
+        #                          param.grad))
+        #     summaries.append(
+        #         HistogramSummary('%s/weight/%s' % (self._name, tag),
+        #                          param.data))
 
         return summaries
 

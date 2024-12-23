@@ -138,6 +138,7 @@ class OfflineTrainRunner():
         process = psutil.Process(os.getpid())
         num_cpu = psutil.cpu_count()
 
+        t_init = time.time()
         for i in range(start_iter, self._iterations):
             log_iteration = i % self._log_freq == 0 and i > 0
 
@@ -166,6 +167,15 @@ class OfflineTrainRunner():
                     self._writer.add_scalar(
                         i, 'monitoring/cpu_percent',
                         process.cpu_percent(interval=None) / num_cpu)
+                    self._writer.add_scalar(
+                        i, 'time/sample_time',
+                        sample_time)
+                    self._writer.add_scalar(
+                        i, 'time/step_time',
+                        step_time)
+                    self._writer.add_scalar(
+                        i, 'time/total_time',
+                        time.time()-t_init)
 
                     logging.info(f"Train Step {i:06d} | Loss: {loss:0.5f} | Sample time: {sample_time:0.6f} | Step time: {step_time:0.4f}.")
                 self._writer.end_iteration()
