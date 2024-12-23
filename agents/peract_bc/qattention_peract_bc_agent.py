@@ -689,7 +689,7 @@ class QAttentionPerActBCAgent(Agent):
                 ImageSummary('%s/crops/%s' % (self._name, name), crops)])
 
         # Compute the global L2 gradient norm
-        grad_norm = np.sqrt(sum([torch.norm(p.grad)**2 for p in self._q.parameters()]))
+        grad_norm = np.sqrt(sum([torch.norm(p.grad.cpu())**2 for p in self._q.parameters()]))
         summaries.append(ScalarSummary('%s/gradient/gradient_l2_norm' % (self._name), grad_norm))
 
         # for tag, param in self._q.named_parameters():
