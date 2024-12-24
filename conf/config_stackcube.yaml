@@ -98,14 +98,14 @@ replay:
   max_parallel_processes: 32
 
 framework:
-  log_freq: 10000 # frequency to save loss logs
-  save_freq: 10000 # frequency to save weights
+  log_freq: 1000 # frequency to save loss logs
+  save_freq: 1000 # frequency to save weights
   train_envs: 1
   replay_ratio: ${replay.batch_size}
   transitions_before_train: 200
   tensorboard_logging: True
   csv_logging: True
-  training_iterations: 800000
+  training_iterations: 80000
   gpu: 0
   env_gpu: 0
   logdir: '/tmp/arm_test/'
@@ -113,7 +113,7 @@ framework:
   seeds: 1
   start_seed: 0 # change this if you want to train a different model
   load_existing_weights: True
-  num_weights_to_keep: 60 # older checkpoints will be deleted chronologically
+  num_weights_to_keep: 80 # older checkpoints will be deleted chronologically
   num_workers: 0
   record_every_n: 5
 
