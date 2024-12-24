@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+import time
 from typing import List
 
 import numpy as np
@@ -433,7 +434,11 @@ class QAttentionPerActBCAgent(Agent):
         if self._include_low_dim_state:
             proprio = replay_sample['low_dim_state']
 
+
+        t = time.time()
         obs, pcd = self._preprocess_inputs(replay_sample)
+        ud_time = time.time() - t
+        print(f"preprocess time {ud_time}")
 
         # batch size
         bs = pcd[0].shape[0]
@@ -454,6 +459,7 @@ class QAttentionPerActBCAgent(Agent):
                                          self._voxel_size,
                                          self._rotation_resolution,
                                          self._device)
+        t = time.time()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -464,12 +470,19 @@ class QAttentionPerActBCAgent(Agent):
                              bounds,
                              prev_layer_bounds,
                              prev_layer_voxel_grid)
+        ud_time = time.time() - t
+        print(f"q passing time {ud_time}")
 
         # argmax to choose best action
+        t = time.time()
         coords, \
         rot_and_grip_indicies, \
         ignore_collision_indicies = self._q.choose_highest_action(q_trans, q_rot_grip, q_collision)
+        ud_time = time.time() - t
+        print(f"high q action choose time {ud_time}")
 
+
+        t = time.time()
         q_trans_loss, q_rot_loss, q_grip_loss, q_collision_loss = 0., 0., 0., 0.
 
         # translation one-hot
@@ -530,10 +543,16 @@ class QAttentionPerActBCAgent(Agent):
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
+        ud_time = time.time() - t
+        print(f"loss compute time {ud_time}")
 
+        t = time.time()
         self._optimizer.zero_grad()
         total_loss.backward()
         self._optimizer.step()
+        ud_time = time.time() - t
+        print(f"loss bp time {ud_time}")
+
 
         self._summaries = { # TODO: add timer
             'losses/total_loss': total_loss,
@@ -547,10 +566,10 @@ class QAttentionPerActBCAgent(Agent):
             self._scheduler.step()
             self._summaries['learning_rate'] = self._scheduler.get_last_lr()[0]
 
-        self._vis_voxel_grid = voxel_grid[0]
-        self._vis_translation_qvalue = self._softmax_q_trans(q_trans[0])
-        self._vis_max_coordinate = coords[0]
-        self._vis_gt_coordinate = action_trans[0]
+        # self._vis_voxel_grid = voxel_grid[0]
+        # self._vis_translation_qvalue = self._softmax_q_trans(q_trans[0])
+        # self._vis_max_coordinate = coords[0]
+        # self._vis_gt_coordinate = action_trans[0]
         # grid_img = transforms.ToTensor()(visualise_voxel(
         #                      self._vis_voxel_grid.cpu().numpy(),
         #                      self._vis_translation_qvalue.cpu().numpy(),

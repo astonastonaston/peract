@@ -101,7 +101,10 @@ class OfflineTrainRunner():
             shutil.rmtree(prev_dir)
 
     def _step(self, i, sampled_batch):
+        t = time.time()
         update_dict = self._agent.update(i, sampled_batch)
+        ud_time = time.time() - t
+        print(f"step ud time {ud_time}")
         total_losses = update_dict['total_losses'].item()
         return total_losses
 
