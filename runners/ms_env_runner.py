@@ -221,7 +221,7 @@ class IndependentEnvRunner(object):
                     self._episode_length, self._timesteps,
                     eval, self._lang_goal, eval_demo_seed=eval_demo_seed, 
                     reset_kwargs=reset_kwargs, vis_pose=vis_pose,
-                    gripper_open_delta=gripper_open_delta)
+                    gripper_open_delta=gripper_open_delta, save_voxel_images=self._eval_save_voxel_images)
                 
                 step_cnt = 0
                 for replay_transition in generator:

@@ -592,8 +592,7 @@ class QAttentionPerActBCAgent(Agent):
         }
 
     def act(self, step: int, observation: dict,
-            deterministic=False) -> ActResult:
-        deterministic = True
+            deterministic=False, save_voxel_images=False) -> ActResult:
         bounds = self._coordinate_bounds
         prev_layer_voxel_grid = observation.get('prev_layer_voxel_grid', None)
         prev_layer_bounds = observation.get('prev_layer_bounds', None)
@@ -681,13 +680,14 @@ class QAttentionPerActBCAgent(Agent):
         self._act_qvalues = q_trans[0].detach()
 
         # visualize voxel grids
-        rgbs = self._act_voxel_grid[3:6, ...]
-        max_values = rgbs.view(3, -1).max(dim=1).values
-        grid_img = transforms.ToTensor()(visualise_voxel(
-                             self._act_voxel_grid.cpu().numpy(),
-                             self._act_qvalues.cpu().numpy(),
-                             self._act_max_coordinate.cpu().numpy()))
-        observation_elements["voxel_grid_img"] = grid_img
+        if save_voxel_images:
+            rgbs = self._act_voxel_grid[3:6, ...]
+            max_values = rgbs.view(3, -1).max(dim=1).values
+            grid_img = transforms.ToTensor()(visualise_voxel(
+                                self._act_voxel_grid.cpu().numpy(),
+                                self._act_qvalues.cpu().numpy(),
+                                self._act_max_coordinate.cpu().numpy()))
+            observation_elements["voxel_grid_img"] = grid_img
 
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
                          observation_elements=observation_elements,
