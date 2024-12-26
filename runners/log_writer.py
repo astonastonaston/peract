@@ -17,8 +17,7 @@ class LogWriter(object):
                  tensorboard_logging: bool,
                  csv_logging: bool,
                  wandb_logging: bool,
-                 project_name: str = None,
-                 exp_name: str = None,
+                 wandb_run = None,
                  train_csv: str = 'train_data.csv',
                  env_csv: str = 'env_data.csv'):
         self._tensorboard_logging = tensorboard_logging
@@ -34,13 +33,10 @@ class LogWriter(object):
             self._env_csv_file = os.path.join(logdir, env_csv)
             self._train_field_names = None
             self._env_field_names = None
-        if wandb_logging: # init wand loggings
+        if wandb_logging and wandb_run: # init wand loggings
             # init wandb instance
             import wandb as wb
-            self._project_name = project_name
-            self._exp_name = exp_name
-            self._wandb_id = wb.util.generate_id()
-            self._wandb_run = wb.init(project=self._project_name, name=self._exp_name, id=self._wandb_id)
+            self._wandb_run = wandb_run
             
     def add_wandb_config(self, train_config, env_config=None, evaluation=True):
         import wandb as wb

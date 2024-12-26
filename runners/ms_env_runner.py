@@ -114,7 +114,6 @@ class IndependentEnvRunner(object):
                             stats_accumulator,
                             weight,
                             writer_lock,
-                            writer,
                             eval_cfg,
                             train_cfg,
                             env_config, # those configs are for logging purposes only
@@ -122,6 +121,7 @@ class IndependentEnvRunner(object):
                             eval=True,
                             device_idx=0,
                             cinematic_recorder_cfg=None,
+                            wandb_run=None,
                             ):
         save_metrics = eval_cfg.framework.eval_save_metrics
         vis_pose = eval_cfg.maniskill3.vis_pose
@@ -149,20 +149,18 @@ class IndependentEnvRunner(object):
         if not os.path.exists(self._weightsdir):
             raise Exception('No weights directory found.')
      
-        # # to save or not to save evaluation metrics (set as False for recording videos)
-        # if self._save_metrics:
-        #     csv_file = 'eval_data.csv' if not self._is_test_set else 'test_data.csv'
-        #     # add train and eval configs to wandb if used
-        #     use_wandb = eval_cfg.wandb.use     
-        #     if use_wandb:
-        #         writer = LogWriter(self._logdir, True, True, True, 
-        #                         project_name=eval_cfg.wandb.project_name, 
-        #                         exp_name=eval_cfg.wandb.exp_name, 
-        #                         env_csv=csv_file) 
-        #         writer.add_wandb_config(train_config, env_config, evaluation=True)
-        #     else:
-        #         writer = LogWriter(self._logdir, True, True, False,
-        #                         env_csv=csv_file)
+        # to save or not to save evaluation metrics (set as False for recording videos)
+        if self._save_metrics:
+            csv_file = 'eval_data.csv' if not self._is_test_set else 'test_data.csv'
+            # add train and eval configs to wandb if used
+            use_wandb = eval_cfg.wandb.use     
+            if use_wandb:
+                writer = LogWriter(self._logdir, True, True, True, 
+                                wandb_run=wandb_run) 
+                writer.add_wandb_config(train_config, env_config, evaluation=True)
+            else:
+                writer = LogWriter(self._logdir, True, True, False,
+                                env_csv=csv_file)
 
 
         # one weight for all tasks (used for validation). For now, only single-task evaluation is supported
@@ -325,7 +323,7 @@ class IndependentEnvRunner(object):
               device_idx,
               eval_cfg,
               train_cfg,
-              writer
+              wandb_run
               ):
         cinematic_recorder_cfg = eval_cfg.cinematic_recorder
         
@@ -353,11 +351,11 @@ class IndependentEnvRunner(object):
                                     self._stat_accumulator,
                                     weight,
                                     writer_lock,
-                                    writer,
                                     eval_cfg,
                                     train_cfg,
                                     env_config,
                                     train_config,
                                     True,
                                     device_idx,
-                                    cinematic_recorder_cfg)
+                                    cinematic_recorder_cfg,
+                                    wandb_run)
