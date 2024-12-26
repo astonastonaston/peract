@@ -34,7 +34,7 @@ framework:
   eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
 
 cinematic_recorder:
-  enabled: True
+  enabled: False
   camera_resolution: [ 1280, 720 ]
   fps: 30
   rotate_speed: 0.005
