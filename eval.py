@@ -164,6 +164,12 @@ def eval_seed(train_cfg,
         exp_name = eval_cfg.wandb.exp_name
         wandb_id = wb.util.generate_id()
         wandb_run = wb.init(project=project_name, name=exp_name, id=wandb_id)
+        fixed_wb_cfgs = {
+            "train_env_cfg": train_config, 
+            "eval_env_cfg": env_config
+        } 
+        wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
+        wandb_run.tags = ["peract", "evaluation"]
     else:
         wandb_run = None
         

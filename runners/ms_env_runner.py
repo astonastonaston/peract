@@ -157,7 +157,7 @@ class IndependentEnvRunner(object):
             if use_wandb:
                 writer = LogWriter(self._logdir, True, True, True, 
                                 wandb_run=wandb_run) 
-                writer.add_wandb_config(train_config, env_config, evaluation=True)
+                # writer.add_wandb_config(train_config, env_config, evaluation=True)
             else:
                 writer = LogWriter(self._logdir, True, True, False,
                                 env_csv=csv_file)
