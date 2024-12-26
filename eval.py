@@ -156,6 +156,22 @@ def eval_seed(train_cfg,
         logging.info("No weights to evaluate. Results are already available in eval_data.csv")
         sys.exit(0)
 
+    # to save or not to save evaluation metrics (set as False for recording videos)
+    if eval_cfg.framework.eval_save_metrics:
+        csv_file = 'eval_data.csv' if eval_cfg.framework.eval_type=="missing" else 'test_data.csv'
+        # add train and eval configs to wandb if used
+        use_wandb = eval_cfg.wandb.use     
+        log_dir = eval_cfg.framework.logdir
+        if use_wandb:
+            writer = LogWriter(log_dir, True, True, True, 
+                            project_name=eval_cfg.wandb.project_name, 
+                            exp_name=eval_cfg.wandb.exp_name, 
+                            env_csv=csv_file) 
+            writer.add_wandb_config(train_config, env_config, evaluation=True)
+        else:
+            writer = LogWriter(log_dir, True, True, False,
+                            env_csv=csv_file)
+            
     # evaluate several checkpoints in parallel
     # NOTE: in multi-task settings, each task is evaluated serially, which makes everything slow!
     split_n = utils.split_list(num_weights_to_eval, eval_cfg.framework.eval_envs)
@@ -173,7 +189,8 @@ def eval_seed(train_cfg,
                               train_config,
                               e_idx % torch.cuda.device_count(),
                               eval_cfg,
-                              train_cfg))
+                              train_cfg,
+                              writer))
             p.start()
             processes.append(p)
         for p in processes:
