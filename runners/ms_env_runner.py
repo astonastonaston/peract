@@ -271,9 +271,10 @@ class IndependentEnvRunner(object):
                     reward_list.append(reward)
                     success = episode_rollout[-1].info["success"]
                     success_list.append(success)
-                    print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
+                    # print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
                 else:
-                    print(f"Evaluating {task_name} | Episode {ep} | Score: {0} () | Lang Goal: {lang_goal} | Success: {0}")
+                    # print(f"Evaluating {task_name} | Episode {ep} | Score: {0} () | Lang Goal: {lang_goal} | Success: {0}")
+                    pass
 
             # reset at last to save the video for the last episode
             if cinematic_recorder_cfg.enabled:
@@ -297,7 +298,7 @@ class IndependentEnvRunner(object):
             else:
                 task_score = "unknown"
 
-            print(f"Finished {eval_task_name} | Final Score: {task_score} | Final Success Rate {mean_success_rate}\n")
+            print(f"Finished {eval_task_name} | Final Score: {task_score} | Final Success Rate {mean_success_rate} | Model Step {weight}\n")
 
             if self._save_metrics:
                 with writer_lock:

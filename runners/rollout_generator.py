@@ -93,7 +93,7 @@ class RolloutGenerator(object):
             if step == episode_length - 1: # manually truncate if max pose-based control episodic steps is reached
                 truncated = True
             if info["plan_failed"]: # if planning failed, truncate this episode
-                print("Planning failed! Restarting another episode")
+                # print("Planning failed! Restarting another episode")
                 truncated = True
                 
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor

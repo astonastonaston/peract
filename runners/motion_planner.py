@@ -155,13 +155,13 @@ class PandaArmMotionPlanningSolver:
                 use_point_cloud=self.use_point_cloud,
             )
             if result["status"] != "Success":
-                print("Screw planning failed. Falling back to RRTConnect planning")
+                # print("Screw planning failed. Falling back to RRTConnect planning")
                 result = self.planner.plan_qpos_to_pose(np.concatenate([pose.p, pose.q]), 
                                                         self.robot.get_qpos().cpu().numpy()[0], 
                                                         time_step=self.base_env.control_timestep)
                 if result["status"] != "Success":
                     self.render_wait()
-                    print(f"Error! RRTConnect planning failed")
+                    # print(f"Error! RRTConnect planning failed")
                     obs, reward, terminated, truncated, info = self.get_current_env_states()
                     info["plan_failed"] = True
                     return obs, reward, terminated, truncated, info
