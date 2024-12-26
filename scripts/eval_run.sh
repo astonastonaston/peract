@@ -1,8 +1,6 @@
 sh scripts/eval_load_weights.sh
 
-sh scripts/prepare_env_and_dataset.sh
-
-pip install git+https://github.com/openai/CLIP.git
+sh scripts/eval_prepare_env.sh
 
 python eval.py 
 
