@@ -14,14 +14,14 @@ pip install -r requirements.txt
 pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
 # pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu116_pyt1130/download.html
 
-# # Generate language goal
-# python desc_generator.py --task "StackCube-v1" --save_dir "./"
 # Generate language goal
-python desc_generator.py --task "PushCube-v1" --save_dir "./"
+python desc_generator.py --task "StackCube-v1" --save_dir "./"
+# # Generate language goal
+# python desc_generator.py --task "PushCube-v1" --save_dir "./"
 
-# # config settings
-# mv conf/config_stackcube.yaml conf/config.yaml
-# mv conf/eval_stackcube.yaml conf/eval.yaml
 # config settings
-mv conf/config_pushcube.yaml conf/config.yaml
-mv conf/eval_pushcube.yaml conf/eval.yaml
+mv conf/config_stackcube.yaml conf/config.yaml
+mv conf/eval_stackcube.yaml conf/eval.yaml
+# # config settings
+# mv conf/config_pushcube.yaml conf/config.yaml
+# mv conf/eval_pushcube.yaml conf/eval.yaml
