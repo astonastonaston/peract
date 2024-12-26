@@ -718,14 +718,16 @@ class QAttentionPerActBCAgent(Agent):
 
         return summaries
 
-    def act_summaries(self) -> List[Summary]:
-        # return []
-        return [
-            ImageSummary('%s/act_Qattention' % self._name,
-                         transforms.ToTensor()(visualise_voxel(
-                             self._act_voxel_grid.cpu().numpy(),
-                             self._act_qvalues.cpu().numpy(),
-                             self._act_max_coordinate.cpu().numpy())))]
+    def act_summaries(self, save_voxel_image=False) -> List[Summary]:
+        if save_voxel_image:
+            return [
+                ImageSummary('%s/act_Qattention' % self._name,
+                            transforms.ToTensor()(visualise_voxel(
+                                self._act_voxel_grid.cpu().numpy(),
+                                self._act_qvalues.cpu().numpy(),
+                                self._act_max_coordinate.cpu().numpy())))]
+        else:
+            return []
 
     def load_weights(self, savedir: str):
         device = self._device if not self._training else torch.device('cuda:%d' % self._device)

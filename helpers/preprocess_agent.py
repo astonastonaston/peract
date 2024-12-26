@@ -85,8 +85,8 @@ class PreprocessAgent(Agent):
         sums.extend(self._pose_agent.update_summaries())
         return sums
 
-    def act_summaries(self) -> List[Summary]:
-        return self._pose_agent.act_summaries()
+    def act_summaries(self, save_voxel_image=False) -> List[Summary]:
+        return self._pose_agent.act_summaries(save_voxel_image)
 
     def load_weights(self, savedir: str):
         self._pose_agent.load_weights(savedir)

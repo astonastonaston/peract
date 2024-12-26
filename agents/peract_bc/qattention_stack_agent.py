@@ -104,10 +104,10 @@ class QAttentionStackAgent(Agent):
             summaries.extend(qa.update_summaries())
         return summaries
 
-    def act_summaries(self) -> List[Summary]:
+    def act_summaries(self, save_voxel_image=False) -> List[Summary]:
         s = []
         for qa in self._qattention_agents:
-            s.extend(qa.act_summaries())
+            s.extend(qa.act_summaries(save_voxel_image))
         return s
 
     def load_weights(self, savedir: str):

@@ -252,7 +252,7 @@ class IndependentEnvRunner(object):
                         if len(self.agent_summaries) == 0:
                             # Only store new summaries if the previous ones
                             # have been popped by the main env runner.
-                            for s in self._agent.act_summaries():
+                            for s in self._agent.act_summaries(self._eval_save_voxel_images):
                                 self.agent_summaries.append(s)
                     episode_rollout.append(replay_transition)
                     step_cnt += 1

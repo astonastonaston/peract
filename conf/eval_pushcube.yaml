@@ -31,7 +31,7 @@ framework:
   eval_demo_type: 'motionplanning'
   eval_type: 'last'
   eval_save_metrics: True
-  eval_save_voxel_images: True # whether or not to save voxel images for each pose step during evaluation
+  eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
 
 cinematic_recorder:
   enabled: True
