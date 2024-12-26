@@ -26,9 +26,10 @@ framework:
   record_every_n: 5
   eval_envs: 1
   eval_from_eps_number: 50 # current eatio: train/val/test = 150/25/25
-  eval_episodes: 100
+  eval_episodes: 10
   eval_demo_type: 'motionplanning'
-  eval_type: 'last' # or 'best'
+  # eval_type: 'last' # or 'best'
+  eval_type: 'missing' # or 'best'
   eval_save_metrics: True
   eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
 
@@ -42,4 +43,4 @@ cinematic_recorder:
 wandb:
   use: True
   project_name: 'peract'
-  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}'
+  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}'
