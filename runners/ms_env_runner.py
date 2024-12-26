@@ -10,13 +10,13 @@ from multiprocessing import Value, Process, Manager
 
 from agents.agent import Agent
 from mani_skill.envs.sapien_env import BaseEnv
-from mani_skill.utils.io_utils import load_json
 from mani_skill.utils.wrappers.record import RecordEpisode
 from runners.rollout_generator import RolloutGenerator
 from runners.stat_accumulator import StatAccumulator, SimpleAccumulator
 from runners.log_writer import LogWriter
 from torchvision import transforms
 from agents.agent import Summary, ScalarSummary
+# from mani_skill.utils.io_utils import load_json
 # from yarr.replay_buffer.replay_buffer import ReplayBuffer
 # from helpers.custom_ms_env import CustomManiskillEnv
 # from agents.agent import Summary
@@ -92,7 +92,7 @@ class IndependentEnvRunner(object):
             self._multi_task = multi_task
             self._eval_save_voxel_images = eval_save_voxel_images
             self._json_path = json_path
-            self._demo_meta_data = load_json(json_path)
+            # self._demo_meta_data = load_json(json_path)
             manager = Manager()
             self.write_lock = manager.Lock()
             self.stored_transitions = manager.list()
