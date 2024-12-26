@@ -68,26 +68,26 @@ def eval_seed(train_cfg,
     cwd = os.getcwd()
     weightsdir = os.path.join(logdir, 'weights')
 
-    env_runner = IndependentEnvRunner(
-        train_env=None,
-        agent=agent,
-        train_replay_buffer=None,
-        num_train_envs=0,
-        num_eval_envs=eval_cfg.framework.eval_envs,
-        rollout_episodes=99999,
-        eval_episodes=eval_cfg.framework.eval_episodes,
-        training_iterations=train_cfg.framework.training_iterations,
-        eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
-        episode_length=eval_cfg.maniskill3.episode_length, # max episode length
-        stat_accumulator=stat_accum,
-        weightsdir=weightsdir,
-        logdir=logdir,
-        env_device=env_device,
-        rollout_generator=rg,
-        num_eval_runs=len(tasks),
-        multi_task=multi_task,
-        json_path=eval_cfg.maniskill3.json_path,
-        eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
+    # env_runner = IndependentEnvRunner(
+    #     train_env=None,
+    #     agent=agent,
+    #     train_replay_buffer=None,
+    #     num_train_envs=0,
+    #     num_eval_envs=eval_cfg.framework.eval_envs,
+    #     rollout_episodes=99999,
+    #     eval_episodes=eval_cfg.framework.eval_episodes,
+    #     training_iterations=train_cfg.framework.training_iterations,
+    #     eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
+    #     episode_length=eval_cfg.maniskill3.episode_length, # max episode length
+    #     stat_accumulator=stat_accum,
+    #     weightsdir=weightsdir,
+    #     logdir=logdir,
+    #     env_device=env_device,
+    #     rollout_generator=rg,
+    #     num_eval_runs=len(tasks),
+    #     multi_task=multi_task,
+    #     json_path=eval_cfg.maniskill3.json_path,
+    #     eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
 
     manager = Manager()
     save_load_lock = manager.Lock()
@@ -181,6 +181,26 @@ def eval_seed(train_cfg,
         # print(f"The number of processes {len(split), sapien.Device('cuda')}")
         for e_idx, weight_idx in enumerate(split):
             weight = weight_folders[weight_idx]
+            env_runner = IndependentEnvRunner(
+                train_env=None,
+                agent=agent,
+                train_replay_buffer=None,
+                num_train_envs=0,
+                num_eval_envs=eval_cfg.framework.eval_envs,
+                rollout_episodes=99999,
+                eval_episodes=eval_cfg.framework.eval_episodes,
+                training_iterations=train_cfg.framework.training_iterations,
+                eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
+                episode_length=eval_cfg.maniskill3.episode_length, # max episode length
+                stat_accumulator=stat_accum,
+                weightsdir=weightsdir,
+                logdir=logdir,
+                env_device=env_device,
+                rollout_generator=rg,
+                num_eval_runs=len(tasks),
+                multi_task=multi_task,
+                json_path=eval_cfg.maniskill3.json_path,
+                eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
             env_runner.start(weight,
                             save_load_lock,
                             writer_lock,

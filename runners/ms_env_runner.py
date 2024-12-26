@@ -313,7 +313,7 @@ class IndependentEnvRunner(object):
                 writer.end_iteration()
                 # pass
 
-        logging.info('Finished evaluation.')
+        # logging.info('Finished evaluation.')
         # env.shutdown()
 
     # serialized evaluator for individual tasks
