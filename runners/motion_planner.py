@@ -13,6 +13,8 @@ import sapien.physx as physx
 OPEN = 1
 CLOSED = -1
 
+import warnings
+warnings.filterwarnings('ignore')
 
 class PandaArmMotionPlanningSolver:
     def __init__(
@@ -141,7 +143,7 @@ class PandaArmMotionPlanningSolver:
             self.base_env.render_human()
             time.sleep(0.2)
         pose = sapien.Pose(p=pose.p , q=pose.q)
-        
+
         try:
             result = self.planner.plan_screw(
                 np.concatenate([pose.p, pose.q]),
