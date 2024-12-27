@@ -141,12 +141,21 @@ class PandaArmMotionPlanningSolver:
             self.base_env.render_human()
             time.sleep(0.2)
         pose = sapien.Pose(p=pose.p , q=pose.q)
-        result = self.planner.plan_screw(
-            np.concatenate([pose.p, pose.q]),
-            self.robot.get_qpos().cpu().numpy()[0],
-            time_step=self.base_env.control_timestep,
-            use_point_cloud=self.use_point_cloud,
-        )
+        
+        try:
+            result = self.planner.plan_screw(
+                np.concatenate([pose.p, pose.q]),
+                self.robot.get_qpos().cpu().numpy()[0],
+                time_step=self.base_env.control_timestep,
+                use_point_cloud=self.use_point_cloud,
+            )
+        except:
+            self.render_wait()
+            # print(f"Error! RRTConnect planning failed")
+            obs, reward, terminated, truncated, info = self.get_current_env_states()
+            info["plan_failed"] = True
+            return obs, reward, terminated, truncated, info
+        
         if result["status"] != "Success":
             result = self.planner.plan_screw(
                 np.concatenate([pose.p, pose.q]),
