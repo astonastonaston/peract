@@ -87,22 +87,26 @@ class PandaArmMotionPlanningSolver:
 
     def follow_path(self, result, refine_steps: int = 0):
         n_step = result["position"].shape[0]
-        for i in range(n_step + refine_steps):
-            qpos = result["position"][min(i, n_step - 1)]
-            if self.control_mode == "pd_joint_pos_vel":
-                qvel = result["velocity"][min(i, n_step - 1)]
-                action = np.hstack([qpos, qvel, self.gripper_state])
-            else:
-                action = np.hstack([qpos, self.gripper_state])
-            obs, reward, terminated, truncated, info = self.env.step(action)
-            self.elapsed_steps += 1
-            if self.print_env_info:
-                print(
-                    f"[{self.elapsed_steps:3}] Env Output: reward={reward} info={info}"
-                )
-            if self.vis:
-                self.base_env.render_human()
-                time.sleep(0.2)
+
+        if n_step + refine_steps != 0:
+            for i in range(n_step + refine_steps):
+                qpos = result["position"][min(i, n_step - 1)]
+                if self.control_mode == "pd_joint_pos_vel":
+                    qvel = result["velocity"][min(i, n_step - 1)]
+                    action = np.hstack([qpos, qvel, self.gripper_state])
+                else:
+                    action = np.hstack([qpos, self.gripper_state])
+                obs, reward, terminated, truncated, info = self.env.step(action)
+                self.elapsed_steps += 1
+                if self.print_env_info:
+                    print(
+                        f"[{self.elapsed_steps:3}] Env Output: reward={reward} info={info}"
+                    )
+                if self.vis:
+                    self.base_env.render_human()
+                    time.sleep(0.2)
+        else:
+            obs, reward, terminated, truncated, info = self.get_current_env_states()
         return obs, reward, terminated, truncated, info
 
     def move_to_pose_with_RRTConnect(
