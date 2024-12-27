@@ -28,6 +28,9 @@ torch.multiprocessing.set_sharing_strategy('file_system')
 
 # from tasks import push_cube
 
+import warnings
+warnings.filterwarnings('ignore')
+
 
 def eval_seed(train_cfg,
               eval_cfg,
