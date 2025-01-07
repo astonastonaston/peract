@@ -1,6 +1,6 @@
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_stackcube_50demos_80ksteps_wandb/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_stackcube_50demos_80ksteps_wandb/arm /tmp/
+cp -r /dev/nanxiao-vol1/arm_test_stackcube_se3/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_stackcube_se3/arm /tmp/
 
 # # load weights from permanent storage to the runtime directory
 # cp -r /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_wandb/arm_test /tmp/

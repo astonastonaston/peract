@@ -53,7 +53,7 @@ method:
   # Augmentation
   crop_augmentation: True
   transform_augmentation:
-    apply_se3: False
+    apply_se3: True
     aug_xyz: [ 0.050, 0.050, 0.050 ]
     aug_rpy: [ 0.0, 0.0, 15.0 ]
     aug_rot_resolution: ${method.rotation_resolution}
@@ -127,4 +127,4 @@ hydra:
 wandb:
   use: True
   project_name: 'peract'
-  exp_name: 'peract-train-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}'
+  exp_name: 'peract-train-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}-se3aug-{method.transform_augmentation.apply_se3}'
