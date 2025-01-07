@@ -1,8 +1,8 @@
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_stackcube_se3
-mkdir /dev/nanxiao-vol1/arm_stackcube_se3
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_stackcube_se3
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_stackcube_se3
+mkdir /dev/nanxiao-vol1/arm_test_stackcube_se3_bigger
+mkdir /dev/nanxiao-vol1/arm_stackcube_se3_bigger
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_stackcube_se3_bigger
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_stackcube_se3_bigger
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_wandb
