@@ -73,15 +73,18 @@ class OfflineTrainRunner():
             logging.info("'logdir' was None. No logging will take place.")
         else:
             if wandb_logging:
+                # init wandb instance
+                import wandb as wb
+                wandb_id = wb.util.generate_id()
+                self._wandb_run = wb.init(project=wandb_project_name, name=wandb_exp_name, id=wandb_id)
                 self._writer = LogWriter(
                     self._logdir, tensorboard_logging, csv_logging, 
-                    True, project_name=wandb_project_name, 
-                    exp_name=wandb_exp_name)
+                    wandb_logging=True, wandb_run=self._wandb_run)
                 self._writer.add_wandb_config(train_config, evaluation=False)
             else:
                 self._writer = LogWriter(
                     self._logdir, tensorboard_logging, csv_logging, 
-                    False)
+                    wandb_logging=False)
 
         if weightsdir is None:
             logging.info(
