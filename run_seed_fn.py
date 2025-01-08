@@ -93,7 +93,11 @@ def run_seed(rank,
             "training_iterations": train_cfg.framework.training_iterations,
             "scene_bounds": train_cfg.maniskill3.scene_bounds,
             "demos": train_cfg.maniskill3.demos,
-            "cameras": train_cfg.maniskill3.cameras
+            "cameras": train_cfg.maniskill3.cameras,
+            "apply_se3": train_cfg.method.transform_augmentation.apply_se3,
+            "aug_xyz": train_cfg.method.transform_augmentation.aug_xyz,
+            "aug_rpy": train_cfg.method.transform_augmentation.aug_rpy,
+            "aug_rot_resolution": train_cfg.method.transform_augmentation.aug_rot_resolution,
         }
         return train_env_config
     train_config = parse_train_env_cfg(cfg)
