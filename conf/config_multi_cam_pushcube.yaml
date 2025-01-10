@@ -53,9 +53,9 @@ method:
   # Augmentation
   crop_augmentation: True
   transform_augmentation:
-    apply_se3: False
-    aug_xyz: [0.050, 0.050, 0.050]
-    aug_rpy: [0.0, 0.0, 15.0]
+    apply_se3: True
+    aug_xyz: [0.025, 0.025, 0.025]
+    aug_rpy: [0.0, 0.0, 5.0]
     aug_rot_resolution: ${method.rotation_resolution}
 
   demo_augmentation: True
@@ -71,8 +71,8 @@ maniskill3:
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
   tasks: [PushCube-v1]
   episode_length: 6 # TODO: Set this number
-  demos: 30
-  # demos: 50
+  # demos: 30
+  demos: 50
   traj_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
   json_path: /peract/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   desc_pkl_path: /peract/demos/PushCube-v1/motionplanning/desc.pkl
@@ -90,22 +90,22 @@ replay:
   use_disk: True
   save_keypoints: True
   save_keypoints_dir: "/tmp/arm"
-  stop_buffer_init_val: 16
-  stopping_delta: 0.1 # for pickcube, since there's a stop
-  gripper_open_delta: 0.025 # for stackcube, the gripper is counted closed while grasping the cube, so this threshold is bigger
+  stop_buffer_init_val: 8
+  stopping_delta: 0.15 # for pickcube, since there's a stop
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
+  gripper_open_delta: 0.03 # for stackcube, the gripper is counted closed while grasping the cube, so this threshold is bigger
   path: '/tmp/arm/replay' # only used when use_disk is True.
   max_parallel_processes: 32
 
 framework:
-  log_freq: 100
-  save_freq: 100
+  log_freq: 1000
+  save_freq: 1000
   train_envs: 1
   replay_ratio: ${replay.batch_size}
   transitions_before_train: 200
   tensorboard_logging: True
   csv_logging: True
-  training_iterations: 60000
+  training_iterations: 80000
   gpu: 0
   env_gpu: 0
   logdir: '/tmp/arm_test/'
@@ -113,7 +113,7 @@ framework:
   seeds: 1
   start_seed: 0 # change this if you want to train a different model
   load_existing_weights: True
-  num_weights_to_keep: 60 # older checkpoints will be deleted chronologically
+  num_weights_to_keep: 80 # older checkpoints will be deleted chronologically
   num_workers: 0
   record_every_n: 5
 
