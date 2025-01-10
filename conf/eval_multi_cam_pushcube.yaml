@@ -43,4 +43,4 @@ cinematic_recorder:
 wandb:
   use: True
   project_name: 'peract'
-  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}'
+  exp_name: 'peract-eval-multiview-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}'

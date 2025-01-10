@@ -127,4 +127,4 @@ hydra:
 wandb:
   use: True
   project_name: 'peract'
-  exp_name: 'peract-train-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}'
+  exp_name: 'peract-train-multiview-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}'
