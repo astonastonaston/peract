@@ -38,7 +38,6 @@ class QAttentionStackAgent(Agent):
     def update(self, step: int, replay_sample: dict) -> dict:
         priorities = 0
         total_losses = 0.
-        # print(f"at stack agent now rgb {replay_sample['rgb'][0][0]}")
         for qa in self._qattention_agents: # update agents under each voxel resolution
             update_dict = qa.update(step, replay_sample)
             replay_sample.update(update_dict)
@@ -52,17 +51,19 @@ class QAttentionStackAgent(Agent):
         }
 
     def act(self, step: int, observation: dict,
-            deterministic=False) -> ActResult:
+            deterministic=False, save_voxel_images=False) -> ActResult:
 
         observation_elements = {}
         translation_results, rot_grip_results, ignore_collisions_results = [], [], []
         infos = {}
         for depth, qagent in enumerate(self._qattention_agents):
-            act_results = qagent.act(step, observation, deterministic)
-            voxel_img = act_results.observation_elements['voxel_grid_img'].cpu().numpy()
+            act_results = qagent.act(step, observation, deterministic, save_voxel_images)
             attention_coordinate = act_results.observation_elements['attention_coordinate'].cpu().numpy()
             observation_elements['attention_coordinate_layer_%d' % depth] = attention_coordinate[0]
-            observation_elements['voxel_grid_img_%d' % depth] = voxel_img
+            
+            if save_voxel_images:
+                voxel_img = act_results.observation_elements['voxel_grid_img'].cpu().numpy()
+                observation_elements['voxel_grid_img_%d' % depth] = voxel_img
 
             translation_idxs, rot_grip_idxs, ignore_collisions_idxs = act_results.action
             translation_results.append(translation_idxs)
@@ -74,13 +75,9 @@ class QAttentionStackAgent(Agent):
             observation['attention_coordinate'] = act_results.observation_elements['attention_coordinate']
             observation['prev_layer_voxel_grid'] = act_results.observation_elements['prev_layer_voxel_grid']
             observation['prev_layer_bounds'] = act_results.observation_elements['prev_layer_bounds']
-            # print(observation.keys())
-            # print(observation["base_camera"].keys())
             for n in self._camera_names:
                 px, py = utils.point_to_pixel_index(
                     attention_coordinate[0],
-                    # observation["sensor_param"][f"{n}"]['extrinsic_cv'][0].cpu().numpy(),
-                    # observation["sensor_param"][f"{n}"]['intrinsic_cv'][0].cpu().numpy())
                     observation[f"{n}"]['extrinsic_cv'][0].cpu().numpy(),
                     observation[f"{n}"]['intrinsic_cv'][0].cpu().numpy())
                 pc_t = torch.tensor([[[py, px]]], dtype=torch.float32, device=self._device)
@@ -111,10 +108,10 @@ class QAttentionStackAgent(Agent):
             summaries.extend(qa.update_summaries())
         return summaries
 
-    def act_summaries(self) -> List[Summary]:
+    def act_summaries(self, save_voxel_image=False) -> List[Summary]:
         s = []
         for qa in self._qattention_agents:
-            s.extend(qa.act_summaries())
+            s.extend(qa.act_summaries(save_voxel_image))
         return s
 
     def load_weights(self, savedir: str):

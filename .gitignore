@@ -1,5 +1,6 @@
 demos/
 useless/
+logs/
 peract_env/
 ckpts/
 peract.egg-info/
@@ -9,5 +10,6 @@ videos/
 outputs/
 voxel_visualizer.ipynb
 pcd_visualizer.py
+nohup.out
 *__pycache__*
 *.pyc

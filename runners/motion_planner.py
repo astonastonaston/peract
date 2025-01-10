@@ -1,3 +1,4 @@
+# Adapted from https://github.com/haosulab/ManiSkill/blob/main/mani_skill/examples/motionplanning/panda/motionplanner.py
 import mplib
 import numpy as np
 import sapien
@@ -12,6 +13,8 @@ import sapien.physx as physx
 OPEN = 1
 CLOSED = -1
 
+import warnings
+warnings.filterwarnings('ignore')
 
 class PandaArmMotionPlanningSolver:
     def __init__(
@@ -84,22 +87,26 @@ class PandaArmMotionPlanningSolver:
 
     def follow_path(self, result, refine_steps: int = 0):
         n_step = result["position"].shape[0]
-        for i in range(n_step + refine_steps):
-            qpos = result["position"][min(i, n_step - 1)]
-            if self.control_mode == "pd_joint_pos_vel":
-                qvel = result["velocity"][min(i, n_step - 1)]
-                action = np.hstack([qpos, qvel, self.gripper_state])
-            else:
-                action = np.hstack([qpos, self.gripper_state])
-            obs, reward, terminated, truncated, info = self.env.step(action)
-            self.elapsed_steps += 1
-            if self.print_env_info:
-                print(
-                    f"[{self.elapsed_steps:3}] Env Output: reward={reward} info={info}"
-                )
-            if self.vis:
-                self.base_env.render_human()
-                time.sleep(0.2)
+
+        if n_step + refine_steps != 0:
+            for i in range(n_step + refine_steps):
+                qpos = result["position"][min(i, n_step - 1)]
+                if self.control_mode == "pd_joint_pos_vel":
+                    qvel = result["velocity"][min(i, n_step - 1)]
+                    action = np.hstack([qpos, qvel, self.gripper_state])
+                else:
+                    action = np.hstack([qpos, self.gripper_state])
+                obs, reward, terminated, truncated, info = self.env.step(action)
+                self.elapsed_steps += 1
+                if self.print_env_info:
+                    print(
+                        f"[{self.elapsed_steps:3}] Env Output: reward={reward} info={info}"
+                    )
+                if self.vis:
+                    self.base_env.render_human()
+                    time.sleep(0.2)
+        else:
+            obs, reward, terminated, truncated, info = self.get_current_env_states()
         return obs, reward, terminated, truncated, info
 
     def move_to_pose_with_RRTConnect(
@@ -118,7 +125,6 @@ class PandaArmMotionPlanningSolver:
             wrt_world=True,
         )
         if result["status"] != "Success":
-            print(result["status"])
             self.render_wait()
             return -1
         self.render_wait()
@@ -141,12 +147,21 @@ class PandaArmMotionPlanningSolver:
             self.base_env.render_human()
             time.sleep(0.2)
         pose = sapien.Pose(p=pose.p , q=pose.q)
-        result = self.planner.plan_screw(
-            np.concatenate([pose.p, pose.q]),
-            self.robot.get_qpos().cpu().numpy()[0],
-            time_step=self.base_env.control_timestep,
-            use_point_cloud=self.use_point_cloud,
-        )
+
+        try:
+            result = self.planner.plan_screw(
+                np.concatenate([pose.p, pose.q]),
+                self.robot.get_qpos().cpu().numpy()[0],
+                time_step=self.base_env.control_timestep,
+                use_point_cloud=self.use_point_cloud,
+            )
+        except:
+            self.render_wait()
+            # print(f"Error! RRTConnect planning failed")
+            obs, reward, terminated, truncated, info = self.get_current_env_states()
+            info["plan_failed"] = True
+            return obs, reward, terminated, truncated, info
+        
         if result["status"] != "Success":
             result = self.planner.plan_screw(
                 np.concatenate([pose.p, pose.q]),
@@ -155,14 +170,13 @@ class PandaArmMotionPlanningSolver:
                 use_point_cloud=self.use_point_cloud,
             )
             if result["status"] != "Success":
-                # print(result["status"])
-                print("Screw planning failed. Falling back to RRTConnect planning")
+                # print("Screw planning failed. Falling back to RRTConnect planning")
                 result = self.planner.plan_qpos_to_pose(np.concatenate([pose.p, pose.q]), 
                                                         self.robot.get_qpos().cpu().numpy()[0], 
                                                         time_step=self.base_env.control_timestep)
                 if result["status"] != "Success":
                     self.render_wait()
-                    print(f"Error! RRTConnect planning failed")
+                    # print(f"Error! RRTConnect planning failed")
                     obs, reward, terminated, truncated, info = self.get_current_env_states()
                     info["plan_failed"] = True
                     return obs, reward, terminated, truncated, info
@@ -194,8 +208,6 @@ class PandaArmMotionPlanningSolver:
     def close_gripper(self, t=6):
         self.gripper_state = CLOSED
         qpos = self.robot.get_qpos()[0, :-2].cpu().numpy()
-        # print("before closing")
-        # print(self.robot.get_qpos())
         for i in range(t):
             if self.control_mode == "pd_joint_pos":
                 action = np.hstack([qpos, self.gripper_state])
@@ -209,8 +221,6 @@ class PandaArmMotionPlanningSolver:
                 )
             if self.vis:
                 self.base_env.render_human()
-        # print("after closing")
-        # print(self.robot.get_qpos())
         return obs, reward, terminated, truncated, info
 
     def add_box_collision(self, extents: np.ndarray, pose: sapien.Pose):

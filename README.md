@@ -15,7 +15,6 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 - Getting Started: [Installation](#installation)
 - Data Generation: [Data Generation](#data-generation)
 - Training & Evaluation: [Training and Evaluation](#training-and-evaluation)
-- Miscellaneous: [Recording Videos](#recording-videos)
 - Acknowledgements: [Acknowledgements](#acknowledgements), [Citations](#citations)
 
 ## Installation
@@ -25,9 +24,11 @@ This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.
 #### 1. Environment
 
 ```bash
-# setup a virtualenv with whichever package manager you prefer
-conda create -n "peract" "python==3.10"
+# create conda virtual env
+conda create -n "peract" "python==3.9" --yes
 conda activate peract
+
+# clone peract repo
 git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout ms3
 pip install --upgrade pip
 ```
@@ -53,7 +54,8 @@ You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert r
 
 ```bash
 # Install pytorch3d from pre-built wheel. This is faster than installing from source
-pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu116_pyt1130/download.html
+# Note: the python version in the link should match that on your host
+pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
 ```
 
 
@@ -115,7 +117,7 @@ Note that you need to **change the following paths** in `config.yaml` for your r
 * `replay.save_keypoints_dir`: The directory to save your detected keypoints in the replays (a json file)
 
 In addition, you can change the following hyperparameters for ablation study. Here is an incomplete lits of them 
-*(if you just want a quickstart, you can skip these readings and go to [Training](#training-1) directly)*:
+*(if you just want a quickstart, you can skip the following readings and go to [Training](#training-1) directly)*:
 
 * `maniskill3.episode_length`: The maximal number of steps (in terms of next-best pose) to reach the goal
 * `maniskill3.demos`: The number of demo trajectories to train on
@@ -141,6 +143,42 @@ After preparing the above configs, you can simply run training with:
 python train.py
 ```
 
+Or, you can feed command line arguments to override the configs:
+
+#### Training
+After preparing the above configs, you can simply run training with:
+```bash
+export PERACT_ROOT=$(pwd)
+python train.py \
+    maniskill3.tasks=["PushCube-v1"] \
+    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5 \
+    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json \
+    maniskill3.desc_pkl_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/desc.pkl \
+    maniskill3.episode_length=6 \
+    maniskill3.demos=50 \
+    method.voxel_sizes=[100] \
+    method.voxel_patch_size=5 \
+    method.voxel_patch_stride=5 \
+    method.num_latents=2048 \
+    method.transform_augmentation.apply_se3=False \
+    method.pos_encoding_with_lang=True \
+    replay.save_keypoints=True \
+    replay.save_keypoints_dir=/tmp/arm \
+    replay.stop_buffer_init_val=8 \
+    replay.stopping_delta=0.15 \
+    replay.skip_stopped_steps=16 \
+    replay.gripper_open_delta=0.03 \
+    framework.log_freq=100 \
+    framework.save_freq=100 \
+    framework.num_weights_to_keep=60 \
+    framework.logdir=$PERACT_ROOT/logs/ \
+    framework.training_iterations=60000 \
+    framework.csv_logging=True \
+    framework.start_seed=0 \
+    framework.tensorboard_logging=True \
+    ddp.num_devices=1
+```
+
 The results will be saved in `train_data.csv` under `framework.logdir`. 
 You may view tensorboard logging events of training in `framework.logdir` as well via
 
@@ -158,6 +196,7 @@ tensorboard --logdir={framework.logdir}
 Similar to training, make sure you have `eval.yaml` under the directory `conf`. To evaluate on **PushCube-v1**, you can simply prepare configs by 
 
 ```bash
+cp conf/config_pushcube.yaml conf/config.yaml
 cp conf/eval_pushcube.yaml conf/eval.yaml
 ```
 
@@ -168,8 +207,9 @@ Note that you need to change the following paths in `eval.yaml` for your runtime
 * `maniskill3.json_path` : The path to your Maniskill evaluation demos trajectory metadata (the json file)
 * `maniskill3.desc_pkl_path`: The path to your language goal file 
 * `framework.logdir`: The directory to find weights and save your evaluation results
+* `framework.train_cfg_path`: The path to your training config. This is used to build a PerAct agent consistent with the agent during training
 
-To **save evaluation videos**, you can change those hyperparameters:
+To **save evaluation videos**, you can change those hyperparameters *(if you just want a quickstart, you can skip the following readings and go to [Evaluation](#evaluation-1) directly)*:
 
 * `cinematic_recorder.enabled`: Enable evaluation video saving
 * `cinematic_recorder.save_path`: The directory to save your evaluation videos
@@ -181,11 +221,38 @@ In addition, you can change the following hyperparameters for ablation study. He
 * `maniskill3.eval_from_eps_number`: Starting episode index for evaluation
 * `maniskill3.eval_episodes`: The number of episodes to evaluate on
 
+For visualization, you can save voxel images at each episodic steps under your logging directory as well by toggling the following hyperparameter:
+
+* `framework.eval_save_voxel_images`: A Boolean indicating whether or not to save voxel images at each pose step during evaluation
+
+
+
 #### Evaluation
 After preparing evaluation configs, you can simply run evaluations via
 
 ```bash
 python eval.py 
+```
+
+Or, you can feed command line arguments to override the configs:
+
+```bash
+export PERACT_ROOT=$(pwd)
+python eval.py \
+    maniskill3.tasks=["PushCube-v1"] \
+    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5 \
+    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json \
+    maniskill3.desc_pkl_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/desc.pkl \
+    maniskill3.episode_length=6 \
+    framework.eval_from_eps_number=50 \
+    framework.eval_episodes=10 \
+    framework.logdir=$PERACT_ROOT/ckpts/ \
+    framework.train_cfg_path=$PERACT_ROOT/conf/config.yaml \
+    framework.eval_save_voxel_images=True \
+    framework.csv_logging=True \
+    framework.tensorboard_logging=True \
+    cinematic_recorder.enabled=True \
+    cinematic_recorder.save_path=$PERACT_ROOT/videos/
 ```
 
 The final results will be saved in `eval_data.csv` under `framework.logdir`. 
@@ -196,9 +263,7 @@ tensorboard --logdir={framework.logdir}
 ```
 
 
-
-
-
+<!-- 
 ## Hardware Requirements
 
 Here the single-task PerAct agent was trained with 1 RTX 2080 card with batch_size=1 and 16GB of memory, 
@@ -210,7 +275,7 @@ Tested with:
 - **RAM** - 16GB
 - **OS** - Ubuntu 20.04
 
-For inference, a single GPU is sufficient.
+For inference, a single GPU is sufficient. -->
 
 ## Acknowledgements
 

@@ -1,3 +1,4 @@
+# Adapted from https://github.com/MohitShridhar/YARR/blob/peract/yarr/runners/offline_train_runner.py
 import copy
 import logging
 import os
@@ -39,9 +40,13 @@ class OfflineTrainRunner():
                  save_freq: int = 100,
                  tensorboard_logging: bool = True,
                  csv_logging: bool = False,
+                 wandb_logging: bool = False,
+                 wandb_project_name: bool = False,
+                 wandb_exp_name: bool = False,
                  load_existing_weights: bool = True,
                  rank: int = None,
-                 world_size: int = None):
+                 world_size: int = None,
+                 train_config: dict = None):
         self._agent = agent
         self._wrapped_buffer = wrapped_replay_buffer
         # self._stat_accumulator = stat_accumulator
@@ -57,16 +62,29 @@ class OfflineTrainRunner():
         self._train_device = train_device
         self._tensorboard_logging = tensorboard_logging
         self._csv_logging = csv_logging
+        self._wandb_logging = wandb_logging
         self._load_existing_weights = load_existing_weights
         self._rank = rank
         self._world_size = world_size
+        self._train_config = train_config
 
         self._writer = None
         if logdir is None:
             logging.info("'logdir' was None. No logging will take place.")
         else:
-            self._writer = LogWriter(
-                self._logdir, tensorboard_logging, csv_logging)
+            if wandb_logging:
+                # init wandb instance
+                import wandb as wb
+                wandb_id = wb.util.generate_id()
+                self._wandb_run = wb.init(project=wandb_project_name, name=wandb_exp_name, id=wandb_id)
+                self._writer = LogWriter(
+                    self._logdir, tensorboard_logging, csv_logging, 
+                    wandb_logging=True, wandb_run=self._wandb_run)
+                self._writer.add_wandb_config(train_config, evaluation=False)
+            else:
+                self._writer = LogWriter(
+                    self._logdir, tensorboard_logging, csv_logging, 
+                    wandb_logging=False)
 
         if weightsdir is None:
             logging.info(
@@ -123,6 +141,7 @@ class OfflineTrainRunner():
         process = psutil.Process(os.getpid())
         num_cpu = psutil.cpu_count()
 
+        t_init = time.time()
         for i in range(start_iter, self._iterations):
             log_iteration = i % self._log_freq == 0 and i > 0
 
@@ -151,6 +170,15 @@ class OfflineTrainRunner():
                     self._writer.add_scalar(
                         i, 'monitoring/cpu_percent',
                         process.cpu_percent(interval=None) / num_cpu)
+                    self._writer.add_scalar(
+                        i, 'time/sample_time',
+                        sample_time)
+                    self._writer.add_scalar(
+                        i, 'time/step_time',
+                        step_time)
+                    self._writer.add_scalar(
+                        i, 'time/total_time',
+                        time.time()-t_init)
 
                     logging.info(f"Train Step {i:06d} | Loss: {loss:0.5f} | Sample time: {sample_time:0.6f} | Step time: {step_time:0.4f}.")
                 self._writer.end_iteration()

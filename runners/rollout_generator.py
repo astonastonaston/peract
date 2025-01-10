@@ -1,3 +1,4 @@
+# Adapted from https://github.com/MohitShridhar/YARR/blob/peract/yarr/utils/rollout_generator.py
 from multiprocessing import Value
 
 import numpy as np
@@ -23,7 +24,7 @@ class RolloutGenerator(object):
                   episode_length: int, timesteps: int,
                   eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, 
                   reset_kwargs: dict = None, vis_pose=False,
-                  gripper_open_delta: float = 1e-3):
+                  gripper_open_delta: float = 1e-3, save_voxel_images=False):
                 #   record_enabled: bool = False):
 
         # reset env and agent 
@@ -57,11 +58,11 @@ class RolloutGenerator(object):
         
         # start episode generation (episode_length: the number of pose-based control steps)
         for step in range(episode_length):
-            # print(f"step {step} in episode with len {episode_length}")
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
 
             act_result = agent.act(step, prepped_data,
-                                   deterministic=eval)
+                                   deterministic=eval,
+                                   save_voxel_images=save_voxel_images)
             agent_obs_elems = {k: np.array(v) for k, v in
                                act_result.observation_elements.items()}
             agent_obs_elems["lang_goal_tokens"] = lang_goal_tokens
@@ -92,9 +93,8 @@ class RolloutGenerator(object):
             if step == episode_length - 1: # manually truncate if max pose-based control episodic steps is reached
                 truncated = True
             if info["plan_failed"]: # if planning failed, truncate this episode
-                print("Planning failed! Restarting another episode")
+                # print("Planning failed! Restarting another episode")
                 truncated = True
-                # break
                 
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor
             obs = add_low_dim_states(obs, step+1, episode_length, gripper_open_delta)
@@ -110,11 +110,8 @@ class RolloutGenerator(object):
             # Reset when terminated
             if transition["terminal"]: 
                 if "needs_reset" in transition["info"]:
-                    # print("Reset needed! transition info keys:")
-                    # print(transition["info"])
                     transition["info"]["needs_reset"] = True
 
-            # TODO: add truncated and succeed terminal states
             obs_and_replay_elems = {}
             obs_and_replay_elems.update(obs)
             obs_and_replay_elems.update(agent_obs_elems)
@@ -143,11 +140,6 @@ class RolloutGenerator(object):
                                            act_result.observation_elements.items()}
                     obs_tp1.update(agent_obs_elems_tp1)
                 replay_transition.final_observation = obs_tp1
-
-            # TODO: enable recording
-            # if record_enabled and transition.terminal or timeout or step == episode_length - 1:
-            #     env.env._action_mode.arm_action_mode.record_end(env.env._scene,
-            #                                                     steps=60, step_scene=True)
 
             obs = transition["observation"]
             yield replay_transition

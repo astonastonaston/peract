@@ -82,6 +82,7 @@ class _SimpleAccumulator(StatAccumulator):
             self._summaries.clear()
 
     def step(self, transition: ReplayTransition, eval: bool):
+        # accumulate stats during eval
         with self._lock:
             self._transitions += 1
             self._episode_returns.update(transition.reward) # cumulative adding rewards
@@ -89,12 +90,10 @@ class _SimpleAccumulator(StatAccumulator):
             if transition.terminal:
                 self._episode_returns.next() # saving metrics to list at the terminal state
                 self._episode_lengths.next()
-            # print("updating return and length:")
-            # print(self._episode_returns)
-            # print(self._episode_lengths)
             self._summaries.extend(list(transition.summaries))
 
     def _get(self) -> List[Summary]:
+        # get data and summarize when eval finished
         sums = []
 
         if self._mean_only:
@@ -118,11 +117,9 @@ class _SimpleAccumulator(StatAccumulator):
         return sums
 
     def pop(self) -> List[Summary]:
+        # pop data after eval finished
         data = []
-        # print("poping return and length:")
-        # print(self._episode_returns)
-        # print(self._episode_lengths)
-        if len(self._episode_returns) > 1:
+        if len(self._episode_returns) >= 1:
             data = self._get()
             self._reset_data()
         return data

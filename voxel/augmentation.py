@@ -23,9 +23,6 @@ def perturb_se3(pcd,
         bounds = bounds.repeat(bs, 1)
 
     perturbed_pcd = []
-    # print(len(pcd))
-    # print(pcd[0].shape)
-    # print(pcd.shape)
     for p in pcd:
         p_shape = p.shape
         num_points = p_shape[-1]
@@ -38,7 +35,6 @@ def perturb_se3(pcd,
         p_flat_4x1_action_origin = torch.ones(bs, 4, p_flat.shape[-1]).to(p_flat.device)
 
         # shift points to have action_gripper pose as the origin
-        # print(p_flat.shape, action_trans_3x1.shape)
         p_flat_4x1_action_origin[:, :3, :] = p_flat - action_trans_3x1
 
         # apply rotation
@@ -180,6 +176,7 @@ def apply_se3_augmentation(pcd,
         perturbed_trans = torch.from_numpy(np.array(trans_indicies)).to(device=device)
         perturbed_rot_grip = torch.from_numpy(np.array(rot_grip_indicies)).to(device=device)
 
+    # apply perturbation to actions
     action_trans = perturbed_trans
     action_rot_grip = perturbed_rot_grip
 
