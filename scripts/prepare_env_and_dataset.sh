@@ -22,8 +22,8 @@ python desc_generator.py --task "StackCube-v1" --save_dir "demos/StackCube-v1/mo
 # python desc_generator.py --task "PushCube-v1" --save_dir "demos/PushCube-v1/motionplanning"
 
 # config settings
-mv conf/config_stackcube.yaml conf/config.yaml
-mv conf/eval_stackcube.yaml conf/eval.yaml
+mv conf/config_multi_cam_stackcube.yaml conf/config.yaml
+mv conf/eval_multi_cam_stackcube.yaml conf/eval.yaml
 # # config settings
 # mv conf/config_pushcube.yaml conf/config.yaml
 # mv conf/eval_pushcube.yaml conf/eval.yaml
