@@ -25,6 +25,8 @@ from agents.agent import Summary, ScalarSummary
 import sapien
 import gymnasium as gym
 
+from tasks import push_cube, stack_cube
+
 class IndependentEnvRunner(object):
 
     def __init__(self,
