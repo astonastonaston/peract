@@ -39,9 +39,10 @@ cinematic_recorder:
     camera_resolution: [ 1280, 720 ]
     fps: 30
     rotate_speed: 0.005
-    save_path: '/home/nan/Desktop/peract/videos/'
+    save_path: '/peract/videos/'
 
 wandb:
   use: True
   project_name: 'peract'
+  se3aug: True
   exp_name: 'peract-eval-multiview-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-se3aug-${wandb.se3aug}'
