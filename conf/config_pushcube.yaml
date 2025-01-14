@@ -53,9 +53,9 @@ method:
   # Augmentation
   crop_augmentation: True
   transform_augmentation:
-    apply_se3: False
-    aug_xyz: [ 0.050, 0.050, 0.050 ]
-    aug_rpy: [ 0.0, 0.0, 15.0 ]
+    apply_se3: True
+    aug_xyz: [0.025, 0.025, 0.025]
+    aug_rpy: [0.0, 0.0, 5.0]
     aug_rot_resolution: ${method.rotation_resolution}
 
   demo_augmentation: True
