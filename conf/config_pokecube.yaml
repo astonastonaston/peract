@@ -71,7 +71,7 @@ maniskill3:
   # task_name: "single" 
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
   tasks: [PokeCube-v1]
-  episode_length: 6 # the max (next-pose) episodic length
+  episode_length: 9 # the max (next-pose) episodic length
   demos: 2 # the number of demos to train on
   traj_path: /home/nan/Desktop/peract/demos/PokeCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
   json_path: /home/nan/Desktop/peract/demos/PokeCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
@@ -128,4 +128,4 @@ hydra:
 wandb:
   use: True
   project_name: 'peract'
-  exp_name: 'peract-train-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}'
+  exp_name: 'peract-train-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}-se3aug-${method.transform_augmentation.apply_se3}'
