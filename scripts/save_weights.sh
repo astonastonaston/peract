@@ -1,4 +1,9 @@
 # save results to permanent storage
+mkdir /dev/nanxiao-vol1/arm_test_peginsertionside_nose3_ori
+mkdir /dev/nanxiao-vol1/arm_peginsertionside_nose3_ori
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_peginsertionside_nose3_ori
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_peginsertionside_nose3_ori
+
 expPosefix = "peginsertionside_nose3"
 mkdir /dev/nanxiao-vol1/arm_test_$expPosefix
 mkdir /dev/nanxiao-vol1/arm_$expPosefix
