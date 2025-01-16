@@ -1,8 +1,14 @@
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_pokecube
-mkdir /dev/nanxiao-vol1/arm_pokecube
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_pokecube
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_pokecube
+mkdir /dev/nanxiao-vol1/arm_test_peginsertionside_nose3
+mkdir /dev/nanxiao-vol1/arm_peginsertionside_nose3
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_peginsertionside_nose3
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_peginsertionside_nose3
+
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_pokecube
+# mkdir /dev/nanxiao-vol1/arm_pokecube
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_pokecube
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_pokecube
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_pushcube_se3_smaller

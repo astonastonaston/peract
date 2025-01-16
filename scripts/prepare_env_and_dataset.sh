@@ -20,8 +20,10 @@ sh scripts/ms3_demo_download.sh
 # python desc_generator.py --task "StackCube-v1" --save_dir "demos/StackCube-v1/motionplanning"
 # # Generate language goal
 # python desc_generator.py --task "PushCube-v1" --save_dir "demos/PushCube-v1/motionplanning"
+# # Generate language goal
+# python desc_generator.py --task "PokeCube-v1" --save_dir "demos/PushCube-v1/motionplanning"
 # Generate language goal
-python desc_generator.py --task "PokeCube-v1" --save_dir "demos/PushCube-v1/motionplanning"
+python desc_generator.py --task "PegInsertionSide-v1" --save_dir "demos/PegInsertionSide-v1/motionplanning"
 
 # # config settings
 # mv conf/config_stackcube.yaml conf/config.yaml
@@ -29,6 +31,9 @@ python desc_generator.py --task "PokeCube-v1" --save_dir "demos/PushCube-v1/moti
 # # config settings
 # mv conf/config_pushcube.yaml conf/config.yaml
 # mv conf/eval_pushcube.yaml conf/eval.yaml
+# # config settings
+# mv conf/config_pokecube.yaml conf/config.yaml
+# mv conf/eval_pokecube.yaml conf/eval.yaml
 # config settings
-mv conf/config_pokecube.yaml conf/config.yaml
-mv conf/eval_pokecube.yaml conf/eval.yaml
+mv conf/config_peginsertionside.yaml conf/config.yaml
+mv conf/eval_peginsertionside.yaml conf/eval.yaml

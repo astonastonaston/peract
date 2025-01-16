@@ -1,6 +1,10 @@
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_pokecube/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_pokecube/arm /tmp/
+cp -r /dev/nanxiao-vol1/arm_test_peginsertionside_nose3/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_peginsertionside_nose3/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_pokecube/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_pokecube/arm /tmp/
 
 # # load weights from permanent storage to the runtime directory
 # cp -r /dev/nanxiao-vol1/arm_test_pushcube_se3_smaller/arm_test /tmp/
