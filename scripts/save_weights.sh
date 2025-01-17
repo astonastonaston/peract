@@ -1,8 +1,8 @@
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_peginsertionside_nose3_fewerkf
-mkdir /dev/nanxiao-vol1/arm_peginsertionside_nose3_fewerkf
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_peginsertionside_nose3_fewerkf
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_peginsertionside_nose3_fewerkf
+mkdir /dev/nanxiao-vol1/arm_test_peginsertionside_se3
+mkdir /dev/nanxiao-vol1/arm_peginsertionside_se3
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_peginsertionside_se3
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_peginsertionside_se3
 
 # expPosefix = "peginsertionside_nose3"
 # mkdir /dev/nanxiao-vol1/arm_test_$expPosefix

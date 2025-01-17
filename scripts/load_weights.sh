@@ -1,6 +1,6 @@
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_peginsertionside_nose3_fewerkf/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_peginsertionside_nose3_fewerkf/arm /tmp/
+cp -r /dev/nanxiao-vol1/arm_test_peginsertionside_se3/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_peginsertionside_se3/arm /tmp/
 
 # # load weights from permanent storage to the runtime directory
 # expPosefix = "peginsertionside_nose3"
