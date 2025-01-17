@@ -1,3 +1,5 @@
+# Adapted from https://github.com/haosulab/ManiSkill/blob/main/mani_skill/envs/tasks/tabletop/stack_cube.py
+# This is the multi-camera StackCube-v1 env. It's useless for now
 from typing import Any, Dict, Union
 
 import numpy as np
