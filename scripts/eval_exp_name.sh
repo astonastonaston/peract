@@ -1,3 +1,3 @@
-export expname=peginsertionside_nose3_fewerkf
+export expname=peginsertionside_se3
 export taskname=PegInsertionSide-v1
 export configname=peginsertionside
