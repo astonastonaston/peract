@@ -43,6 +43,6 @@ cinematic_recorder:
 wandb:
   use: True
   project_name: 'peract'
-  se3aug: False
+  se3aug: True
   stopinit: 8
   exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}-stopinit-${wandb.stopinit}'
