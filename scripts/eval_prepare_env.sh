@@ -1,4 +1,5 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau
+. ./scripts/eval_exp_name.sh
 
 # activate peract env
 pip install --upgrade pip
