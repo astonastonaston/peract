@@ -1,5 +1,5 @@
 # save results to permanent storage
-expname=peginsertionside_se3
+. ./train_exp_name.sh
 mkdir /dev/nanxiao-vol1/arm_test_$expname
 mkdir /dev/nanxiao-vol1/arm_$expname
 cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_$expname

@@ -1,5 +1,5 @@
 # load weights from permanent storage to the runtime directory
-expname=peginsertionside_se3
+. ./train_exp_name.sh
 cp -r /dev/nanxiao-vol1/arm_test_$expname/arm_test /tmp/
 cp -r /dev/nanxiao-vol1/arm_$expname/arm /tmp/
 

@@ -1,0 +1,3 @@
+export expname=peginsertionside_nose3
+export taskname=PegInsertionSide-v1
+export configname=peginsertionside

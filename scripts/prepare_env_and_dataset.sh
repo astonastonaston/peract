@@ -1,4 +1,5 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau && pip install wandb && wandb login 819698faf6bbdcededa5242175e2e29556a4bf89 
+. ./train_exp_name.sh
 
 # activate peract env
 pip install --upgrade pip
@@ -23,7 +24,7 @@ sh scripts/ms3_demo_download.sh
 # # Generate language goal
 # python desc_generator.py --task "PokeCube-v1" --save_dir "demos/PushCube-v1/motionplanning"
 # Generate language goal
-python desc_generator.py --task "PegInsertionSide-v1" --save_dir "demos/PegInsertionSide-v1/motionplanning"
+python desc_generator.py --task $taskname --save_dir "demos/$taskname/motionplanning"
 
 # # config settings
 # mv conf/config_stackcube.yaml conf/config.yaml
@@ -35,5 +36,5 @@ python desc_generator.py --task "PegInsertionSide-v1" --save_dir "demos/PegInser
 # mv conf/config_pokecube.yaml conf/config.yaml
 # mv conf/eval_pokecube.yaml conf/eval.yaml
 # config settings
-mv conf/config_peginsertionside.yaml conf/config.yaml
-mv conf/eval_peginsertionside.yaml conf/eval.yaml
+mv conf/config_$configname.yaml conf/config.yaml
+mv conf/eval_$configname.yaml conf/eval.yaml
