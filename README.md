@@ -109,7 +109,7 @@ cp conf/config_pushcube.yaml conf/config.yaml
 
 Note that you need to **change the following paths** in `config.yaml` for your runtime environment: 
 
-* `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (the model trained on 50 demos and evaluated on 10 episodes reaches success rate 0.5) and **PushCube-v1** (the model trained on 50 demos and evaluated on 10 episodes reaches success rate 1) for now. We only support single-task training for now, so only 1 task can be in the list
+* `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (the model trained on 50 demos and evaluated over 100 episodes reaches success rate 0.55 at maximum) and **PushCube-v1** (the model trained on 50 demos and evaluated over 100 episodes reaches success rate 1 at maximum) for now. We only support single-task training for now, so only 1 task can be in the list
 * `framework.logdir`: The directory to save your training results (weights, csv file with rotation and translation losses if enabled, tensorboard events, etc)
 * `maniskill3.traj_path`: The path to your Maniskill demo trajectory (the h5 file)
 * `maniskill3.json_path` : The path to your Maniskill demos trajectory metadata (the json) file. 
