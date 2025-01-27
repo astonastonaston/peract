@@ -11,7 +11,7 @@ pandas
 pyrender
 regex==2024.7.24
 scipy
-tensorboard==2.17.1
+tensorboard
 omegaconf
 transformers
 trimesh
