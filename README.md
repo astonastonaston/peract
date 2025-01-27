@@ -34,11 +34,11 @@ pip install --upgrade pip
 ```
 
 #### 2. Maniskill Installation
-Install Maniskill from the latest commit:
+Install Maniskill from the stable release:
 
 ```bash
 # Install Maniskill
-pip install git+https://github.com/haosulab/ManiSkill.git 
+pip install --upgrade mani_skill
 ```
 
 #### 3. Install necessary python libraries
