@@ -26,11 +26,11 @@ framework:
   record_every_n: 5
   eval_envs: 1
   eval_from_eps_number: 50 # current eatio: train/val/test = 150/25/25
-  eval_episodes: 100
+  eval_episodes: 5
   eval_demo_type: 'motionplanning'
   eval_type: 'last' # or 'best'
   eval_save_metrics: True # whether to log metrics with tensorboard, csv, or wandb
-  eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
+  eval_save_voxel_images: True # whether or not to save voxel images for each pose step during evaluation
 
 cinematic_recorder:
   enabled: True
