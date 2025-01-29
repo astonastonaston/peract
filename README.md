@@ -58,6 +58,13 @@ You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert r
 pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
 ```
 
+#### 5. CLIP Installation
+Install CLIP from their github repo:
+
+```bash
+pip install git+https://github.com/openai/CLIP.git
+```
+
 
 ## Data Generation
 
