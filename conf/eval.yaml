@@ -9,7 +9,8 @@ maniskill3:
   traj_path: /home/nan/Desktop/peract/demos/StackCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
   json_path: /home/nan/Desktop/peract/demos/StackCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   desc_pkl_path: /home/nan/Desktop/peract/demos/StackCube-v1/motionplanning/desc.pkl
-  cameras: [ base_camera, hand_camera ]
+  # cameras: [ base_camera, hand_camera]
+  # cameras: [ base_camera, hand_camera, left_shoulder_camera, right_shoulder_camera ] # mv cameras
   camera_resolution: [ 128, 128 ]
   scene_bounds: [ -0.4, -0.4, -0.4, 0.5, 0.5, 0.5 ]
   time_in_state: True
@@ -26,7 +27,7 @@ framework:
   record_every_n: 5
   eval_envs: 1
   eval_from_eps_number: 50 # current eatio: train/val/test = 150/25/25
-  eval_episodes: 5
+  eval_episodes: 10
   eval_demo_type: 'motionplanning'
   eval_type: 'last' # or 'best'
   eval_save_metrics: True # whether to log metrics with tensorboard, csv, or wandb
@@ -43,4 +44,4 @@ wandb:
   use: True
   project_name: 'peract'
   se3aug: True
-  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}'
+  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}-localVis'

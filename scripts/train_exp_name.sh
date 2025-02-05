@@ -1,3 +1,3 @@
-export expname=peginsertionside_nose3_fewerkfs
+export expname=peginsertionside_se3_mv
 export taskname=PegInsertionSide-v1
-export configname=peginsertionside
+export configname=multi_cam_peginsertionside

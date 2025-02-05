@@ -26,7 +26,7 @@ from torch.multiprocessing import Process, Manager
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-# from tasks import push_cube
+from tasks import push_cube, stack_cube, peg_insertion_side
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -35,7 +35,7 @@ warnings.filterwarnings('ignore')
 def eval_seed(train_cfg,
               eval_cfg,
               logdir,
-              cams,
+            #   cams,
               env_device,
               multi_task,
               seed,
@@ -259,8 +259,8 @@ def main(eval_cfg: DictConfig) -> None:
     control_mode = 'pd_joint_pos'
 
     # Load language goal
-    eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
-        eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
+    # eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
+    #     eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
     if os.path.exists(eval_cfg.maniskill3.desc_pkl_path):
         with open(eval_cfg.maniskill3.desc_pkl_path, "rb") as f:
             lang_goal = pickle.load(f) # TODO: only single-task lang goal supported yet
@@ -328,7 +328,7 @@ def main(eval_cfg: DictConfig) -> None:
     eval_seed(train_cfg,
               eval_cfg,
               logdir,
-              eval_cfg.maniskill3.cameras,
+            #   eval_cfg.maniskill3.cameras,
               env_device,
               multi_task, start_seed,
               env_config,
