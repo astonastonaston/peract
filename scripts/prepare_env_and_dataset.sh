@@ -1,5 +1,5 @@
 # git clone https://github.com/astonastonaston/peract.git && cd peract && git checkout nau && pip install wandb && wandb login 819698faf6bbdcededa5242175e2e29556a4bf89 
-. ./train_exp_name.sh
+. scripts/train_exp_name.sh
 
 # activate peract env
 pip install --upgrade pip
