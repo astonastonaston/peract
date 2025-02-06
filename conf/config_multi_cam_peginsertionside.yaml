@@ -94,8 +94,8 @@ replay:
   use_disk: True
   save_keypoints: True
   save_keypoints_dir: "/tmp/arm"
-  stop_buffer_init_val: 8 # set this bigger to allow for fewer keyframes
-  # stop_buffer_init_val: 12 # set this bigger to allow for fewer keyframes
+  # stop_buffer_init_val: 8 # set this bigger to allow for fewer keyframes
+  stop_buffer_init_val: 12 # set this bigger to allow for fewer keyframes
   # stop_buffer_init_val: 15 # set this bigger to allow for fewer keyframes
   stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
