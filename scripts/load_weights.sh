@@ -1,5 +1,5 @@
 # load weights from permanent storage to the runtime directory
-. ./train_exp_name.sh
+. scripts/train_exp_name.sh
 cp -r /dev/nanxiao-vol1/arm_test_$expname/arm_test /tmp/
 cp -r /dev/nanxiao-vol1/arm_$expname/arm /tmp/
 

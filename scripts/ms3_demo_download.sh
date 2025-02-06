@@ -1,6 +1,6 @@
 # Download PushCube demos
 # pip install mani_skill==3.0.0b7
-. ./train_exp_name.sh
+. scripts/train_exp_name.sh
 pip install git+https://github.com/haosulab/ManiSkill.git 
 mkdir demos
 # python -m mani_skill.utils.download_demo "PushCube-v1" -o "demos"
