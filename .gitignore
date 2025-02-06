@@ -9,7 +9,7 @@ build/
 videos/
 outputs/
 voxel_visualizer.ipynb
-demo_visualizers.ipynb
+# demo_visualizers.ipynb
 pcd_visualizer.py
 nohup.out
 *__pycache__*
