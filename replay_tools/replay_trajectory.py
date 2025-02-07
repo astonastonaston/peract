@@ -24,7 +24,7 @@ from mani_skill.trajectory.merge_trajectory import merge_trajectories
 from mani_skill.trajectory.utils.actions import conversion as action_conversion
 from mani_skill.utils import common, io_utils, wrappers
 
-from tasks import push_cube, stack_cube, peg_insertion_side
+# from tasks import push_cube, stack_cube, peg_insertion_side
 
 @dataclass
 class Args:
