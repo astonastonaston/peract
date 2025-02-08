@@ -7,5 +7,5 @@ mkdir ckpts/multi/PERACT_BC/seed0
 # cp -r /dev/nanxiao-vol1/arm_test_stackcube_50demos_80ksteps_wandb/arm_test/multi/PERACT_BC/seed0/weights ckpts/multi/PERACT_BC/seed0/
 # cp -r /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_wandb/arm_test/multi/PERACT_BC/seed0/weights ckpts/multi/PERACT_BC/seed0/
 # cp -r /dev/nanxiao-vol1/arm_test_pushcube_se3_smaller/arm_test/multi/PERACT_BC/seed0/weights ckpts/multi/PERACT_BC/seed0/
-. ./scripts/eval_exp_name.sh
+. scripts/eval_exp_name.sh
 cp -r /dev/nanxiao-vol1/arm_test_$expname/arm_test/multi/PERACT_BC/seed0/weights ckpts/multi/PERACT_BC/seed0/
