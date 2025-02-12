@@ -12,4 +12,4 @@ python -m mani_skill.utils.download_demo $taskname -o "demos"
 # python -m replay_tools.replay_trajectory --traj-path demos/PushCube-v1/motionplanning/trajectory.h5 --save-traj --obs-mode pointcloud --num-procs 1 --count 60
 # python -m replay_tools.replay_trajectory --traj-path demos/StackCube-v1/motionplanning/trajectory.h5 --save-traj --obs-mode pointcloud --num-procs 1 --count 150
 # python -m replay_tools.replay_trajectory --traj-path demos/PokeCube-v1/motionplanning/trajectory.h5 --save-traj --obs-mode pointcloud --num-procs 1 --count 60
-python -m replay_tools.replay_trajectory --traj-path demos/$taskname/motionplanning/trajectory.h5 --save-traj --obs-mode pointcloud --num-procs 1 --count 60
+python -m replay_tools.replay_trajectory --traj-path demos/$taskname/motionplanning/trajectory.h5 --save-traj --obs-mode pointcloud --num-procs 1 --count 100
