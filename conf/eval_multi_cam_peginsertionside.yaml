@@ -5,7 +5,7 @@ maniskill3:
   # multi-task training is not supported yet
   task_name: "multi"
   tasks: [PegInsertionSide-v1]
-  episode_length: 15 # TODO: Set this number. Note this is the number of POSE-based plannings to do
+  episode_length: 12 # TODO: Set this number. Note this is the number of POSE-based plannings to do
   traj_path: /peract/demos/PegInsertionSide-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
   json_path: /peract/demos/PegInsertionSide-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   desc_pkl_path: /peract/desc.pkl
