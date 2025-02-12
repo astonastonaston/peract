@@ -342,8 +342,8 @@ class IndependentEnvRunner(object):
             raise NotImplementedError("Multi-task evaluation not supported yet")
         else:
             eval_env = gym.make(env_config["tasks"], **env_kwargs)
-            # if cinematic_recorder_cfg.enabled:
-            #     eval_env = RecordEpisode(eval_env, output_dir=cinematic_recorder_cfg.save_path, save_trajectory=True, trajectory_name="trajectory", save_video=True, video_fps=30)
+            if cinematic_recorder_cfg.enabled:
+                eval_env = RecordEpisode(eval_env, output_dir=cinematic_recorder_cfg.save_path, save_trajectory=True, trajectory_name="trajectory", save_video=True, video_fps=30)
 
         self._eval_env = eval_env
         self._lang_goal = env_config["lang_goal"]

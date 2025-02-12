@@ -24,7 +24,8 @@ from mani_skill.trajectory.merge_trajectory import merge_trajectories
 from mani_skill.trajectory.utils.actions import conversion as action_conversion
 from mani_skill.utils import common, io_utils, wrappers
 
-from tasks import push_cube, stack_cube, peg_insertion_side
+# from tasks import push_cube, stack_cube, peg_insertion_side
+from tasks import peg_insertion_side
 
 @dataclass
 class Args:
@@ -78,7 +79,8 @@ class Args:
     """The FPS of saved videos"""
     render_mode: str = "rgb_array"
     """The render mode used for saving videos. Typically there is also 'sensors' and 'all' render modes which further render all sensor outputs like cameras."""
-
+    start_episode: int = 0
+    """Start replaying from this episode index in the trajectory file. This is useful for starting the replay from some index."""
 
 def parse_args(args=None):
     return tyro.cli(Args, args=args)
@@ -170,7 +172,7 @@ def _main(args, proc_id: int = 0, num_procs=1, pbar=None):
     else:
         output_h5_path = None
 
-    episodes = json_data["episodes"][: args.count]
+    episodes = json_data["episodes"][args.start_episode: args.start_episode+args.count]
     n_ep = len(episodes)
     inds = np.arange(n_ep)
     inds = np.array_split(inds, num_procs)[proc_id]

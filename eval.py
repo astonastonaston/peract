@@ -26,7 +26,8 @@ from torch.multiprocessing import Process, Manager
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-from tasks import push_cube, stack_cube, peg_insertion_side
+# from tasks import push_cube, stack_cube, peg_insertion_side
+from tasks import peg_insertion_side
 
 import warnings
 warnings.filterwarnings('ignore')
