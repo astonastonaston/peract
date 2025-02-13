@@ -133,4 +133,4 @@ hydra:
 wandb:
   use: True
   project_name: 'peract'
-  exp_name: 'peract-train-mv2-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}-se3aug-${method.transform_augmentation.apply_se3}-steps-${maniskill3.episode_length}-stopinit-${replay.stop_buffer_init_val}'
+  exp_name: 'peract-train-mv3-${maniskill3.tasks[0]}-motionplanning-demos-${maniskill3.demos}-seed-${framework.start_seed}-se3aug-${method.transform_augmentation.apply_se3}-steps-${maniskill3.episode_length}-stopinit-${replay.stop_buffer_init_val}'
