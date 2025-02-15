@@ -6,10 +6,6 @@ Perceiver-Actor (PerAct) ([Perceiver-Actor: A Multi-Task Transformer for Robotic
 This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.com/peract/peract
 
 
-![](media/sim_tasks.gif)
-
-
-
 ## Guides
 
 - Getting Started: [Installation](#installation)
