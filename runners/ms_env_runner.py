@@ -10,13 +10,13 @@ from multiprocessing import Value, Process, Manager
 
 from agents.agent import Agent
 from mani_skill.envs.sapien_env import BaseEnv
-from mani_skill.utils.io_utils import load_json
 from mani_skill.utils.wrappers.record import RecordEpisode
 from runners.rollout_generator import RolloutGenerator
 from runners.stat_accumulator import StatAccumulator, SimpleAccumulator
 from runners.log_writer import LogWriter
 from torchvision import transforms
 from agents.agent import Summary, ScalarSummary
+# from mani_skill.utils.io_utils import load_json
 # from yarr.replay_buffer.replay_buffer import ReplayBuffer
 # from helpers.custom_ms_env import CustomManiskillEnv
 # from agents.agent import Summary
@@ -92,7 +92,7 @@ class IndependentEnvRunner(object):
             self._multi_task = multi_task
             self._eval_save_voxel_images = eval_save_voxel_images
             self._json_path = json_path
-            self._demo_meta_data = load_json(json_path)
+            # self._demo_meta_data = load_json(json_path)
             manager = Manager()
             self.write_lock = manager.Lock()
             self.stored_transitions = manager.list()
@@ -106,21 +106,26 @@ class IndependentEnvRunner(object):
     def summaries(self) -> List[Summary]:
         summaries = []
         if self._stat_accumulator is not None:
-            summaries.extend(self._stat_accumulator.pop())
-        summaries.extend(self.agent_summaries)
+            summaries.extend(self._stat_accumulator.pop()) # add task statistics
+        summaries.extend(self.agent_summaries) # add agent summaries (like images)
         return summaries
 
     def _run_eval_independent(self, name: str,
                             stats_accumulator,
-                            eval_env,
                             weight,
                             writer_lock,
+                            eval_cfg,
+                            train_cfg,
+                            env_config, # those configs are for logging purposes only
+                            train_config,
                             eval=True,
                             device_idx=0,
-                            save_metrics=True,
                             cinematic_recorder_cfg=None,
-                            vis_pose=False,
-                            gripper_open_delta=1e-3):
+                            wandb_run=None,
+                            ):
+        save_metrics = eval_cfg.framework.eval_save_metrics
+        vis_pose = eval_cfg.maniskill3.vis_pose
+        gripper_open_delta = train_cfg.replay.gripper_open_delta
 
         self._name = name
         self._save_metrics = save_metrics
@@ -143,12 +148,20 @@ class IndependentEnvRunner(object):
 
         if not os.path.exists(self._weightsdir):
             raise Exception('No weights directory found.')
-
+     
         # to save or not to save evaluation metrics (set as False for recording videos)
         if self._save_metrics:
             csv_file = 'eval_data.csv' if not self._is_test_set else 'test_data.csv'
-            writer = LogWriter(self._logdir, True, True,
-                            env_csv=csv_file)
+            # add train and eval configs to wandb if used
+            use_wandb = eval_cfg.wandb.use     
+            if use_wandb:
+                writer = LogWriter(self._logdir, True, True, True, 
+                                wandb_run=wandb_run) 
+                # writer.add_wandb_config(train_config, env_config, evaluation=True)
+            else:
+                writer = LogWriter(self._logdir, True, True, False,
+                                env_csv=csv_file)
+
 
         # one weight for all tasks (used for validation). For now, only single-task evaluation is supported
         if type(weight) == int:
@@ -186,7 +199,7 @@ class IndependentEnvRunner(object):
             print(f"Evaluating from episode {self._eval_from_eps_number}. In total {self._eval_episodes} episodes to evaluate")
             for ep in range(self._eval_episodes):
                 eval_demo_seed = ep + self._eval_from_eps_number
-                logging.info('%s: Starting episode %d, seed %d.' % (name, ep, eval_demo_seed))
+                # logging.info('%s: Starting episode %d, seed %d.' % (name, ep, eval_demo_seed))
                 
                 # if needed, create dir to log voxel images
                 if self._eval_save_voxel_images:
@@ -207,7 +220,7 @@ class IndependentEnvRunner(object):
                     self._episode_length, self._timesteps,
                     eval, self._lang_goal, eval_demo_seed=eval_demo_seed, 
                     reset_kwargs=reset_kwargs, vis_pose=vis_pose,
-                    gripper_open_delta=gripper_open_delta)
+                    gripper_open_delta=gripper_open_delta, save_voxel_images=self._eval_save_voxel_images)
                 
                 step_cnt = 0
                 for replay_transition in generator:
@@ -238,7 +251,7 @@ class IndependentEnvRunner(object):
                         if len(self.agent_summaries) == 0:
                             # Only store new summaries if the previous ones
                             # have been popped by the main env runner.
-                            for s in self._agent.act_summaries():
+                            for s in self._agent.act_summaries(self._eval_save_voxel_images):
                                 self.agent_summaries.append(s)
                     episode_rollout.append(replay_transition)
                     step_cnt += 1
@@ -258,9 +271,10 @@ class IndependentEnvRunner(object):
                     reward_list.append(reward)
                     success = episode_rollout[-1].info["success"]
                     success_list.append(success)
-                    print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
+                    # print(f"Evaluating {task_name} | Episode {ep} | Score: {reward} | Lang Goal: {lang_goal} | Success: {success}")
                 else:
-                    print(f"Evaluating {task_name} | Episode {ep} | Score: {0} () | Lang Goal: {lang_goal} | Success: {0}")
+                    # print(f"Evaluating {task_name} | Episode {ep} | Score: {0} () | Lang Goal: {lang_goal} | Success: {0}")
+                    pass
 
             # reset at last to save the video for the last episode
             if cinematic_recorder_cfg.enabled:
@@ -284,7 +298,7 @@ class IndependentEnvRunner(object):
             else:
                 task_score = "unknown"
 
-            print(f"Finished {eval_task_name} | Final Score: {task_score} | Final Success Rate {mean_success_rate}\n")
+            print(f"Finished {eval_task_name} | Final Score: {task_score} | Final Success Rate {mean_success_rate} | Model Step {weight}\n")
 
             if self._save_metrics:
                 with writer_lock:
@@ -299,21 +313,24 @@ class IndependentEnvRunner(object):
                 writer.end_iteration()
                 # pass
 
-        logging.info('Finished evaluation.')
+        # logging.info('Finished evaluation.')
         # env.shutdown()
 
     # serialized evaluator for individual tasks
     def start(self, weight,
               save_load_lock, writer_lock,
               env_config,
+              train_config, # those configs are for logging purposes only
               device_idx,
-              save_metrics,
-              cinematic_recorder_cfg,
-              vis_pose,
-              gripper_open_delta):
-        multi_task = isinstance(env_config[0], list)
+              eval_cfg,
+              train_cfg,
+              wandb_run
+              ):
+        cinematic_recorder_cfg = eval_cfg.cinematic_recorder
+        
+        multi_task = isinstance(env_config["tasks"], list)
 
-        env_kwargs = {'control_mode': env_config[1], 
+        env_kwargs = {'control_mode': env_config["control_mode"], 
                       "obs_mode": "pointcloud",
                       "num_envs": self._eval_envs,
                       "max_episode_steps": 1000}
@@ -324,21 +341,22 @@ class IndependentEnvRunner(object):
         if multi_task:
             raise NotImplementedError("Multi-task evaluation not supported yet")
         else:
-            eval_env = gym.make(env_config[0], **env_kwargs)
+            eval_env = gym.make(env_config["tasks"], **env_kwargs)
             if cinematic_recorder_cfg.enabled:
                 eval_env = RecordEpisode(eval_env, output_dir=cinematic_recorder_cfg.save_path, save_trajectory=True, trajectory_name="trajectory", save_video=True, video_fps=30)
 
         self._eval_env = eval_env
-        self._lang_goal = env_config[2]
+        self._lang_goal = env_config["lang_goal"]
 
         self._run_eval_independent('eval_env',
                                     self._stat_accumulator,
-                                    eval_env,
                                     weight,
                                     writer_lock,
+                                    eval_cfg,
+                                    train_cfg,
+                                    env_config,
+                                    train_config,
                                     True,
                                     device_idx,
-                                    save_metrics,
                                     cinematic_recorder_cfg,
-                                    vis_pose,
-                                    gripper_open_delta)
+                                    wandb_run)

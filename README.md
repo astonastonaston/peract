@@ -50,12 +50,19 @@ Install necessary python libraries:
 pip install -r requirements.txt
 ```
 #### 4. Pytorch3d Installation
-You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to convert rotations and translations as well. Here's how to install it from pre-built wheel:
+You need [Pytorch3d](https://github.com/facebookresearch/pytorch3d) to perform rotation and translation augmentations as well. Here's how to install it from pre-built wheel:
 
 ```bash
 # Install pytorch3d from pre-built wheel. This is faster than installing from source
 # Note: the python version in the link should match that on your env
 pip install --no-index --no-cache-dir pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py39_cu116_pyt1130/download.html
+```
+
+#### 5. CLIP Installation
+Install CLIP from their github repo:
+
+```bash
+pip install git+https://github.com/openai/CLIP.git
 ```
 
 
@@ -219,7 +226,7 @@ In addition, you can change the following hyperparameters for ablation study. He
 * `maniskill3.eval_from_eps_number`: Starting episode index for evaluation
 * `maniskill3.eval_episodes`: The number of episodes to evaluate on
 
-For visualization, you can **save voxel images at each pose step** under your logging directory as well by toggling the following hyperparameter:
+For visualization, you can save voxel images at each episodic steps under your logging directory as well by toggling the following hyperparameter:
 
 * `framework.eval_save_voxel_images`: A Boolean indicating whether or not to save voxel images at each pose step during evaluation
 

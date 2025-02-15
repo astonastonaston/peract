@@ -6,7 +6,6 @@ maniskill3:
     task_name: "multi"
     tasks: [ PushCube-v1 ]
     episode_length: 6 # TODO: Set this number. Note this is the number of POSE-based plannings to do
-    demos: 10
     traj_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/multiCam/trajectory.pointcloud.pd_joint_pos.h5
     json_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/multiCam/trajectory.pointcloud.pd_joint_pos.json
     desc_pkl_path: /home/nan/Desktop/peract/demos/PushCube-v1/motionplanning/desc.pkl
@@ -29,13 +28,19 @@ framework:
     eval_envs: 1
     eval_from_eps_number: 10 # current eatio: train/val/test = 150/25/25
     eval_episodes: 10
+    eval_demo_type: 'motionplanning'
     eval_type: 'last' # or 'best'
     eval_save_metrics: True
-    eval_save_voxel_images: True # whether or not to save voxel images for each pose step during evaluation
+    eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
 
 cinematic_recorder:
-    enabled: True
+    enabled: False
     camera_resolution: [ 1280, 720 ]
     fps: 30
     rotate_speed: 0.005
     save_path: '/home/nan/Desktop/peract/videos/'
+
+wandb:
+  use: True
+  project_name: 'peract'
+  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}'

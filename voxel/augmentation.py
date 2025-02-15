@@ -176,6 +176,7 @@ def apply_se3_augmentation(pcd,
         perturbed_trans = torch.from_numpy(np.array(trans_indicies)).to(device=device)
         perturbed_rot_grip = torch.from_numpy(np.array(rot_grip_indicies)).to(device=device)
 
+    # apply perturbation to actions
     action_trans = perturbed_trans
     action_rot_grip = perturbed_rot_grip
 

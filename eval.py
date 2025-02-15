@@ -26,17 +26,22 @@ from torch.multiprocessing import Process, Manager
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-# from tasks import push_cube
+# from tasks import push_cube, stack_cube, peg_insertion_side
+from tasks import peg_insertion_side
+
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def eval_seed(train_cfg,
               eval_cfg,
               logdir,
-              cams,
+            #   cams,
               env_device,
               multi_task,
               seed,
-              env_config) -> None:
+              env_config,
+              train_config) -> None:
 
     tasks = eval_cfg.maniskill3.tasks
     rg = RolloutGenerator()
@@ -67,26 +72,26 @@ def eval_seed(train_cfg,
     cwd = os.getcwd()
     weightsdir = os.path.join(logdir, 'weights')
 
-    env_runner = IndependentEnvRunner(
-        train_env=None,
-        agent=agent,
-        train_replay_buffer=None,
-        num_train_envs=0,
-        num_eval_envs=eval_cfg.framework.eval_envs,
-        rollout_episodes=99999,
-        eval_episodes=eval_cfg.framework.eval_episodes,
-        training_iterations=train_cfg.framework.training_iterations,
-        eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
-        episode_length=eval_cfg.maniskill3.episode_length, # max episode length
-        stat_accumulator=stat_accum,
-        weightsdir=weightsdir,
-        logdir=logdir,
-        env_device=env_device,
-        rollout_generator=rg,
-        num_eval_runs=len(tasks),
-        multi_task=multi_task,
-        json_path=eval_cfg.maniskill3.json_path,
-        eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
+    # env_runner = IndependentEnvRunner(
+    #     train_env=None,
+    #     agent=agent,
+    #     train_replay_buffer=None,
+    #     num_train_envs=0,
+    #     num_eval_envs=eval_cfg.framework.eval_envs,
+    #     rollout_episodes=99999,
+    #     eval_episodes=eval_cfg.framework.eval_episodes,
+    #     training_iterations=train_cfg.framework.training_iterations,
+    #     eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
+    #     episode_length=eval_cfg.maniskill3.episode_length, # max episode length
+    #     stat_accumulator=stat_accum,
+    #     weightsdir=weightsdir,
+    #     logdir=logdir,
+    #     env_device=env_device,
+    #     rollout_generator=rg,
+    #     num_eval_runs=len(tasks),
+    #     multi_task=multi_task,
+    #     json_path=eval_cfg.maniskill3.json_path,
+    #     eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
 
     manager = Manager()
     save_load_lock = manager.Lock()
@@ -154,30 +159,77 @@ def eval_seed(train_cfg,
     if len(num_weights_to_eval) == 0:
         logging.info("No weights to evaluate. Results are already available in eval_data.csv")
         sys.exit(0)
-
+            
+    # init wandb loggings
+    if eval_cfg.wandb.use: 
+        # init wandb instance
+        import wandb as wb
+        project_name = eval_cfg.wandb.project_name
+        exp_name = eval_cfg.wandb.exp_name
+        wandb_id = wb.util.generate_id()
+        wandb_run = wb.init(project=project_name, name=exp_name, id=wandb_id)
+        fixed_wb_cfgs = {
+            "train_env_cfg": train_config, 
+            "eval_env_cfg": env_config
+        } 
+        wb.config.update({**fixed_wb_cfgs}, allow_val_change=True)
+        wandb_run.tags = ["peract", "evaluation"]
+    else:
+        wandb_run = None
+        
     # evaluate several checkpoints in parallel
     # NOTE: in multi-task settings, each task is evaluated serially, which makes everything slow!
     split_n = utils.split_list(num_weights_to_eval, eval_cfg.framework.eval_envs)
     for split in split_n:
-        processes = []
-        print(f"The number of processes {len(split), sapien.Device('cuda')}")
+        # processes = []
+        # print(f"The number of processes {len(split), sapien.Device('cuda')}")
         for e_idx, weight_idx in enumerate(split):
             weight = weight_folders[weight_idx]
-            # TODO: the maniskill gym env is already parallalized, so don't need to rewrite torch multi-processing again
-            p = Process(target=env_runner.start,
-                        args=(weight,
-                              save_load_lock,
-                              writer_lock,
-                              env_config,
-                              e_idx % torch.cuda.device_count(),
-                              eval_cfg.framework.eval_save_metrics,
-                              eval_cfg.cinematic_recorder,
-                              eval_cfg.maniskill3.vis_pose,
-                              train_cfg.replay.gripper_open_delta))
-            p.start()
-            processes.append(p)
-        for p in processes:
-            p.join()
+            env_runner = IndependentEnvRunner(
+                train_env=None,
+                agent=agent,
+                train_replay_buffer=None,
+                num_train_envs=0,
+                num_eval_envs=eval_cfg.framework.eval_envs,
+                rollout_episodes=99999,
+                eval_episodes=eval_cfg.framework.eval_episodes,
+                training_iterations=train_cfg.framework.training_iterations,
+                eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
+                episode_length=eval_cfg.maniskill3.episode_length, # max episode length
+                stat_accumulator=stat_accum,
+                weightsdir=weightsdir,
+                logdir=logdir,
+                env_device=env_device,
+                rollout_generator=rg,
+                num_eval_runs=len(tasks),
+                multi_task=multi_task,
+                json_path=eval_cfg.maniskill3.json_path,
+                eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
+            env_runner.start(weight,
+                            save_load_lock,
+                            writer_lock,
+                            env_config,
+                            train_config,
+                            e_idx % torch.cuda.device_count(),
+                            eval_cfg,
+                            train_cfg,
+                            wandb_run)
+
+        #     # TODO: the maniskill gym env is already parallalized, so don't need to rewrite torch multi-processing again
+        #     p = Process(target=env_runner.start,
+        #                 args=(weight,
+        #                       save_load_lock,
+        #                       writer_lock,
+        #                       env_config,
+        #                       train_config,
+        #                       e_idx % torch.cuda.device_count(),
+        #                       eval_cfg,
+        #                       train_cfg,
+        #                       wandb_run))
+        #     p.start()
+        #     processes.append(p)
+        # for p in processes:
+        #     p.join()
 
     del env_runner
     del agent
@@ -208,52 +260,80 @@ def main(eval_cfg: DictConfig) -> None:
     control_mode = 'pd_joint_pos'
 
     # Load language goal
-    eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
-        eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
+    # eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
+    #     eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
     if os.path.exists(eval_cfg.maniskill3.desc_pkl_path):
         with open(eval_cfg.maniskill3.desc_pkl_path, "rb") as f:
-            lang_goal_tokens = pickle.load(f) # TODO: only single-task lang goal supported yet
+            lang_goal = pickle.load(f) # TODO: only single-task lang goal supported yet
     else:
         raise Exception("Missing task desc file {}" % eval_cfg.maniskill3.desc_pkl_path)
 
-    # single-task or multi-task
-    if len(eval_cfg.maniskill3.tasks) > 1:
+    # single-task or multi-task env config initializations
+    sim_backend = "cpu"
+    
+    def parse_train_env_cfg(train_cfg):
+        train_env_config = {
+            "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
+            "tasks": train_cfg.maniskill3.tasks,
+            "episode_length": train_cfg.maniskill3.episode_length,
+            "task_name": train_cfg.maniskill3.task_name,
+            "keypoint_method": train_cfg.method.keypoint_method,
+            "training_iterations": train_cfg.framework.training_iterations,
+            "scene_bounds": train_cfg.maniskill3.scene_bounds,
+            "demos": train_cfg.maniskill3.demos,
+            "cameras": train_cfg.maniskill3.cameras
+        }
+        return train_env_config
+    
+    def parse_env_cfg(env_cfg, train_cfg):
+        env_kwargs = {'control_mode': control_mode, 
+                    "obs_mode": "pointcloud",
+                    "num_envs": env_cfg.framework.eval_envs,
+                    "max_episode_steps": 1000
+                }
+        env_config = {
+            "tasks": task,
+            "task_name": env_cfg.maniskill3.task_name,
+            "lang_goal": lang_goal,
+            "env_kwargs": env_kwargs,
+            "num_envs": env_cfg.framework.eval_envs,
+            "episode_length_position_steps": env_kwargs["max_episode_steps"],
+            "episode_length_pose_steps": env_cfg.maniskill3.episode_length,
+            "eval_episodes": env_cfg.framework.eval_episodes,
+            "sim_backend": sim_backend,
+            "obs_mode": "pointcloud",
+            "control_mode": env_kwargs["control_mode"],
+            "include_lang_goal_in_obs": train_cfg.maniskill3.include_lang_goal_in_obs,
+            "time_in_state": env_cfg.maniskill3.time_in_state,
+            "demo_type": eval_cfg.framework.eval_demo_type
+        }
+        return env_config
+    
+    train_config = parse_train_env_cfg(train_cfg)
+    if len(eval_cfg.maniskill3.tasks) > 1: # multi-task is not supported yet
         tasks = eval_cfg.maniskill3.tasks
         multi_task = True
 
         for task in tasks:
             # TODO: add task existance check for ms3
             pass
+        env_config = parse_env_cfg(eval_cfg, train_cfg)
 
-        env_config = (tasks,
-                      control_mode,
-                      lang_goal_tokens,
-                      eval_cfg.maniskill3.episode_length,
-                      eval_cfg.framework.eval_episodes,
-                      train_cfg.maniskill3.include_lang_goal_in_obs,
-                      eval_cfg.maniskill3.time_in_state,
-                      eval_cfg.framework.record_every_n)
     else:
         # TODO: add task existance check for ms3
         task = eval_cfg.maniskill3.tasks[0]
         multi_task = False
-        env_config = (task,
-                      control_mode,
-                      lang_goal_tokens,
-                      eval_cfg.maniskill3.episode_length,
-                      eval_cfg.framework.eval_episodes,
-                      train_cfg.maniskill3.include_lang_goal_in_obs,
-                      eval_cfg.maniskill3.time_in_state,
-                      eval_cfg.framework.record_every_n)
+        env_config = parse_env_cfg(eval_cfg, train_cfg)    
 
     logging.info('Evaluating seed %d.' % start_seed)
     eval_seed(train_cfg,
               eval_cfg,
               logdir,
-              eval_cfg.maniskill3.cameras,
+            #   eval_cfg.maniskill3.cameras,
               env_device,
               multi_task, start_seed,
-              env_config)
+              env_config,
+              train_config)
 
 if __name__ == "__main__":
     torch.multiprocessing.set_start_method('spawn') # multiprocessing with cuda re-init

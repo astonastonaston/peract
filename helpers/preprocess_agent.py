@@ -40,7 +40,7 @@ class PreprocessAgent(Agent):
         return self._pose_agent.get_rotation_resolution()
 
     def act(self, step: int, observation: dict,
-            deterministic=False) -> ActResult:
+            deterministic=False, save_voxel_images=False) -> ActResult:
         for k, v in observation.items():
             if self._norm_rgb and 'rgb' in k:
                 observation[k] = self._norm_rgb_(v)
@@ -51,7 +51,7 @@ class PreprocessAgent(Agent):
                 else:
                     observation[k] = v.float()
 
-        act_res = self._pose_agent.act(step, observation, deterministic)
+        act_res = self._pose_agent.act(step, observation, deterministic, save_voxel_images)
         act_res.replay_elements.update({'demo': False})
         return act_res
 
@@ -85,8 +85,8 @@ class PreprocessAgent(Agent):
         sums.extend(self._pose_agent.update_summaries())
         return sums
 
-    def act_summaries(self) -> List[Summary]:
-        return self._pose_agent.act_summaries()
+    def act_summaries(self, save_voxel_image=False) -> List[Summary]:
+        return self._pose_agent.act_summaries(save_voxel_image)
 
     def load_weights(self, savedir: str):
         self._pose_agent.load_weights(savedir)

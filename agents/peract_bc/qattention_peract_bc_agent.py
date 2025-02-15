@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+import time
 from typing import List
 
 import numpy as np
@@ -433,7 +434,9 @@ class QAttentionPerActBCAgent(Agent):
         if self._include_low_dim_state:
             proprio = replay_sample['low_dim_state']
 
+        t = time.time()
         obs, pcd = self._preprocess_inputs(replay_sample)
+        preprocess_time = time.time() - t
 
         # batch size
         bs = pcd[0].shape[0]
@@ -454,6 +457,7 @@ class QAttentionPerActBCAgent(Agent):
                                          self._voxel_size,
                                          self._rotation_resolution,
                                          self._device)
+        t = time.time()
         q_trans, q_rot_grip, \
         q_collision, \
         voxel_grid = self._q(obs,
@@ -464,12 +468,15 @@ class QAttentionPerActBCAgent(Agent):
                              bounds,
                              prev_layer_bounds,
                              prev_layer_voxel_grid)
+        q_pass_time = time.time() - t
 
         # argmax to choose best action
         coords, \
         rot_and_grip_indicies, \
         ignore_collision_indicies = self._q.choose_highest_action(q_trans, q_rot_grip, q_collision)
 
+
+        t = time.time()
         q_trans_loss, q_rot_loss, q_grip_loss, q_collision_loss = 0., 0., 0., 0.
 
         # translation one-hot
@@ -530,27 +537,41 @@ class QAttentionPerActBCAgent(Agent):
                           (q_grip_loss * self._grip_loss_weight) + \
                           (q_collision_loss * self._collision_loss_weight)
         total_loss = combined_losses.mean()
+        loss_compute_time = time.time() - t
 
+        t = time.time()
         self._optimizer.zero_grad()
         total_loss.backward()
         self._optimizer.step()
+        loss_bp_time = time.time() - t
 
-        self._summaries = {
+
+        self._summaries = { # TODO: add timer
             'losses/total_loss': total_loss,
             'losses/trans_loss': q_trans_loss.mean(),
             'losses/rot_loss': q_rot_loss.mean() if with_rot_and_grip else 0.,
             'losses/grip_loss': q_grip_loss.mean() if with_rot_and_grip else 0.,
             'losses/collision_loss': q_collision_loss.mean() if with_rot_and_grip else 0.,
+            'time/preprocess_time': preprocess_time,
+            'time/q_pass_time': q_pass_time,
+            'time/loss_compute_time': loss_compute_time,
+            'time/loss_backprop_time': loss_bp_time,
         }
 
         if self._lr_scheduler:
             self._scheduler.step()
             self._summaries['learning_rate'] = self._scheduler.get_last_lr()[0]
 
-        self._vis_voxel_grid = voxel_grid[0]
-        self._vis_translation_qvalue = self._softmax_q_trans(q_trans[0])
-        self._vis_max_coordinate = coords[0]
-        self._vis_gt_coordinate = action_trans[0]
+        # self._vis_voxel_grid = voxel_grid[0]
+        # self._vis_translation_qvalue = self._softmax_q_trans(q_trans[0])
+        # self._vis_max_coordinate = coords[0]
+        # self._vis_gt_coordinate = action_trans[0]
+        # grid_img = transforms.ToTensor()(visualise_voxel(
+        #                      self._vis_voxel_grid.cpu().numpy(),
+        #                      self._vis_translation_qvalue.cpu().numpy(),
+        #                      self._vis_max_coordinate.cpu().numpy(),
+        #                      self._vis_gt_coordinate.cpu().numpy()))
+        # self._summaries["voxels/voxel_grid_image"] = grid_img
         # Note: PerAct doesn't use multi-layer voxel grids like C2FARM
         # stack prev_layer_voxel_grid(s) from previous layers into a list
         if prev_layer_voxel_grid is None:
@@ -571,8 +592,7 @@ class QAttentionPerActBCAgent(Agent):
         }
 
     def act(self, step: int, observation: dict,
-            deterministic=False) -> ActResult:
-        deterministic = True
+            deterministic=False, save_voxel_images=False) -> ActResult:
         bounds = self._coordinate_bounds
         prev_layer_voxel_grid = observation.get('prev_layer_voxel_grid', None)
         prev_layer_bounds = observation.get('prev_layer_bounds', None)
@@ -660,19 +680,20 @@ class QAttentionPerActBCAgent(Agent):
         self._act_qvalues = q_trans[0].detach()
 
         # visualize voxel grids
-        rgbs = self._act_voxel_grid[3:6, ...]
-        max_values = rgbs.view(3, -1).max(dim=1).values
-        grid_img = transforms.ToTensor()(visualise_voxel(
-                             self._act_voxel_grid.cpu().numpy(),
-                             self._act_qvalues.cpu().numpy(),
-                             self._act_max_coordinate.cpu().numpy()))
-        observation_elements["voxel_grid_img"] = grid_img
+        if save_voxel_images:
+            rgbs = self._act_voxel_grid[3:6, ...]
+            max_values = rgbs.view(3, -1).max(dim=1).values
+            grid_img = transforms.ToTensor()(visualise_voxel(
+                                self._act_voxel_grid.cpu().numpy(),
+                                self._act_qvalues.cpu().numpy(),
+                                self._act_max_coordinate.cpu().numpy()))
+            observation_elements["voxel_grid_img"] = grid_img
 
         return ActResult((coords, rot_grip_action, ignore_collisions_action),
                          observation_elements=observation_elements,
                          info=info)
 
-    def update_summaries(self) -> List[Summary]:
+    def update_summaries(self) -> List[Summary]: # update summary only at log iterations
         summaries = []
         for n, v in self._summaries.items(): # update loss item summaries   
             summaries.append(ScalarSummary('%s/%s' % (self._name, n), v))
@@ -682,25 +703,31 @@ class QAttentionPerActBCAgent(Agent):
             summaries.extend([
                 ImageSummary('%s/crops/%s' % (self._name, name), crops)])
 
-        for tag, param in self._q.named_parameters():
-            # assert not torch.isnan(param.grad.abs() <= 1.0).all()
-            summaries.append(
-                HistogramSummary('%s/gradient/%s' % (self._name, tag),
-                                 param.grad))
-            summaries.append(
-                HistogramSummary('%s/weight/%s' % (self._name, tag),
-                                 param.data))
+        # Compute the global L2 gradient norm
+        grad_norm = np.sqrt(sum([torch.norm(p.grad.cpu())**2 for p in self._q.parameters()]))
+        summaries.append(ScalarSummary('%s/gradient/gradient_l2_norm' % (self._name), grad_norm))
+
+        # for tag, param in self._q.named_parameters():
+        #     # assert not torch.isnan(param.grad.abs() <= 1.0).all()
+        #     summaries.append(
+        #         HistogramSummary('%s/gradient/%s' % (self._name, tag),
+        #                          param.grad))
+        #     summaries.append(
+        #         HistogramSummary('%s/weight/%s' % (self._name, tag),
+        #                          param.data))
 
         return summaries
 
-    def act_summaries(self) -> List[Summary]:
-        # return []
-        return [
-            ImageSummary('%s/act_Qattention' % self._name,
-                         transforms.ToTensor()(visualise_voxel(
-                             self._act_voxel_grid.cpu().numpy(),
-                             self._act_qvalues.cpu().numpy(),
-                             self._act_max_coordinate.cpu().numpy())))]
+    def act_summaries(self, save_voxel_image=False) -> List[Summary]:
+        if save_voxel_image:
+            return [
+                ImageSummary('%s/act_Qattention' % self._name,
+                            transforms.ToTensor()(visualise_voxel(
+                                self._act_voxel_grid.cpu().numpy(),
+                                self._act_qvalues.cpu().numpy(),
+                                self._act_max_coordinate.cpu().numpy())))]
+        else:
+            return []
 
     def load_weights(self, savedir: str):
         device = self._device if not self._training else torch.device('cuda:%d' % self._device)

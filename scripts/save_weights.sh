@@ -1,20 +1,39 @@
-# # save results to permanent storage
-# mkdir /dev/nanxiao-vol1/arm_test_kp_red_cam_3
-# mkdir /dev/nanxiao-vol1/arm_kp_red_cam_3
-# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_kp_red_cam_3
-# cp -r /tmp/arm /dev/nanxiao-vol1/arm_kp_red_cam_3
-
-# # save results to permanent storage
-# mkdir /dev/nanxiao-vol1/arm_test_unified_demos_30_multi_cam
-# mkdir /dev/nanxiao-vol1/arm_unified_demos_30_multi_cam
-# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_demos_30_multi_cam
-# cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_demos_30_multi_cam
-
 # save results to permanent storage
-mkdir /dev/nanxiao-vol1/arm_test_unified_pushcube_50demos_unified
-mkdir /dev/nanxiao-vol1/arm_unified_pushcube_50demos_unified
-cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_unified_pushcube_50demos_unified
-cp -r /tmp/arm /dev/nanxiao-vol1/arm_unified_pushcube_50demos_unified
+. scripts/train_exp_name.sh
+mkdir /dev/nanxiao-vol1/arm_test_$expname
+mkdir /dev/nanxiao-vol1/arm_$expname
+cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_$expname
+cp -r /tmp/arm /dev/nanxiao-vol1/arm_$expname
+
+# expPosefix = "peginsertionside_nose3"
+# mkdir /dev/nanxiao-vol1/arm_test_$expPosefix
+# mkdir /dev/nanxiao-vol1/arm_$expPosefix
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_$expPosefix
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_$expPosefix
+
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_pokecube
+# mkdir /dev/nanxiao-vol1/arm_pokecube
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_pokecube
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_pokecube
+
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_pushcube_se3_smaller
+# mkdir /dev/nanxiao-vol1/arm_pushcube_se3_smaller
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_pushcube_se3_smaller
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_pushcube_se3_smaller
+
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_stackcube_se3_smaller
+# mkdir /dev/nanxiao-vol1/arm_stackcube_se3_smaller
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_stackcube_se3_smaller
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_stackcube_se3_smaller
+
+# # save results to permanent storage
+# mkdir /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_wandb
+# mkdir /dev/nanxiao-vol1/arm_pushcube_50demos_80ksteps_wandb
+# cp -r /tmp/arm_test /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_wandb
+# cp -r /tmp/arm /dev/nanxiao-vol1/arm_pushcube_50demos_80ksteps_wandb
 
 # # save results to permanent storage
 # mkdir /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_60ksteps

@@ -1,22 +1,33 @@
-# # load weights from permanent storage to the runtime directory
-# cp -r /dev/nanxiao-vol1/arm_test_unified_demos_30_multi_cam/arm_test /tmp/
-# cp -r /dev/nanxiao-vol1/arm_unified_demos_30_multi_cam/arm /tmp/
-
-# # load weights from permanent storage to the runtime directory
-# cp -r /dev/nanxiao-vol1/arm_test_unified_demos_stackcube_demofixed_60ksteps/arm_test /tmp/
-# cp -r /dev/nanxiao-vol1/arm_unified_demos_stackcube_demofixed_60ksteps/arm /tmp/
-
-# # load weights from permanent storage to the runtime directory
-# cp -r /dev/nanxiao-vol1/arm_test_unified_demos_30_single_cam/arm_test /tmp/
-# cp -r /dev/nanxiao-vol1/arm_unified_demos_30_single_cam/arm /tmp/
-
-# # load weights from permanent storage to the runtime directory
-# cp -r /dev/nanxiao-vol1/arm_test_bnd_30/arm_test /tmp/
-# cp -r /dev/nanxiao-vol1/arm_bnd_30/arm /tmp/
-
 # load weights from permanent storage to the runtime directory
-cp -r /dev/nanxiao-vol1/arm_test_pushcube_50demos_unified/arm_test /tmp/
-cp -r /dev/nanxiao-vol1/arm_pushcube_50demos_unified/arm /tmp/
+. scripts/train_exp_name.sh
+cp -r /dev/nanxiao-vol1/arm_test_$expname/arm_test /tmp/
+cp -r /dev/nanxiao-vol1/arm_$expname/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# expPosefix = "peginsertionside_nose3"
+# cp -r /dev/nanxiao-vol1/arm_test_$expPosefix/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_$expPosefix/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_pokecube/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_pokecube/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_pushcube_se3_smaller/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_pushcube_se3_smaller/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_stackcube_se3_smaller/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_stackcube_se3_smaller/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_stackcube_se3/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_stackcube_se3/arm /tmp/
+
+# # load weights from permanent storage to the runtime directory
+# cp -r /dev/nanxiao-vol1/arm_test_pushcube_50demos_80ksteps_wandb/arm_test /tmp/
+# cp -r /dev/nanxiao-vol1/arm_pushcube_50demos_80ksteps_wandb/arm /tmp/
+
 
 # cp -r /dev/nanxiao-vol1/arm_test_bnd/arm_test /tmp/
 # cp -r /dev/nanxiao-vol1/arm_bnd/arm /tmp/

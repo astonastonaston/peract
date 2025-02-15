@@ -4,12 +4,12 @@ method:
 maniskill3:
   # multi-task training is not supported yet
   task_name: "multi"
-  tasks: [StackCube-v1]
+  tasks: [PegInsertionSide-v1]
   episode_length: 12 # TODO: Set this number. Note this is the number of POSE-based plannings to do
-  traj_path: /peract/demos/StackCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
-  json_path: /peract/demos/StackCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
+  traj_path: /peract/demos/PegInsertionSide-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
+  json_path: /peract/demos/PegInsertionSide-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   desc_pkl_path: /peract/desc.pkl
-  cameras: [base_camera, hand_camera]
+  cameras: [base_camera, left_shoulder_camera, right_shoulder_camera, hand_camera]
   camera_resolution: [128, 128]
   scene_bounds: [-0.4, -0.4, -0.4, 0.5, 0.5, 0.5]
   time_in_state: True
@@ -25,13 +25,13 @@ framework:
   start_seed: 0
   record_every_n: 5
   eval_envs: 1
-  eval_from_eps_number: 50 # current eatio: train/val/test = 150/25/25
+  eval_from_eps_number: 100 # current eatio: train/val/test = 150/25/25
   eval_episodes: 100
   eval_demo_type: 'motionplanning'
   # eval_type: 'last' # or 'best'
   eval_type: 'missing' # or 'best'
   eval_save_metrics: True
-  eval_save_voxel_images: True # whether or not to save voxel images for each pose step during evaluation
+  eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
 
 cinematic_recorder:
   enabled: False
@@ -43,5 +43,6 @@ cinematic_recorder:
 wandb:
   use: True
   project_name: 'peract'
-  se3aug: True
-  exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}'
+  se3aug: False
+  stopinit: 8
+  exp_name: 'peract-eval-mv2-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}-steps-${maniskill3.episode_length}-stopinit-${wandb.stopinit}'

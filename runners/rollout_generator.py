@@ -24,7 +24,7 @@ class RolloutGenerator(object):
                   episode_length: int, timesteps: int,
                   eval: bool, lang_goal: list[str], eval_demo_seed: int = 0, 
                   reset_kwargs: dict = None, vis_pose=False,
-                  gripper_open_delta: float = 1e-3):
+                  gripper_open_delta: float = 1e-3, save_voxel_images=False):
                 #   record_enabled: bool = False):
 
         # reset env and agent 
@@ -61,7 +61,8 @@ class RolloutGenerator(object):
             prepped_data = {k: v[-1] for k, v in obs_history.items()} # use the latest obs as input
 
             act_result = agent.act(step, prepped_data,
-                                   deterministic=eval)
+                                   deterministic=eval,
+                                   save_voxel_images=save_voxel_images)
             agent_obs_elems = {k: np.array(v) for k, v in
                                act_result.observation_elements.items()}
             agent_obs_elems["lang_goal_tokens"] = lang_goal_tokens
@@ -92,7 +93,7 @@ class RolloutGenerator(object):
             if step == episode_length - 1: # manually truncate if max pose-based control episodic steps is reached
                 truncated = True
             if info["plan_failed"]: # if planning failed, truncate this episode
-                print("Planning failed! Restarting another episode")
+                # print("Planning failed! Restarting another episode")
                 truncated = True
                 
             obs["lang_goal_tokens"] = lang_goal_tokens # all data arrays in obs should be torch.Tensor

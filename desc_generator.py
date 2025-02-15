@@ -12,6 +12,12 @@ task_descriptions = {
     ],
     "PickCube-v1": [
         "grasp the red cube and move it to the target goal position, then release the cube in a stable position without it falling."
+    ],
+    "PokeCube-v1": [
+        "Pick a peg and then use it to poke a red cube and then push it to a red white target goal position."
+    ],
+    "PegInsertionSide-v1": [
+        "Pick up a orange-white peg and insert the orange end into the box with a hole in it."
     ]
 }
 
