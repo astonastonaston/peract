@@ -74,7 +74,7 @@ def keypoint_discovery(d_idx, h5_file, json_data, stopped_buffer_init_val=16,
     episode_keypoints = []
     demo = h5_file[f"traj_{d_idx}"]
     demo_len = _get_demo_len(demo)
-    # print(f"Demo len {demo_len}")
+    # print(f"Demo length {demo_len}")
     
     if method == 'heuristic':
         # Heuristically select keypoints by robot-stop checking and gripper-open checking.

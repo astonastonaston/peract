@@ -71,28 +71,6 @@ def eval_seed(train_cfg,
 
     cwd = os.getcwd()
     weightsdir = os.path.join(logdir, 'weights')
-
-    # env_runner = IndependentEnvRunner(
-    #     train_env=None,
-    #     agent=agent,
-    #     train_replay_buffer=None,
-    #     num_train_envs=0,
-    #     num_eval_envs=eval_cfg.framework.eval_envs,
-    #     rollout_episodes=99999,
-    #     eval_episodes=eval_cfg.framework.eval_episodes,
-    #     training_iterations=train_cfg.framework.training_iterations,
-    #     eval_from_eps_number=eval_cfg.framework.eval_from_eps_number,
-    #     episode_length=eval_cfg.maniskill3.episode_length, # max episode length
-    #     stat_accumulator=stat_accum,
-    #     weightsdir=weightsdir,
-    #     logdir=logdir,
-    #     env_device=env_device,
-    #     rollout_generator=rg,
-    #     num_eval_runs=len(tasks),
-    #     multi_task=multi_task,
-    #     json_path=eval_cfg.maniskill3.json_path,
-    #     eval_save_voxel_images=eval_cfg.framework.eval_save_voxel_images)
-
     manager = Manager()
     save_load_lock = manager.Lock()
     writer_lock = manager.Lock()
@@ -181,8 +159,6 @@ def eval_seed(train_cfg,
     # NOTE: in multi-task settings, each task is evaluated serially, which makes everything slow!
     split_n = utils.split_list(num_weights_to_eval, eval_cfg.framework.eval_envs)
     for split in split_n:
-        # processes = []
-        # print(f"The number of processes {len(split), sapien.Device('cuda')}")
         for e_idx, weight_idx in enumerate(split):
             weight = weight_folders[weight_idx]
             env_runner = IndependentEnvRunner(
@@ -215,22 +191,6 @@ def eval_seed(train_cfg,
                             train_cfg,
                             wandb_run)
 
-        #     # TODO: the maniskill gym env is already parallalized, so don't need to rewrite torch multi-processing again
-        #     p = Process(target=env_runner.start,
-        #                 args=(weight,
-        #                       save_load_lock,
-        #                       writer_lock,
-        #                       env_config,
-        #                       train_config,
-        #                       e_idx % torch.cuda.device_count(),
-        #                       eval_cfg,
-        #                       train_cfg,
-        #                       wandb_run))
-        #     p.start()
-        #     processes.append(p)
-        # for p in processes:
-        #     p.join()
-
     del env_runner
     del agent
     gc.collect()
@@ -260,8 +220,6 @@ def main(eval_cfg: DictConfig) -> None:
     control_mode = 'pd_joint_pos'
 
     # Load language goal
-    # eval_cfg.maniskill3.cameras = eval_cfg.maniskill3.cameras if isinstance(
-    #     eval_cfg.maniskill3.cameras, ListConfig) else [eval_cfg.maniskill3.cameras]
     if os.path.exists(eval_cfg.maniskill3.desc_pkl_path):
         with open(eval_cfg.maniskill3.desc_pkl_path, "rb") as f:
             lang_goal = pickle.load(f) # TODO: only single-task lang goal supported yet
@@ -320,7 +278,6 @@ def main(eval_cfg: DictConfig) -> None:
         env_config = parse_env_cfg(eval_cfg, train_cfg)
 
     else:
-        # TODO: add task existance check for ms3
         task = eval_cfg.maniskill3.tasks[0]
         multi_task = False
         env_config = parse_env_cfg(eval_cfg, train_cfg)    
@@ -329,7 +286,6 @@ def main(eval_cfg: DictConfig) -> None:
     eval_seed(train_cfg,
               eval_cfg,
               logdir,
-            #   eval_cfg.maniskill3.cameras,
               env_device,
               multi_task, start_seed,
               env_config,

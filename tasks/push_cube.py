@@ -1,5 +1,5 @@
 # Adapted from https://github.com/haosulab/ManiSkill/blob/main/mani_skill/envs/tasks/tabletop/push_cube.py
-# This is the multi-camera PushCube-v1 env. It's useless for now
+# This is the multi-camera PushCube-v1 env
 """
 Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
 

@@ -8,6 +8,7 @@ data/
 build/
 videos/
 outputs/
+scripts/
 voxel_visualizer.ipynb
 demo_visualizers.ipynb
 pcd_visualizer.py

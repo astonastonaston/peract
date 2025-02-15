@@ -3,10 +3,7 @@
 
 
 Perceiver-Actor (PerAct) ([Perceiver-Actor: A Multi-Task Transformer for Robotic Manipulation](https://arxiv.org/abs/2209.05451)) is an end-to-end, language-conditioned behavior cloning agent that learns policies for diverse robotic manipulation tasks using a small number of demonstrations per task. 
-This repo reproduces PerAct on Maniskill. Codes are adapted from https://github.com/peract/peract
-
-
-![](media/sim_tasks.gif)
+This repo reproduces PerAct on ManiSkill3. Codes are adapted from https://github.com/peract/peract
 
 
 
@@ -65,10 +62,16 @@ Install CLIP from their github repo:
 pip install git+https://github.com/openai/CLIP.git
 ```
 
+#### 6. wandb logging
+We support logging your training or evaluation results to your wandb account if you have one. To do so, you can first login via command line, and later change your train/eval configs to set your project and experiment names.
+
+```bash 
+pip install wandb && wandb login your_token
+```
 
 ## Data Generation
 
-### Replay Demonstration
+### Demonstration Replay
 
 Download demonstrations for a desired task e.g. **PushCube-v1**. "-o" specifies the output directory of your downloaded demo.
 
@@ -77,7 +80,7 @@ mkdir demos
 python -m mani_skill.utils.download_demo "PushCube-v1" -o "demos"
 ```
 
-Then, we need to process the demonstrations (for PushCube-v1) in preparation for the learning workflow. Note that we replayed 60 demos though not all frames in them are useful: We only extract and use the keyframes. Hence, the replay buffer size during training is not that big.
+Then, we need to convert the demonstrations to those under point cloud observation mode.
 
 ```bash 
 python -m replay_tools.replay_trajectory \
@@ -88,7 +91,7 @@ python -m replay_tools.replay_trajectory \
 --count 60
 ```
 
-After running this, you can obtain the task trajectories with pointclouds needed for voxelization and training.
+After running this, you can obtain trajectories with pointclouds needed for voxelization and training.
 
 ### Language Goal Generation
 To generate language goal for a given task (e.g. PushCube-v1), you can run:
@@ -98,6 +101,7 @@ python desc_generator.py --task "PushCube-v1" --save_dir "demos/PushCube-v1/moti
 ```
 
 This will generate a .pkl file with a language goal description of the task under the specified directory.
+
 
 
 
@@ -116,7 +120,7 @@ cp conf/config_pushcube.yaml conf/config.yaml
 
 Note that you need to **change the following paths** in `config.yaml` for your runtime environment: 
 
-* `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (the model trained on 50 demos and evaluated over 100 episodes reaches success rate 0.55 at maximum) and **PushCube-v1** (the model trained on 50 demos and evaluated over 100 episodes reaches success rate 1 at maximum) for now. We only support single-task training for now, so only 1 task can be in the list
+* `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (with success rate 0.55 at maximum, trained on 50 demos and evaluated over 100 episodes) and **PushCube-v1** (with success rate 1 at maximum) for now. We only support single-task training for now, so only 1 task can be in the list
 * `framework.logdir`: The directory to save your training results (weights, csv file with rotation and translation losses if enabled, tensorboard events, etc)
 * `maniskill3.traj_path`: The path to your Maniskill demo trajectory (the h5 file)
 * `maniskill3.json_path` : The path to your Maniskill demos trajectory metadata (the json) file. 
@@ -143,6 +147,7 @@ Here are some hyperparameters for the agent **training framework**:
 * `framework.save_freq`: The frequency for saving the weights: The number of intermediate steps between two weight saves
 * `framework.tensorboard_logging`: Whether or not to use `tensorboard` to monitor training progress and save the results of losses, weights, etc. The logs are inside `framework.logdir`
 * `framework.csv_logging`: Whether or not to save a `csv` file with logging results of losses, weights, etc. The logs are inside `framework.logdir`
+* `wandb.use`: Whether or not to use wandb for logging
 
 #### Training
 After preparing the above configs, you can simply run training with:
@@ -150,7 +155,7 @@ After preparing the above configs, you can simply run training with:
 python train.py
 ```
 
-Or, you can feed command line arguments to override the configs:
+Or, you can feed command line arguments to override the configs in the file:
 
 ```bash
 export PERACT_ROOT=$(pwd)
@@ -192,7 +197,15 @@ tensorboard --logdir={framework.logdir}
 ```
 
 
+#### Multi-Camera settings
+If you want to customize your own camera configs or try more cameras, you can modify the environment files under `tasks/` to override the default configs, and import them in `train.py`, or `eval.py`, or `replay_tools/replay_trajectory.py` depending on your needs. For instance, if you want to train PushCube-v1 with 4 cameras, you can simply modify `tasks/push_cube.py` to include 4 cameras (which is already the case), and then import it in `replay_tools/replay_trajectory.py` (to generate demonstrations) and `train.py` (to train).
 
+```python
+# In train.py and replay_tools/replay_trajectory.py
+from tasks import push_cube
+```
+
+After this, you can modify your training configs correspondingly and then start multi-view training.
 
 
 ### Evaluation
@@ -208,7 +221,7 @@ cp conf/eval_pushcube.yaml conf/eval.yaml
 Note that you need to **change the following paths** in `eval.yaml` for your runtime environment: 
 
 * `maniskill3.tasks`: The task to evaluate on. We only support **StackCube-v1** and **PushCube-v1** for now. We only support single-task evaluation for now, so only 1 task can be in the list
-* `maniskill3.traj_path`: The path to your Maniskill evaluation demo trajectory (the h5 file), though it's not actually used and we only use the ids to generate evaluation trajectories
+* `maniskill3.traj_path`: The path to your Maniskill evaluation demo trajectory (the h5 file). We only use the ids to generate evaluation trajectories
 * `maniskill3.json_path` : The path to your Maniskill evaluation demos trajectory metadata (the json file)
 * `maniskill3.desc_pkl_path`: The path to your language goal file 
 * `framework.logdir`: The directory to find weights and save your evaluation results
@@ -268,19 +281,6 @@ tensorboard --logdir={framework.logdir}
 ```
 
 
-<!-- 
-## Hardware Requirements
-
-Here the single-task PerAct agent was trained with 1 RTX 2080 card with batch_size=1 and 16GB of memory, 
-and it's sufficient to solve basic tasks like PushCube-v1 and StackCube-v1.
-
-Tested with:
-- **GPU** - NVIDIA GTX 1660
-- **CPU** - Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz
-- **RAM** - 16GB
-- **OS** - Ubuntu 20.04
-
-For inference, a single GPU is sufficient. -->
 
 ## Acknowledgements
 
@@ -312,15 +312,21 @@ Original: [https://github.com/openai/CLIP](https://github.com/openai/CLIP)
 License: [MIT](https://github.com/openai/CLIP/blob/main/LICENSE)  
 Changes: Minor modifications to extract token and sentence features.
 
+#### ManiSkill3
+
+Original: [https://github.com/haosulab/ManiSkill](https://github.com/haosulab/ManiSkill)  
+License: [MIT](https://github.com/haosulab/ManiSkill/blob/main/LICENSE)  
+Changes: Modified some environments to support multi-camera observations. Customized trajectory replay tools for generating replays from certain episode on.
+
 Thanks for open-sourcing! 
 
 ## Licenses
 - [PerAct License (Apache 2.0)](LICENSE) - Perceiver-Actor Transformer
-- [ARM License](ARM_LICENSE) - Voxelization and Data Preprocessing 
-- [PyRep License (MIT)](https://github.com/stepjam/PyRep/blob/master/LICENSE)
+- [ARM License](ARM_LICENSE) - Voxelization and Data Preprocessing
 - [Perceiver PyTorch License (MIT)](https://github.com/lucidrains/perceiver-pytorch/blob/main/LICENSE)
 - [LAMB License (MIT)](https://github.com/cybertronai/pytorch-lamb/blob/master/LICENSE)
 - [CLIP License (MIT)](https://github.com/openai/CLIP/blob/main/LICENSE)
+- [ManiSkill3 License (Apache 2.0)](https://github.com/haosulab/ManiSkill/blob/main/LICENSE)
 
 ## Release Notes
 
@@ -360,3 +366,12 @@ TBC
 }
 ```
 
+**ManiSkill3**
+```
+@article{taomaniskill3,
+  title={ManiSkill3: GPU Parallelized Robotics Simulation and Rendering for Generalizable Embodied AI},
+  author={Stone Tao and Fanbo Xiang and Arth Shukla and Yuzhe Qin and Xander Hinrichsen and Xiaodi Yuan and Chen Bao and Xinsong Lin and Yulin Liu and Tse-kai Chan and Yuan Gao and Xuanlin Li and Tongzhou Mu and Nan Xiao and Arnav Gurha and Zhiao Huang and Roberto Calandra and Rui Chen and Shan Luo and Hao Su},
+  journal = {arXiv preprint arXiv:2410.00425},
+  year={2024},
+} 
+```

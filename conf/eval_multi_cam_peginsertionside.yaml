@@ -28,7 +28,6 @@ framework:
   eval_from_eps_number: 100 # current eatio: train/val/test = 150/25/25
   eval_episodes: 100
   eval_demo_type: 'motionplanning'
-  # eval_type: 'last' # or 'best'
   eval_type: 'missing' # or 'best'
   eval_save_metrics: True
   eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation

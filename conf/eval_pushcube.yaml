@@ -27,9 +27,8 @@ framework:
 
   eval_envs: 1
   eval_from_eps_number: 50 # current eatio: train/val/test = 150/25/25
-  eval_episodes: 100
+  eval_episodes: 10
   eval_demo_type: 'motionplanning'
-  # eval_type: 'last'
   eval_type: 'missing'
   eval_save_metrics: True
   eval_save_voxel_images: False # whether or not to save voxel images for each pose step during evaluation
@@ -45,4 +44,5 @@ wandb:
   use: True
   project_name: 'peract'
   se3aug: True
+  stopinit: 8
   exp_name: 'peract-eval-${maniskill3.tasks[0]}-motionplanning-demos-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}'

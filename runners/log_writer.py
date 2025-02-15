@@ -71,7 +71,6 @@ class LogWriter(object):
                 self._train_row_data[name] = value.item() if isinstance(
                     value, torch.Tensor) else value
         if self._wandb_logging:
-            # TODO: log scalar item to wandb
             # print(f"wandb adding {name} {value} {i} {type(name), type(value), type(i)}")
             self._wandb_run.log(data={name: value}, step=int(i))
 
@@ -107,15 +106,6 @@ class LogWriter(object):
                         image = wb.Image(v, caption=summary.name)
                         images = [image]
                         self._wandb_run.log(data={summary.name: images}, step=int(i))
-                    # elif isinstance(summary, HistogramSummary):
-                    #     # print(summary.name)
-                    #     # print(summary.value.shape)
-                    #     # print(len(summary.value))
-                    #     # print(summary.value[0])
-                    #     # data = [[s] for s in summary.value]
-                    #     table = wb.Table(data=[summary.value], columns=[summary.name])
-                    #     self._wandb_run.log(data={summary.name: wb.plot.histogram(table, summary.name,
-                    #         title=summary.name)}, step=int(i))
                     elif isinstance(summary, VideoSummary):
                         self._wandb_run.log(data={summary.name: wb.Video(summary.value)}, step=int(i))
 

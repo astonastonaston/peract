@@ -105,7 +105,6 @@ framework:
   transitions_before_train: 200
   tensorboard_logging: True
   csv_logging: True
-  # training_iterations: 15000
   training_iterations: 80000
   gpu: 0
   env_gpu: 0

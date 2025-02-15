@@ -54,10 +54,6 @@ method:
   crop_augmentation: True
   transform_augmentation:
     apply_se3: False
-    # aug_xyz: [ 0.050, 0.050, 0.050 ]
-    # aug_rpy: [ 0.0, 0.0, 15.0 ]
-    # aug_xyz: [0.125, 0.125, 0.125]
-    # aug_rpy: [0.0, 0.0, 45.0]
     aug_xyz: [0.025, 0.025, 0.025]
     aug_rpy: [0.0, 0.0, 5.0]
     aug_rot_resolution: ${method.rotation_resolution}
@@ -95,8 +91,6 @@ replay:
   save_keypoints: True
   save_keypoints_dir: "/tmp/arm"
   stop_buffer_init_val: 8 # set this bigger to allow for fewer keyframes
-  # stop_buffer_init_val: 12 # set this bigger to allow for fewer keyframes
-  # stop_buffer_init_val: 15 # set this bigger to allow for fewer keyframes
   stopping_delta: 0.15 # for StackCube, for the similar reason above, detection of this stop should be faster than gripper close detection
   skip_stopped_steps: 16 # The number of steps skipped for robot-stop-checking for keyframe discovery
   gripper_open_delta: 0.03 # for stackcube, the gripper is counted closed while grasping the cube, so this threshold is bigger

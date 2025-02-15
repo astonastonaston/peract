@@ -88,7 +88,6 @@ def create_replay(batch_size: int, timesteps: int,
         ReplayElement('task', (),
                       str),
         ReplayElement('lang_goal', (),
-        # ReplayElement('lang_goal', (1,),
                       object),  # language goal string for debugging and visualization
         ReplayElement('demo_number', (),
                       np.int32),
@@ -218,7 +217,7 @@ def _add_keypoints_to_replay(
             'rot_grip_action_indicies': rot_grip_indicies,
             'gripper_pose': demo_loading_utils._get_gripper_pose(demo, tpl_index),
             'task': task,
-            'lang_goal': np.array(description, dtype=object), # TODO: should be token embeddings ???
+            'lang_goal': np.array(description, dtype=object),
             'demo_number': demo_number,
             'input_frame': i,
             'supervision_frame': tpl_index
@@ -246,7 +245,6 @@ def _add_keypoints_to_replay(
 
 
 def fill_replay(cfg: DictConfig,
-                # obs_config: ObservationConfig,
                 rank: int,
                 replay: ReplayBuffer,
                 task: str,
@@ -311,11 +309,6 @@ def fill_replay(cfg: DictConfig,
             if len(episode_keypoints) == 0:
                 break
 
-            # # small trick: ignore frames closed to the keyframes from the back
-            # kp = episode_keypoints[0]
-            # if kp - i <= 10:
-            #     continue
-
             # print(f"Adding demo at frame index {d_idx, i}")
             _add_keypoints_to_replay(
                 cfg, task, replay, demo_ep, i, demo_meta_data, episode_keypoints, cameras,
@@ -335,7 +328,6 @@ def fill_replay(cfg: DictConfig,
 
 
 def fill_multi_task_replay(cfg: DictConfig,
-                        #    obs_config: ObservationConfig, # TODO: add obs config back when it's ready
                            rank: int,
                            replay: ReplayBuffer,
                            tasks: List[str],
@@ -372,7 +364,6 @@ def fill_multi_task_replay(cfg: DictConfig,
             model_device = torch.device('cuda:%s' % (e_idx % torch.cuda.device_count())
                                         if torch.cuda.is_available() else 'cpu')
             p = Process(target=fill_replay, args=(cfg,
-                                                #   obs_config,
                                                   rank,
                                                   replay,
                                                   task,

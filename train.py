@@ -12,8 +12,6 @@ from omegaconf import DictConfig, OmegaConf, ListConfig
 from tasks import peg_insertion_side
 
 import run_seed_fn
-# from helpers.utils import create_obs_config
-
 import torch.multiprocessing as mp
 mp.set_sharing_strategy('file_system')
 from torch.multiprocessing import set_start_method, get_start_method
@@ -78,7 +76,6 @@ def main(cfg: DictConfig) -> None:
         world_size = cfg.ddp.num_devices
         mp.spawn(run_seed_fn.run_seed,
                  args=(cfg,
-                    #    obs_config,
                        cfg.maniskill3.cameras,
                        multi_task,
                        seed,

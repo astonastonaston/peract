@@ -92,7 +92,6 @@ class IndependentEnvRunner(object):
             self._multi_task = multi_task
             self._eval_save_voxel_images = eval_save_voxel_images
             self._json_path = json_path
-            # self._demo_meta_data = load_json(json_path)
             manager = Manager()
             self.write_lock = manager.Lock()
             self.stored_transitions = manager.list()
@@ -312,9 +311,6 @@ class IndependentEnvRunner(object):
             with writer_lock:
                 writer.end_iteration()
                 # pass
-
-        # logging.info('Finished evaluation.')
-        # env.shutdown()
 
     # serialized evaluator for individual tasks
     def start(self, weight,

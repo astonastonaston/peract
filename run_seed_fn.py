@@ -20,7 +20,6 @@ from runners.stat_accumulator import SimpleAccumulator
 
 def run_seed(rank,
              cfg: DictConfig,
-            #  obs_config: ObservationConfig,
              cams,
              multi_task,
              seed,
@@ -58,7 +57,6 @@ def run_seed(rank,
 
         peract_bc.launch_utils.fill_multi_task_replay(
             cfg, rank,
-            # cfg, obs_config, rank, # TODO: add obs config back when it's ready
             replay_buffer, tasks, cfg.maniskill3.demos,
             cfg.method.demo_augmentation, cfg.method.demo_augmentation_every_n,
             cams, cfg.maniskill3.scene_bounds,
