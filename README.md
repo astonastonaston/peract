@@ -1,11 +1,7 @@
 # Perceiver-Actor
 
-
-
 Perceiver-Actor (PerAct) ([Perceiver-Actor: A Multi-Task Transformer for Robotic Manipulation](https://arxiv.org/abs/2209.05451)) is an end-to-end, language-conditioned behavior cloning agent that learns policies for diverse robotic manipulation tasks using a small number of demonstrations per task. 
 This repo reproduces PerAct on ManiSkill3. Codes are adapted from https://github.com/peract/peract
-
-
 
 ## Guides
 
