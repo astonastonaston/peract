@@ -98,10 +98,10 @@ class PegInsertionSideEnv(BaseEnv):
     @property
     def _default_sensor_configs(self):
         pose = sapien_utils.look_at([0, -0.3, 0.2], [0, 0, 0.1])
-        left_shoulder_pose = sapien_utils.look_at(eye=[-0.1, 0.3, 0.6], target=[-0.1, 0, 0.1])
-        right_shoulder_pose = sapien_utils.look_at(eye=[-0.1, -0.2, 0.6], target=[-0.1, 0, 0.1])
-        # left_shoulder_pose = sapien_utils.look_at(eye=[0.2, -0.1, 0.2], target=[-0.1, 0.1, 0.1])
-        # right_shoulder_pose = sapien_utils.look_at(eye=[-0.2, 0, 0.2], target=[-0.1, 0.1, 0.1])
+        # left_shoulder_pose = sapien_utils.look_at(eye=[-0.1, 0.3, 0.6], target=[-0.1, 0, 0.1])
+        # right_shoulder_pose = sapien_utils.look_at(eye=[-0.1, -0.2, 0.6], target=[-0.1, 0, 0.1])
+        left_shoulder_pose = sapien_utils.look_at(eye=[0.2, -0.1, 0.2], target=[-0.1, 0.1, 0.1])
+        right_shoulder_pose = sapien_utils.look_at(eye=[-0.2, 0, 0.2], target=[-0.1, 0.1, 0.1])
         return [CameraConfig("base_camera", pose, 128, 128, np.pi / 2, 0.01, 100),
             CameraConfig(
                 "left_shoulder_camera",
