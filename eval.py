@@ -100,7 +100,7 @@ def eval_seed(train_cfg,
     # evaluate all checkpoints (0, 1000, ...) which don't have results, i.e. validation phase
     if eval_cfg.framework.eval_type == 'missing':
         weight_folders = os.listdir(weightsdir)
-        weight_folders = sorted(map(int, weight_folders), reverse=True)
+        weight_folders = sorted(map(int, weight_folders))
 
         env_data_csv_file = os.path.join(logdir, 'eval_data.csv')
         if os.path.exists(env_data_csv_file):

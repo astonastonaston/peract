@@ -45,5 +45,5 @@ wandb:
   project_name: 'peract'
   se3aug: False
   stopinit: 8
-  demo: 50
+  demo: 100
   exp_name: 'peract-eval-mv2-${maniskill3.tasks[0]}-motionplanning-demos-${wandb.demo}-episodes-${framework.eval_episodes}-seed-${framework.start_seed}-${framework.eval_type}-se3aug-${wandb.se3aug}-steps-${maniskill3.episode_length}-stopinit-${wandb.stopinit}'
