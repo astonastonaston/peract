@@ -103,7 +103,6 @@ This will generate a .pkl file with a language goal description of the task unde
 
 ## Training and Evaluation
 
-
 ### Training
 
 #### Config preparations
@@ -116,7 +115,7 @@ cp conf/config_pushcube.yaml conf/config.yaml
 
 Note that you need to **change the following paths** in `config.yaml` for your runtime environment: 
 
-* `maniskill3.tasks`: The task to train on. We only support **StackCube-v1** (with success rate 0.55 at maximum, trained on 50 demos and evaluated over 100 episodes) and **PushCube-v1** (with success rate 1 at maximum) for now. We only support single-task training for now, so only 1 task can be in the list
+* `maniskill3.tasks`: The task to train on (e.g. PushCube-v1). We only support single-task training for now, so only 1 task can be in the list
 * `framework.logdir`: The directory to save your training results (weights, csv file with rotation and translation losses if enabled, tensorboard events, etc)
 * `maniskill3.traj_path`: The path to your Maniskill demo trajectory (the h5 file)
 * `maniskill3.json_path` : The path to your Maniskill demos trajectory metadata (the json) file. 
@@ -279,6 +278,10 @@ tensorboard --logdir={framework.logdir}
 
 If you enabled wandb logging, you can see the logged metrics (success rates, etc) on your wandb watchboard at the moment.
 
+
+
+### Supported tasks
+For now we can solve the tasks **StackCube-v1** (with success rate 0.55 at maximum, trained on 50 demos and evaluated over 100 episodes) and **PushCube-v1** (with success rate 1 at maximum). We can run on **PegInsertionSide-v1** as well following similar training and evaluation procedures, but it's not solved yet and we're trying to solve it.
 
 
 ## Acknowledgements
