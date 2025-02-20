@@ -192,6 +192,7 @@ You may view tensorboard logging events of training in `framework.logdir` as wel
 tensorboard --logdir={framework.logdir}
 ```
 
+If you enabled wandb logging, you can see the logged metrics (losses, etc) on your wandb watchboard at the moment.
 
 #### Multi-Camera settings
 If you want to customize your own camera configs or try more cameras, you can modify the environment files under `tasks/` to override the default configs, and import them in `train.py`, or `eval.py`, or `replay_tools/replay_trajectory.py` depending on your needs. For instance, if you want to train PushCube-v1 with 4 cameras, you can simply modify `tasks/push_cube.py` to include 4 cameras (which is already the case), and then import it in `replay_tools/replay_trajectory.py` (to generate demonstrations) and `train.py` (to train).
@@ -201,7 +202,7 @@ If you want to customize your own camera configs or try more cameras, you can mo
 from tasks import push_cube
 ```
 
-After this, you can modify your training configs correspondingly and then start multi-view training.
+After this, you can modify your training configs correspondingly and then start the customized training.
 
 
 ### Evaluation
@@ -275,6 +276,8 @@ You may view tensorboard logging events of evaluation in `framework.logdir` as w
 ```
 tensorboard --logdir={framework.logdir}
 ```
+
+If you enabled wandb logging, you can see the logged metrics (success rates, etc) on your wandb watchboard at the moment.
 
 
 
