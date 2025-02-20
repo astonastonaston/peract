@@ -311,8 +311,8 @@ We have successfully solved **StackCube-v1** and **PushCube-v1** using 4 cameras
 
 | Task                 | Success-Once Rate | Training Demos | Evaluation Episodes | Cameras | Status       |
 |----------------------|-------------|---------------|--------------------|---------|-------------|
-| **StackCube-v1**     | 0.55        | 50            | 100                | 4       | Solved      |
 | **PushCube-v1**      | 1.00        | 50            | 100                | 4       | Solved      |
+| **StackCube-v1**     | 0.55        | 50            | 100                | 4       | Solved      |
 | **PegInsertionSide-v1** | 0.01     | 50            | 100                | 4       | Unsolved    |
 
 ## Acknowledgements
