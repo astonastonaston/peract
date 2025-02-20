@@ -309,7 +309,7 @@ and then start the evaluation.
 
 We have successfully solved **StackCube-v1** and **PushCube-v1** using 4 cameras configured similar to PerAct. The following figure shows the success rates under the given training and evaluation conditions. We can run **PegInsertionSide-v1** as well but it remains unsolved, and we are actively working on solving it.
 
-| Task                 | Success Rate | Training Demos | Evaluation Episodes | Cameras | Status       |
+| Task                 | Success-Once Rate | Training Demos | Evaluation Episodes | Cameras | Status       |
 |----------------------|-------------|---------------|--------------------|---------|-------------|
 | **StackCube-v1**     | 0.55        | 50            | 100                | 4       | Solved      |
 | **PushCube-v1**      | 1.00        | 50            | 100                | 4       | Solved      |
