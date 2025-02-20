@@ -194,15 +194,22 @@ tensorboard --logdir={framework.logdir}
 If you enabled wandb logging, you can see the logged metrics (losses, etc) on your wandb watchboard at the moment.
 
 #### Multi-Camera settings
-If you want to customize your own camera configs or try more cameras, you can modify the environment files under `tasks/` to override the default configs, and import them in `train.py`, or `eval.py`, or `replay_tools/replay_trajectory.py` depending on your needs. For instance, if you want to train PushCube-v1 with 4 cameras, you can simply modify `tasks/push_cube.py` to include 4 cameras (which is already the case), and then import it in `replay_tools/replay_trajectory.py` (to generate demonstrations) and `train.py` (to train).
+If you want to customize your own camera configs or try more cameras, you can modify the environment files under `tasks/` to override the default configs, and import them in `train.py`, or `eval.py`, or `replay_tools/replay_trajectory.py` depending on your needs. 
+
+For instance, if you want to train **PushCube-v1** with 4 cameras, you can simply modify `tasks/push_cube.py` to include 4 cameras (which is already the case), and then import it in `replay_tools/replay_trajectory.py` (to generate demonstrations) and `train.py` (to train).
 
 ```python
 # In train.py and replay_tools/replay_trajectory.py
 from tasks import push_cube
 ```
 
-After this, you can modify your training configs correspondingly and then start the customized training.
+After this, you can modify your training configs correspondingly. For supported tasks like **PushCube-v1**, you can simply copy the pre-defined multi-camera configs and change the dataset and log paths:
 
+```bash
+cp conf/config_multi_cam_pushcube.yaml conf/config.yaml
+```
+
+and then start the training. 
 
 ### Evaluation
 #### Config preparations
@@ -216,7 +223,7 @@ cp conf/eval_pushcube.yaml conf/eval.yaml
 
 Note that you need to **change the following paths** in `eval.yaml` for your runtime environment: 
 
-* `maniskill3.tasks`: The task to evaluate on. We only support **StackCube-v1** and **PushCube-v1** for now. We only support single-task evaluation for now, so only 1 task can be in the list
+* `maniskill3.tasks`: The task to evaluate on. We only support single-task evaluation for now, so only 1 task can be in the list
 * `maniskill3.traj_path`: The path to your Maniskill evaluation demo trajectory (the h5 file). We only use the ids to generate evaluation trajectories
 * `maniskill3.json_path` : The path to your Maniskill evaluation demos trajectory metadata (the json file)
 * `maniskill3.desc_pkl_path`: The path to your language goal file 
@@ -279,10 +286,34 @@ tensorboard --logdir={framework.logdir}
 If you enabled wandb logging, you can see the logged metrics (success rates, etc) on your wandb watchboard at the moment.
 
 
+#### Multi-Camera settings
+Similar to training, you can modify the environment files under `tasks/` to override the default configs, and import them in `eval.py` to evaluate under different camera settings. 
+
+For instance, if you want to evaluate **PushCube-v1** under 4 cameras, you can simply modify `tasks/push_cube.py` to include 4 cameras (which is already the case), and then import it in `eval.py`.
+
+```python
+# In eval.py
+from tasks import push_cube
+```
+
+After this, you can modify your evaluation configs correspondingly. For supported tasks like **PushCube-v1**, you can simply copy the pre-defined configs and change the dataset and log paths:
+
+```bash
+cp conf/eval_multi_cam_pushcube.yaml conf/eval.yaml
+```
+
+and then start the evaluation. 
+
 
 ### Supported tasks
-For now we can solve the tasks **StackCube-v1** (with success rate 0.55 at maximum, trained on 50 demos and evaluated over 100 episodes) and **PushCube-v1** (with success rate 1 at maximum). We can run on **PegInsertionSide-v1** as well following similar training and evaluation procedures, but it's not solved yet and we're trying to solve it.
 
+We have successfully solved **StackCube-v1** and **PushCube-v1** using 4 cameras configured similar to PerAct. The following figure shows the success rates under the given training and evaluation conditions. We can run **PegInsertionSide-v1** as well but it remains unsolved, and we are actively working on solving it.
+
+| Task                 | Success Rate | Training Demos | Evaluation Episodes | Cameras | Status       |
+|----------------------|-------------|---------------|--------------------|---------|-------------|
+| **StackCube-v1**     | 0.55        | 50            | 100                | 4       | Solved      |
+| **PushCube-v1**      | 1.00        | 50            | 100                | 4       | Solved      |
+| **PegInsertionSide-v1** | 0.01     | 50            | 100                | 4       | Unsolved    |
 
 ## Acknowledgements
 
