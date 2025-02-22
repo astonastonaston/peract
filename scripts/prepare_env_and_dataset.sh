@@ -5,7 +5,7 @@
 pip install --upgrade pip
 
 # install mani_skill
-pip install git+https://github.com/haosulab/ManiSkill.git 
+pip install mani_skill==3.0.0b18
 
 # install necessary python libraries
 pip install -r requirements.txt
