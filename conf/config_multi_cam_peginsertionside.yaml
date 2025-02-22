@@ -76,7 +76,7 @@ maniskill3:
   task_name: "multi" # multi-task training is not supported yet. This is actually for just single-task
   tasks: [ PegInsertionSide-v1 ]
   episode_length: 15 # for StackCube, since the small stop_buffer_init_val (required by the grasp aligning step) brings noise from static frame after grasping the cube, we need more fault-tolerant steps  
-  demos: 300
+  demos: 500
   traj_path: /peract/demos/PegInsertionSide-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5
   json_path: /peract/demos/PegInsertionSide-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json
   desc_pkl_path: /peract/demos/PegInsertionSide-v1/motionplanning/desc.pkl
@@ -104,14 +104,14 @@ replay:
   max_parallel_processes: 32
 
 framework:
-  log_freq: 1000 # frequency to save loss logs
-  save_freq: 1000 # frequency to save weights
+  log_freq: 5000 # frequency to save loss logs
+  save_freq: 5000 # frequency to save weights
   train_envs: 1
   replay_ratio: ${replay.batch_size}
   transitions_before_train: 200
   tensorboard_logging: True
   csv_logging: True
-  training_iterations: 200000
+  training_iterations: 300000
   gpu: 0
   env_gpu: 0
   logdir: '/tmp/arm_test/'
