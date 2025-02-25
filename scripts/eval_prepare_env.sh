@@ -5,7 +5,7 @@
 pip install --upgrade pip
 
 # install mani_skill and CLIP
-pip install git+https://github.com/haosulab/ManiSkill.git 
+pip install mani_skill==3.0.0b18
 pip install git+https://github.com/openai/CLIP.git
 
 # install necessary python libraries
