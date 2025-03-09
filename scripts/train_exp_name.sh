@@ -1,4 +1,4 @@
-export expname=peginsertionside_nose3_mv2_demo500
+export expname=peginsertionside_nose3_mv2_30steps
 export taskname=PegInsertionSide-v1
 export configname=multi_cam_peginsertionside
-export demo=500
+export demo=100

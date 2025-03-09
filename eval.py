@@ -215,21 +215,6 @@ def eval_seed(train_cfg,
                             train_cfg,
                             wandb_run)
 
-        #     # TODO: the maniskill gym env is already parallalized, so don't need to rewrite torch multi-processing again
-        #     p = Process(target=env_runner.start,
-        #                 args=(weight,
-        #                       save_load_lock,
-        #                       writer_lock,
-        #                       env_config,
-        #                       train_config,
-        #                       e_idx % torch.cuda.device_count(),
-        #                       eval_cfg,
-        #                       train_cfg,
-        #                       wandb_run))
-        #     p.start()
-        #     processes.append(p)
-        # for p in processes:
-        #     p.join()
 
     del env_runner
     del agent
