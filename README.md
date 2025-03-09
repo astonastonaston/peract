@@ -156,8 +156,8 @@ Or, you can feed command line arguments to override the configs:
 export PERACT_ROOT=$(pwd)
 python train.py \
     maniskill3.tasks=["PushCube-v1"] \
-    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5 \
-    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json \
+    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.physx_cpu.h5 \
+    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.physx_cpu.json \
     maniskill3.desc_pkl_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/desc.pkl \
     maniskill3.episode_length=6 \
     maniskill3.demos=50 \
@@ -245,8 +245,8 @@ Or, you can feed command line arguments to override the configs:
 export PERACT_ROOT=$(pwd)
 python eval.py \
     maniskill3.tasks=["PushCube-v1"] \
-    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.h5 \
-    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.cpu.json \
+    maniskill3.traj_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.physx_cpu.h5 \
+    maniskill3.json_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/trajectory.pointcloud.pd_joint_pos.physx_cpu.json \
     maniskill3.desc_pkl_path=$PERACT_ROOT/demos/PushCube-v1/motionplanning/desc.pkl \
     maniskill3.episode_length=6 \
     framework.eval_from_eps_number=50 \
